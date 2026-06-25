@@ -1,0 +1,851 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>국내 주요 조선사 수주·실적 Dashboard</title>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.3/dist/chart.umd.min.js"></script>
+  <style>
+
+  :root {
+    --bg: #f6f7f9;
+    --panel: #ffffff;
+    --text: #18212f;
+    --muted: #667085;
+    --line: #d9dee7;
+    --accent: #1f6feb;
+    --sidebar: #111827;
+    --sidebar-w: 240px;
+    --topbar-h: 52px;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: "Segoe UI", "Noto Sans KR", Arial, sans-serif;
+    font-size: 14px;
+  }
+  .topbar {
+    display: none;
+    position: sticky; top: 0; z-index: 30;
+    height: var(--topbar-h);
+    background: var(--sidebar);
+    color: #e5e7eb;
+    padding: 0 16px;
+    align-items: center;
+    gap: 12px;
+  }
+  .topbar .brand { flex: 1; font-size: 15px; font-weight: 700; }
+  .hamburger {
+    background: none; border: none; cursor: pointer;
+    color: #e5e7eb; padding: 6px;
+    display: flex; flex-direction: column; gap: 5px;
+  }
+  .hamburger span {
+    display: block; width: 22px; height: 2px;
+    background: currentColor; border-radius: 2px;
+  }
+  .sidebar-overlay {
+    display: none; position: fixed; inset: 0;
+    background: rgba(0,0,0,0.5); z-index: 40;
+  }
+  .sidebar-overlay.active { display: block; }
+  .app { display: flex; min-height: 100vh; }
+  aside {
+    width: var(--sidebar-w);
+    background: var(--sidebar);
+    color: #e5e7eb;
+    flex-shrink: 0;
+    display: flex; flex-direction: column;
+    position: sticky; top: 0; height: 100vh;
+    overflow-y: auto;
+    scrollbar-width: thin;
+    scrollbar-color: rgba(255,255,255,0.2) transparent;
+  }
+  .sidebar-header {
+    padding: 20px 16px 12px;
+    border-bottom: 1px solid rgba(255,255,255,0.08);
+    display: flex; align-items: center; justify-content: space-between;
+  }
+  .sidebar-header .brand {
+    font-size: 13px; font-weight: 700; line-height: 1.4;
+    color: #f9fafb;
+  }
+  .sidebar-close { display: none; background: none; border: none; color: #9ca3af; cursor: pointer; font-size: 18px; }
+  .company-list { padding: 8px 0; }
+  .company-list .label {
+    padding: 8px 16px 4px;
+    font-size: 10px; font-weight: 600;
+    color: #6b7280; text-transform: uppercase; letter-spacing: 0.08em;
+  }
+  .nav button {
+    display: block; width: 100%;
+    padding: 8px 16px;
+    background: none; border: none; cursor: pointer;
+    color: #9ca3af; font-size: 13px; text-align: left;
+    transition: background 0.15s, color 0.15s;
+    border-radius: 0;
+  }
+  .nav button:hover { background: rgba(255,255,255,0.06); color: #e5e7eb; }
+  .nav button.active { background: rgba(255,255,255,0.1); color: #ffffff; font-weight: 600; }
+  main {
+    flex: 1; padding: 28px 32px;
+    min-width: 0; overflow-x: hidden;
+  }
+  header { margin-bottom: 20px; }
+  header h1 { font-size: 22px; font-weight: 700; color: var(--text); }
+  header .sub { font-size: 13px; color: var(--muted); margin-top: 4px; }
+  .controls {
+    display: flex; flex-wrap: wrap; gap: 8px;
+    margin-bottom: 24px; align-items: center;
+  }
+  .controls button {
+    padding: 6px 14px; border-radius: 6px;
+    border: 1px solid var(--line);
+    background: var(--panel); color: var(--muted);
+    cursor: pointer; font-size: 13px; font-weight: 500;
+    transition: all 0.15s;
+  }
+  .controls button:hover { border-color: var(--accent); color: var(--accent); }
+  .controls button.active {
+    background: var(--accent); color: #fff; border-color: var(--accent);
+  }
+  .controls select {
+    padding: 6px 10px; border-radius: 6px;
+    border: 1px solid var(--line); background: var(--panel);
+    color: var(--text); font-size: 13px; cursor: pointer;
+  }
+  .controls .sep { color: var(--muted); font-size: 13px; }
+  .grid { display: flex; flex-direction: column; gap: 20px; }
+  .panel {
+    background: var(--panel); border-radius: 10px;
+    border: 1px solid var(--line);
+    padding: 20px;
+    overflow: hidden;
+  }
+  .panel-title {
+    font-size: 15px; font-weight: 600; color: var(--text);
+    margin-bottom: 16px;
+    display: flex; justify-content: space-between; align-items: center;
+  }
+  .panel-hint { font-size: 11px; color: var(--muted); font-weight: 400; }
+  .chart-wrap { position: relative; width: 100%; overflow: hidden; }
+  .chart-scroll { overflow-x: auto; padding-bottom: 6px; }
+  .chart-scroll canvas { min-width: 600px; }
+  .legend-area {
+    margin-top: 14px; display: flex; flex-wrap: wrap; gap: 6px;
+  }
+  .legend-chip {
+    display: inline-flex; align-items: center; gap: 5px;
+    padding: 4px 10px; border-radius: 20px;
+    border: 1.5px solid; cursor: pointer;
+    font-size: 12px; font-weight: 500;
+    transition: opacity 0.15s;
+  }
+  .legend-chip.hidden { opacity: 0.35; }
+  .legend-chip .dot {
+    width: 8px; height: 8px; border-radius: 50%;
+  }
+  .btn-row { display: flex; gap: 8px; margin-bottom: 12px; }
+  .btn-sm {
+    padding: 5px 12px; border-radius: 5px;
+    border: 1px solid var(--line);
+    background: var(--panel); color: var(--muted);
+    cursor: pointer; font-size: 12px;
+  }
+  .btn-sm:hover { background: var(--bg); }
+  table {
+    width: 100%; border-collapse: collapse;
+    font-size: 13px;
+  }
+  thead th {
+    padding: 10px 8px; background: var(--bg);
+    font-weight: 600; color: var(--muted);
+    border-bottom: 1px solid var(--line);
+    text-align: right; white-space: nowrap;
+  }
+  thead th:first-child { text-align: left; }
+  thead th:nth-child(2) { text-align: left; }
+  tbody tr { border-bottom: 1px solid var(--line); }
+  tbody tr:hover { background: #f8fafc; }
+  tbody td {
+    padding: 9px 8px; text-align: right;
+    color: var(--text); white-space: nowrap;
+  }
+  tbody td:first-child { text-align: left; color: var(--muted); font-size: 12px; }
+  tbody td:nth-child(2) { text-align: left; font-weight: 600; }
+  .pos { color: #16a34a; }
+  .neg { color: #dc2626; }
+  .excel-btn {
+    padding: 7px 14px; border-radius: 6px;
+    background: #16a34a; color: #fff;
+    border: none; cursor: pointer; font-size: 13px; font-weight: 600;
+  }
+  .excel-btn:hover { background: #15803d; }
+  .kpi-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+    gap: 12px; margin-bottom: 20px;
+  }
+  .kpi-card {
+    background: var(--panel); border-radius: 8px;
+    border: 1px solid var(--line); padding: 14px 16px;
+  }
+  .kpi-label { font-size: 11px; color: var(--muted); margin-bottom: 4px; }
+  .kpi-value { font-size: 20px; font-weight: 700; color: var(--text); }
+  .kpi-sub { font-size: 11px; color: var(--muted); margin-top: 2px; }
+  .kpi-up { color: #16a34a; }
+  .kpi-dn { color: #dc2626; }
+  .two-col { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+  @media(max-width: 900px) { .two-col { grid-template-columns: 1fr; } }
+  @media(max-width: 768px) {
+    .topbar { display: flex; }
+    aside {
+      position: fixed; left: -280px; top: 0; height: 100%;
+      width: 260px; z-index: 50;
+      transition: left 0.28s ease;
+      box-shadow: 4px 0 20px rgba(0,0,0,0.4);
+    }
+    aside.open { left: 0; }
+    .sidebar-close { display: block; }
+    main { padding: 18px 16px; }
+    .kpi-grid { grid-template-columns: repeat(2, 1fr); }
+  }
+
+
+  :root {
+    --accent: #0ea5e9;
+    --sidebar: #0c1a2e;
+  }
+  aside .nav button.active { background: #0ea5e922; color: #0ea5e9; }
+  aside .nav button:hover { background: rgba(255,255,255,0.06); }
+  .controls button.active { background: #0ea5e9; border-color: #0ea5e9; }
+  
+
+  </style>
+</head>
+<body>
+  <div class="topbar">
+    <button class="hamburger" id="menuBtn">
+      <span></span><span></span><span></span>
+    </button>
+    <span class="brand">국내 주요 조선사 수주·실적 Dashboard</span>
+  </div>
+  <div class="sidebar-overlay" id="sidebarOverlay"></div>
+  <div class="app">
+    <aside id="sidebar">
+      <div class="sidebar-header">
+        <div class="brand">국내 주요 조선사 수주·실적 Dashboard</div>
+        <button class="sidebar-close" id="sidebarClose">✕</button>
+      </div>
+      
+  <div class="company-list">
+    <div class="label">종합</div>
+    <div class="nav" id="summaryNav">
+      <button data-view="summary">분기별 실적 추이</button>
+      <button data-view="orders">수주·잔고 분석</button>
+    </div>
+  </div>
+  <div class="company-list">
+    <div class="label">기업별</div>
+    <div class="nav" id="companyNav">
+      <button data-company="HD현대중공업">HD현대중공업</button><button data-company="삼성중공업">삼성중공업</button><button data-company="한화오션">한화오션</button><button data-company="HD현대미포조선">HD현대미포조선</button><button data-company="HD현대삼호">HD현대삼호</button><button data-company="케이조선">케이조선</button>
+    </div>
+  </div>
+
+    </aside>
+    <main>
+      
+    <header>
+      <h1>국내 주요 조선사 수주·실적 Dashboard</h1>
+      <div class="sub">HD현대·삼성중공업·한화오션 등 빅3+중형 조선사 · 2022Q1~2025Q4</div>
+    </header>
+    <div class="controls">
+      <button data-metric="revenue" class="active">매출액</button>
+      <button data-metric="opProfit">영업이익</button>
+      <button data-metric="opMargin">영업이익률</button>
+      <button data-metric="netProfit">순이익</button>
+      <button data-metric="netMargin">순이익률</button>
+      <button data-metric="opCashflow">영업현금흐름</button>
+      <button data-metric="eps">EPS</button>
+      <button data-metric="roe">ROE</button>
+      <button data-metric="newOrders">신규수주</button>
+      <button data-metric="backlog">수주잔고</button>
+      <span class="sep">|</span>
+      <span style="color:#667085;font-size:13px">기간</span>
+      <select id="periodStart"></select>
+      <span class="sep">~</span>
+      <select id="periodEnd"></select>
+    </div>
+    <div class="grid" id="mainContent"></div>
+  
+    </main>
+  </div>
+  <script src="data/shipbuilding_data.js" onerror="console.log('shipbuilding_data.js 없음 — 샘플 데이터 사용')"></script>
+  <script>
+
+const COLORS = [
+  '#2563eb','#16a34a','#dc2626','#d97706','#7c3aed',
+  '#db2777','#0891b2','#65a30d','#ea580c','#9333ea',
+  '#0284c7','#059669','#b91c1c','#b45309','#6d28d9'
+];
+
+function fmt(n, digits=0) {
+  if (n === null || n === undefined || isNaN(n)) return '-';
+  return Number(n).toLocaleString('ko-KR', {minimumFractionDigits: digits, maximumFractionDigits: digits});
+}
+function fmtPct(n, digits=1) {
+  if (n === null || n === undefined || isNaN(n)) return '-';
+  return Number(n).toFixed(digits) + '%';
+}
+function fmtChange(n, unit='') {
+  if (n === null || n === undefined || isNaN(n)) return '-';
+  const sign = n > 0 ? '+' : '';
+  return sign + Number(n).toLocaleString('ko-KR') + unit;
+}
+function arrow(n) {
+  if (!n || isNaN(n)) return '';
+  return n > 0 ? '<span class="pos">▲</span>' : '<span class="neg">▼</span>';
+}
+
+// 범용 라인 차트 생성
+function makeLineChart(canvasId, labels, datasets, opts={}) {
+  const ctx = document.getElementById(canvasId).getContext('2d');
+  return new Chart(ctx, {
+    type: 'line',
+    data: { labels, datasets },
+    options: {
+      responsive: true,
+      maintainAspectRatio: opts.ratio || false,
+      interaction: { mode: 'index', intersect: false },
+      plugins: {
+        legend: { display: false },
+        tooltip: {
+          backgroundColor: 'rgba(15,23,42,0.92)',
+          titleColor: '#94a3b8', bodyColor: '#f1f5f9',
+          padding: 10, borderColor: '#334155', borderWidth: 1,
+          callbacks: {
+            label: function(ctx) {
+              const v = ctx.raw;
+              if (v === null || v === undefined) return ctx.dataset.label + ': -';
+              const unit = opts.unit || '';
+              return ctx.dataset.label + ': ' + Number(v).toLocaleString('ko-KR') + unit;
+            }
+          }
+        }
+      },
+      scales: {
+        x: {
+          grid: { color: 'rgba(0,0,0,0.05)' },
+          ticks: { font: { size: 11 }, color: '#6b7280', maxRotation: 45 }
+        },
+        y: {
+          title: { display: !!opts.unit && opts.unit !== '%', text: (opts.unit && opts.unit !== '%') ? opts.unit : '', font: { size: 11 }, color: '#94a3b8' },
+          grid: { color: 'rgba(0,0,0,0.05)' },
+          ticks: { font: { size: 11 }, color: '#6b7280',
+            callback: function(v) { if (opts.unit === '%') return v + '%'; return Number(v).toLocaleString('ko-KR', { maximumFractionDigits: 0 }); } }
+        },
+        ...(opts.y2 ? {
+          y1: {
+            type: 'linear', position: 'right',
+            grid: { drawOnChartArea: false },
+            ticks: {
+              font: { size: 11 }, color: '#6b7280',
+              callback: v => v.toFixed(1) + '%'
+            }
+          }
+        } : {})
+      }
+    }
+  });
+}
+
+// 막대 차트 생성
+function makeBarChart(canvasId, labels, datasets, opts={}) {
+  const ctx = document.getElementById(canvasId).getContext('2d');
+  return new Chart(ctx, {
+    type: 'bar',
+    data: { labels, datasets },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      interaction: { mode: 'index', intersect: false },
+      plugins: {
+        legend: { display: opts.showLegend || false, position: 'bottom', labels: { font: { size: 11 } } },
+        tooltip: {
+          backgroundColor: 'rgba(15,23,42,0.92)',
+          titleColor: '#94a3b8', bodyColor: '#f1f5f9',
+          callbacks: {
+            label: ctx => ctx.dataset.label + ': ' + Number(ctx.raw).toLocaleString('ko-KR') + (opts.unit || '')
+          }
+        }
+      },
+      scales: {
+        x: {
+          stacked: opts.stacked || false,
+          grid: { display: false },
+          ticks: { font: { size: 11 }, color: '#6b7280', maxRotation: 45 }
+        },
+        y: {
+          stacked: opts.stacked || false,
+          title: { display: !!opts.unit && opts.unit !== '%', text: (opts.unit && opts.unit !== '%') ? opts.unit : '', font: { size: 11 }, color: '#94a3b8' },
+          grid: { color: 'rgba(0,0,0,0.05)' },
+          ticks: { font: { size: 11 }, color: '#6b7280',
+            callback: function(v) { if (opts.unit === '%') return v + '%'; return Number(v).toLocaleString('ko-KR', { maximumFractionDigits: 0 }); } }
+        }
+      }
+    }
+  });
+}
+
+// 도넛 차트 생성
+function makeDonutChart(canvasId, labels, data, colors) {
+  const ctx = document.getElementById(canvasId).getContext('2d');
+  return new Chart(ctx, {
+    type: 'doughnut',
+    data: {
+      labels,
+      datasets: [{ data, backgroundColor: colors, borderWidth: 2, borderColor: '#fff' }]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      plugins: {
+        legend: { position: 'bottom', labels: { font: { size: 11 }, padding: 12 } },
+        tooltip: {
+          callbacks: {
+            label: ctx => ctx.label + ': ' + ctx.raw.toFixed(1) + '%'
+          }
+        }
+      },
+      cutout: '60%'
+    }
+  });
+}
+
+// 범례 칩 렌더링
+function renderLegend(containerId, datasets, chart) {
+  const el = document.getElementById(containerId);
+  if (!el) return;
+  el.innerHTML = '';
+  datasets.forEach((ds, i) => {
+    const chip = document.createElement('span');
+    chip.className = 'legend-chip';
+    chip.style.borderColor = ds.borderColor || COLORS[i];
+    chip.style.color = ds.borderColor || COLORS[i];
+    chip.innerHTML = '<span class="dot" style="background:' + (ds.borderColor||COLORS[i]) + '"></span>' + ds.label;
+    chip.addEventListener('click', () => {
+      const meta = chart.getDatasetMeta(i);
+      meta.hidden = !meta.hidden;
+      chip.classList.toggle('hidden', meta.hidden);
+      chart.update();
+    });
+    el.appendChild(chip);
+  });
+}
+
+// 사이드바 모바일 토글
+function initSidebar() {
+  const menuBtn = document.getElementById('menuBtn');
+  const sidebar = document.getElementById('sidebar');
+  const overlay = document.getElementById('sidebarOverlay');
+  const closeBtn = document.getElementById('sidebarClose');
+  if (menuBtn) menuBtn.addEventListener('click', () => {
+    sidebar.classList.add('open');
+    overlay.classList.add('active');
+  });
+  if (overlay) overlay.addEventListener('click', () => {
+    sidebar.classList.remove('open');
+    overlay.classList.remove('active');
+  });
+  if (closeBtn) closeBtn.addEventListener('click', () => {
+    sidebar.classList.remove('open');
+    overlay.classList.remove('active');
+  });
+}
+
+// 엑셀 다운로드 (CSV 방식)
+function downloadCsv(filename, headers, rows) {
+  const BOM = '\uFEFF';
+  const csv = BOM + [headers.join(','), ...rows.map(r => r.map(v => '"' + String(v).replace(/"/g,'""') + '"').join(','))].join('\r\n');
+  const blob = new Blob([csv], {type: 'text/csv;charset=utf-8'});
+  const a = document.createElement('a'); a.href = URL.createObjectURL(blob);
+  a.download = filename; a.click(); URL.revokeObjectURL(a.href);
+}
+
+
+const SHIP_SAMPLE = {
+  meta: {
+    title: '국내 주요 조선사 수주·실적 Dashboard',
+    quarters: ['2022Q1','2022Q2','2022Q3','2022Q4','2023Q1','2023Q2','2023Q3','2023Q4','2024Q1','2024Q2','2024Q3','2024Q4','2025Q1','2025Q2','2025Q3','2025Q4']
+  },
+  companies: [
+    { name: 'HD현대중공업', ticker: '329180',
+      revenue:     [38200,41500,40800,43200,43800,47200,46500,49800,50200,54500,53800,57200,57800,62500,61800,66000],
+      opProfit:    [-1200,-800,-500,300,800,1500,2200,3100,3800,5200,5500,6800,7200,8500,8800,10200],
+      opMargin:    [-3.1,-1.9,-1.2,0.7,1.8,3.2,4.7,6.2,7.6,9.5,10.2,11.9,12.5,13.6,14.2,15.5],
+      newOrders:   [52,48,61,45,58,72,65,80,75,88,82,95,90,105,98,112],
+      backlog:     [380,395,418,425,445,472,498,520,548,578,605,638,668,705,732,768],
+      shipTypes:   { lng: [18,16,22,15,20,25,22,28,26,30,28,33,32,36,34,38], container: [20,18,24,17,22,27,24,30,28,32,30,35,34,38,36,40], tanker: [14,14,15,13,16,20,19,22,21,26,24,27,24,31,28,34] }
+    },
+    { name: '삼성중공업', ticker: '010140',
+      revenue:     [22800,24500,24200,25800,26200,28100,27800,29600,30200,32500,32100,34200,34800,37500,37100,39500],
+      opProfit:    [-800,-500,-200,400,600,1100,1500,2100,2500,3400,3700,4500,4800,5800,6100,7200],
+      opMargin:    [-3.5,-2.0,-0.8,1.6,2.3,3.9,5.4,7.1,8.3,10.5,11.5,13.2,13.8,15.5,16.4,18.2],
+      newOrders:   [32,28,38,28,35,45,40,52,48,58,55,65,62,72,68,78],
+      backlog:     [220,228,242,248,258,272,285,298,312,332,348,368,382,404,420,440],
+      shipTypes:   { lng: [12,10,15,10,13,18,16,21,19,23,21,25,24,28,26,30], container: [12,10,15,10,13,17,15,19,18,22,20,24,22,26,24,28], tanker: [8,8,8,8,9,10,9,12,11,13,14,16,16,18,18,20] }
+    },
+    { name: '한화오션', ticker: '042660',
+      revenue:     [18500,19800,19500,20800,21200,22800,22500,24000,24500,26400,26100,27800,28200,30400,30100,32000],
+      opProfit:    [-1500,-1100,-800,-200,200,700,1000,1600,2000,2800,3100,3900,4200,5100,5400,6500],
+      opMargin:    [-8.1,-5.6,-4.1,-1.0,0.9,3.1,4.4,6.7,8.2,10.6,11.9,14.0,14.9,16.8,17.9,20.3],
+      newOrders:   [25,22,30,22,28,36,32,42,38,48,45,54,52,62,58,68],
+      backlog:     [175,183,195,200,210,222,234,246,258,274,287,302,314,332,346,362],
+      shipTypes:   { lng: [10,8,12,8,11,14,12,17,15,19,18,21,20,24,22,26], container: [9,8,11,8,10,13,12,15,14,18,17,20,19,22,21,25], tanker: [6,6,7,6,7,9,8,10,9,11,10,13,13,16,15,17] }
+    },
+    { name: 'HD현대미포조선', ticker: '010620',
+      revenue:     [8200,8800,8600,9200,9400,10100,9900,10600,10800,11600,11400,12200,12400,13300,13100,14000],
+      opProfit:    [-200,-100,50,200,350,550,700,950,1100,1450,1550,1950,2100,2600,2750,3300],
+      opMargin:    [-2.4,-1.1,0.6,2.2,3.7,5.4,7.1,9.0,10.2,12.5,13.6,16.0,16.9,19.5,21.0,23.6],
+      newOrders:   [12,10,14,10,12,16,14,18,16,20,19,23,21,25,24,28],
+      backlog:     [72,76,82,84,88,94,99,104,110,117,123,130,136,144,150,158],
+      shipTypes:   { lng: [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0], container: [5,4,6,4,5,7,6,8,7,9,8,10,9,11,10,12], tanker: [7,6,8,6,7,9,8,10,9,11,11,13,12,14,14,16] }
+    },
+    { name: 'HD현대삼호', ticker: '현대삼호',
+      revenue:     [9500,10200,10000,10700,10900,11700,11500,12300,12500,13400,13200,14100,14300,15400,15200,16200],
+      opProfit:    [-100,100,250,450,600,900,1100,1500,1700,2200,2400,3000,3200,3900,4100,4900],
+      opMargin:    [-1.1,1.0,2.5,4.2,5.5,7.7,9.6,12.2,13.6,16.4,18.2,21.3,22.4,25.3,27.0,30.2],
+      newOrders:   [14,12,16,12,14,18,16,20,18,22,21,25,23,27,26,30],
+      backlog:     [85,89,95,98,103,110,116,122,128,136,143,151,158,167,174,183],
+      shipTypes:   { lng: [5,4,6,4,5,7,6,8,7,9,8,10,9,11,10,12], container: [5,4,6,4,5,7,6,8,7,9,8,10,9,11,10,12], tanker: [4,4,4,4,4,4,4,4,4,4,5,5,5,5,6,6] }
+    },
+    { name: '케이조선', ticker: '009540',
+      revenue:     [3200,3400,3300,3500,3600,3800,3700,4000,4100,4400,4300,4600,4700,5000,4900,5300],
+      opProfit:    [-300,-200,-100,100,180,300,380,500,580,750,800,1000,1080,1300,1380,1650],
+      opMargin:    [-9.4,-5.9,-3.0,2.9,5.0,7.9,10.3,12.5,14.1,17.0,18.6,21.7,23.0,26.0,28.2,31.1],
+      newOrders:   [5,4,6,4,5,7,6,8,7,9,8,10,9,11,10,12],
+      backlog:     [28,30,33,34,36,39,41,44,46,50,53,57,60,65,68,73],
+      shipTypes:   { lng: [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0], container: [2,2,3,2,2,3,3,4,3,4,4,5,4,5,5,6], tanker: [3,2,3,2,3,4,3,4,4,5,4,5,5,6,5,6] }
+    }
+  ]
+};
+
+// ── 데이터 소스 연결: DART 실데이터(window.INDUSTRY_DATA_SHIPBUILDING) 우선, 없으면 샘플 ──
+let IS_SAMPLE = true;
+function buildLiveData(records) {
+  const quarters = [...new Set(records.map(r => r.quarter))].sort();
+  const names = [...new Set(records.map(r => r.company))];
+  const get = (name, q, f) => {
+    const r = records.find(x => x.company === name && x.quarter === q);
+    const v = r ? r[f] : null;
+    return (v === null || v === undefined) ? 0 : v;
+  };
+  const companies = names.map(name => ({
+    name,
+    revenue: quarters.map(q => get(name, q, 'revenue')),
+    opProfit: quarters.map(q => get(name, q, 'op_income')),
+    opMargin: quarters.map(q => get(name, q, 'op_margin')),
+    netProfit: quarters.map(q => get(name, q, 'net_income')),
+    netMargin: quarters.map(q => get(name, q, 'net_margin')),
+    opCashflow: quarters.map(q => get(name, q, 'op_cashflow')),
+    eps: quarters.map(q => get(name, q, 'eps')),
+    roe: quarters.map(q => get(name, q, 'roe')),
+    newOrders: quarters.map(q => get(name, q, 'new_order')),
+    backlog: quarters.map(q => get(name, q, 'backlog')),
+    shipTypes: {
+      lng: quarters.map(q => get(name, q, 'lng_order')),
+      container: quarters.map(q => get(name, q, 'container_order')),
+      tanker: quarters.map(q => get(name, q, 'tanker_order'))
+    }
+  }));
+  return { meta: { title: SHIP_SAMPLE.meta.title, quarters }, companies };
+}
+const __live = window.INDUSTRY_DATA_SHIPBUILDING;
+const SHIP_DATA = (Array.isArray(__live) && __live.length)
+  ? (IS_SAMPLE = false, buildLiveData(__live))
+  : SHIP_SAMPLE;
+
+(function () {
+  const nav = document.getElementById('companyNav');
+  if (nav) nav.innerHTML = SHIP_DATA.companies
+    .map(c => '<button data-company="' + c.name + '">' + c.name + '</button>').join('');
+})();
+
+(function () {
+  const sub = document.querySelector('header .sub');
+  if (!sub) return;
+  const badge = document.createElement('span');
+  badge.style.cssText = 'margin-left:10px;padding:2px 8px;border-radius:10px;font-size:11px;font-weight:700;'
+    + (IS_SAMPLE ? 'background:#7c2d12;color:#fdba74;' : 'background:#14532d;color:#86efac;');
+  badge.textContent = IS_SAMPLE ? 'SAMPLE' : 'LIVE';
+  sub.appendChild(badge);
+  const meta = (window.INDUSTRY_DATA_SHIPBUILDING && window.INDUSTRY_DATA_SHIPBUILDING._meta) || null;
+  if (!IS_SAMPLE && meta) {
+    const info = document.createElement('span');
+    info.style.cssText = 'margin-left:8px;color:#667085;font-size:11px;';
+    info.textContent = 'DART · ' + meta.updated + ' · ' + SHIP_DATA.companies.length + '개사 · ' + SHIP_DATA.meta.quarters.length + '분기';
+    sub.appendChild(info);
+  }
+})();
+
+
+let currentView = 'summary';
+let currentMetric = 'revenue';
+let periodStart = 0;
+let periodEnd = SHIP_DATA.meta.quarters.length - 1;
+let currentCompany = SHIP_DATA.companies[0].name;
+const charts = {};
+
+const METRIC_LABELS = {
+  revenue: { label: '매출액', unit: '억원' },
+  opProfit: { label: '영업이익', unit: '억원' },
+  opMargin: { label: '영업이익률', unit: '%' },
+  netProfit: { label: '순이익', unit: '억원' },
+  netMargin: { label: '순이익률', unit: '%' },
+  opCashflow: { label: '영업현금흐름', unit: '억원' },
+  eps: { label: 'EPS', unit: '원' },
+  roe: { label: 'ROE', unit: '%' },
+  newOrders: { label: '신규수주', unit: '억달러' },
+  backlog: { label: '수주잔고', unit: '억달러' }
+};
+
+// SAMPLE 등에서 누락된 지표(순이익/EPS/ROE 등)는 null 배열로 채워 렌더 크래시 방지
+SHIP_DATA.companies.forEach(c => {
+  Object.keys(METRIC_LABELS).forEach(k => {
+    if (!Array.isArray(c[k])) c[k] = SHIP_DATA.meta.quarters.map(() => null);
+  });
+});
+
+// 표시 단위 통일: 금액 지표(십억원) → 십억원(÷10). %/원(EPS) 지표는 변환하지 않음.
+Object.keys(METRIC_LABELS).forEach(k => {
+  if (METRIC_LABELS[k].unit === '억원') {
+    METRIC_LABELS[k].unit = '십억원';
+    SHIP_DATA.companies.forEach(c => {
+      if (Array.isArray(c[k])) c[k] = c[k].map(v => (v == null ? null : Math.round(v / 10)));
+    });
+  }
+});
+
+document.querySelectorAll('#summaryNav button').forEach(btn => {
+  btn.addEventListener('click', () => {
+    currentView = btn.dataset.view;
+    document.querySelectorAll('#summaryNav button, #companyNav button').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    renderView();
+  });
+});
+document.querySelectorAll('#companyNav button').forEach(btn => {
+  btn.addEventListener('click', () => {
+    currentView = 'company';
+    currentCompany = btn.dataset.company;
+    document.querySelectorAll('#summaryNav button, #companyNav button').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    renderView();
+  });
+});
+document.querySelectorAll('[data-metric]').forEach(btn => {
+  btn.addEventListener('click', () => {
+    currentMetric = btn.dataset.metric;
+    document.querySelectorAll('[data-metric]').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    renderView();
+  });
+});
+
+const qs = SHIP_DATA.meta.quarters;
+const psEl = document.getElementById('periodStart');
+const peEl = document.getElementById('periodEnd');
+qs.forEach((q,i) => { psEl.appendChild(new Option(q,i)); peEl.appendChild(new Option(q,i)); });
+peEl.value = qs.length - 1;
+psEl.addEventListener('change', () => { periodStart = +psEl.value; renderView(); });
+peEl.addEventListener('change', () => { periodEnd = +peEl.value; renderView(); });
+
+function destroyAll() {
+  Object.values(charts).forEach(c => { if(c) c.destroy(); });
+  Object.keys(charts).forEach(k => delete charts[k]);
+}
+
+function renderView() {
+  const main = document.getElementById('mainContent');
+  destroyAll();
+  const ql = qs.slice(periodStart, periodEnd + 1);
+  if (currentView === 'summary') renderSummaryView(main, ql);
+  else if (currentView === 'orders') renderOrdersView(main, ql);
+  else if (currentView === 'company') renderCompanyView(main, ql);
+}
+
+function renderSummaryView(main, ql) {
+  const ml = METRIC_LABELS[currentMetric];
+  const datasets = SHIP_DATA.companies.map((c, i) => ({
+    label: c.name,
+    data: c[currentMetric].slice(periodStart, periodEnd + 1),
+    borderColor: COLORS[i], backgroundColor: COLORS[i] + '18',
+    tension: 0.35, borderWidth: 2.5, pointRadius: 3.5, spanGaps: true
+  }));
+
+  main.innerHTML = `
+    <div class="panel">
+      <div class="panel-title">${ml.label} 분기별 추이<span class="panel-hint" style="margin-left:8px">(${ml.unit})</span></div>
+      <div class="chart-scroll"><canvas id="mainChart" height="320"></canvas></div>
+      <div class="legend-area" id="mainLegend"></div>
+    </div>
+    <div class="panel" style="margin-top:20px">
+      <div class="panel-title">분기별 비교 데이터
+        <button class="excel-btn" onclick="exportSummary()">⬇ CSV 다운로드</button>
+      </div>
+      <div style="overflow-x:auto">
+        <table><thead><tr>
+          <th>분기</th>${SHIP_DATA.companies.map(c=>'<th>'+c.name+'</th>').join('')}
+        </tr></thead><tbody id="summaryTbody"></tbody></table>
+      </div>
+    </div>
+  `;
+  charts.main = makeLineChart('mainChart', ql, datasets, { unit: ml.unit });
+  renderLegend('mainLegend', datasets, charts.main);
+  const tbody = document.getElementById('summaryTbody');
+  ql.forEach((q, qi) => {
+    const ai = periodStart + qi;
+    const tr = document.createElement('tr');
+    const isMargin = currentMetric === 'opMargin';
+    tr.innerHTML = '<td>' + q + '</td>' + SHIP_DATA.companies.map(c => {
+      const v = c[currentMetric][ai];
+      if (v === null || v === undefined) return '<td>-</td>';
+      const disp = isMargin ? v.toFixed(1) + '%' : Number(v).toLocaleString('ko-KR', { maximumFractionDigits: 0 });
+      const cls = currentMetric === 'opProfit' || isMargin ? (v >= 0 ? 'pos' : 'neg') : '';
+      return '<td class="' + cls + '">' + disp + '</td>';
+    }).join('');
+    tbody.appendChild(tr);
+  });
+}
+
+function renderOrdersView(main, ql) {
+  main.innerHTML = `
+    <div class="two-col">
+      <div class="panel">
+        <div class="panel-title">신규수주 분기별 추이 <span class="panel-hint">(억달러)</span></div>
+        <div class="chart-scroll"><canvas id="ordersChart" height="280"></canvas></div>
+        <div class="legend-area" id="ordersLegend"></div>
+      </div>
+      <div class="panel">
+        <div class="panel-title">수주잔고 추이 <span class="panel-hint">(억달러)</span></div>
+        <div class="chart-scroll"><canvas id="backlogChart" height="280"></canvas></div>
+        <div class="legend-area" id="backlogLegend"></div>
+      </div>
+    </div>
+    <div class="panel" style="margin-top:20px">
+      <div class="panel-title">영업이익률 추이 <span class="panel-hint">(터닝포인트: 흑자전환)</span></div>
+      <div class="chart-scroll"><canvas id="marginChart" height="280"></canvas></div>
+      <div class="legend-area" id="marginLegend"></div>
+    </div>
+    <div class="panel" style="margin-top:20px">
+      <div class="panel-title">HD현대중공업 선종별 수주 구성 <span class="panel-hint">(LNG · 컨테이너 · 탱커)</span></div>
+      <div class="chart-scroll"><canvas id="typeChart" height="240"></canvas></div>
+    </div>
+  `;
+
+  const orderDs = SHIP_DATA.companies.map((c,i) => ({
+    label: c.name, data: c.newOrders.slice(periodStart, periodEnd+1),
+    borderColor: COLORS[i], backgroundColor: COLORS[i]+'18',
+    tension: 0.35, borderWidth: 2, pointRadius: 3
+  }));
+  charts.orders = makeLineChart('ordersChart', ql, orderDs);
+  renderLegend('ordersLegend', orderDs, charts.orders);
+
+  const backlogDs = SHIP_DATA.companies.map((c,i) => ({
+    label: c.name, data: c.backlog.slice(periodStart, periodEnd+1),
+    borderColor: COLORS[i], backgroundColor: COLORS[i]+'18',
+    tension: 0.35, borderWidth: 2, pointRadius: 3
+  }));
+  charts.backlog = makeLineChart('backlogChart', ql, backlogDs);
+  renderLegend('backlogLegend', backlogDs, charts.backlog);
+
+  const marginDs = SHIP_DATA.companies.map((c,i) => ({
+    label: c.name, data: c.opMargin.slice(periodStart, periodEnd+1),
+    borderColor: COLORS[i], backgroundColor: COLORS[i]+'18',
+    tension: 0.35, borderWidth: 2, pointRadius: 3
+  }));
+  charts.margin = makeLineChart('marginChart', ql, marginDs, { unit: '%' });
+  renderLegend('marginLegend', marginDs, charts.margin);
+
+  const hd = SHIP_DATA.companies[0];
+  charts.type = makeBarChart('typeChart', ql, [
+    { label: 'LNG선', data: hd.shipTypes.lng.slice(periodStart, periodEnd+1), backgroundColor: '#2563eb88' },
+    { label: '컨테이너선', data: hd.shipTypes.container.slice(periodStart, periodEnd+1), backgroundColor: '#16a34a88' },
+    { label: '탱커', data: hd.shipTypes.tanker.slice(periodStart, periodEnd+1), backgroundColor: '#d9770688' }
+  ], { stacked: true, showLegend: true, unit: '억달러' });
+}
+
+function renderCompanyView(main, ql) {
+  const c = SHIP_DATA.companies.find(co => co.name === currentCompany);
+  if (!c) return;
+  const latest = periodEnd;
+  const revYoY = latest >= 4 ? ((c.revenue[latest] - c.revenue[latest-4]) / c.revenue[latest-4] * 100).toFixed(1) : null;
+
+  main.innerHTML = `
+    <div class="kpi-grid">
+      <div class="kpi-card"><div class="kpi-label">매출액 (최근분기)</div><div class="kpi-value">${Number(c.revenue[latest]).toLocaleString('ko-KR')}<span style="font-size:12px;color:#6b7280">십억원</span></div>${revYoY ? '<div class="kpi-sub ' + (revYoY>=0?'kpi-up':'kpi-dn') + '">' + (revYoY>=0?'▲':'▼') + Math.abs(revYoY) + '% YoY</div>' : ''}</div>
+      <div class="kpi-card"><div class="kpi-label">영업이익</div><div class="kpi-value" class="${c.opProfit[latest]>=0?'pos':'neg'}">${Number(c.opProfit[latest]).toLocaleString('ko-KR')}<span style="font-size:12px;color:#6b7280">십억원</span></div><div class="kpi-sub">영업이익률 ${c.opMargin[latest].toFixed(1)}%</div></div>
+      <div class="kpi-card"><div class="kpi-label">신규수주</div><div class="kpi-value">${c.newOrders[latest]}<span style="font-size:12px;color:#6b7280">억달러</span></div></div>
+      <div class="kpi-card"><div class="kpi-label">수주잔고</div><div class="kpi-value">${c.backlog[latest]}<span style="font-size:12px;color:#6b7280">억달러</span></div></div>
+    </div>
+    <div class="two-col">
+      <div class="panel">
+        <div class="panel-title">매출 / 영업이익</div>
+        <div class="chart-scroll"><canvas id="revChart" height="260"></canvas></div>
+      </div>
+      <div class="panel">
+        <div class="panel-title">영업이익률 추이</div>
+        <div class="chart-scroll"><canvas id="marginChart" height="260"></canvas></div>
+      </div>
+    </div>
+    <div class="two-col" style="margin-top:20px">
+      <div class="panel">
+        <div class="panel-title">신규수주 추이</div>
+        <div class="chart-scroll"><canvas id="ordersChart" height="240"></canvas></div>
+      </div>
+      <div class="panel">
+        <div class="panel-title">수주잔고 추이</div>
+        <div class="chart-scroll"><canvas id="backlogChart" height="240"></canvas></div>
+      </div>
+    </div>
+  `;
+
+  charts.rev = makeBarChart('revChart', ql, [
+    { label: '매출액', data: c.revenue.slice(periodStart, periodEnd+1), backgroundColor: '#0ea5e988' },
+    { label: '영업이익', data: c.opProfit.slice(periodStart, periodEnd+1), backgroundColor: '#16a34a88' }
+  ], { showLegend: true });
+  charts.margin = makeLineChart('marginChart', ql, [{
+    label: '영업이익률', data: c.opMargin.slice(periodStart, periodEnd+1),
+    borderColor: '#0ea5e9', backgroundColor: '#0ea5e922',
+    tension: 0.35, borderWidth: 2.5, fill: true, pointRadius: 4
+  }], { unit: '%' });
+  charts.orders = makeBarChart('ordersChart', ql, [{
+    label: '신규수주', data: c.newOrders.slice(periodStart, periodEnd+1), backgroundColor: '#7c3aed88'
+  }], {});
+  charts.backlog = makeLineChart('backlogChart', ql, [{
+    label: '수주잔고', data: c.backlog.slice(periodStart, periodEnd+1),
+    borderColor: '#d97706', backgroundColor: '#d9770622',
+    tension: 0.35, borderWidth: 2.5, fill: true, pointRadius: 4
+  }]);
+}
+
+function exportSummary() {
+  const ml = METRIC_LABELS[currentMetric];
+  const ql = qs.slice(periodStart, periodEnd+1);
+  const headers = ['분기', ...SHIP_DATA.companies.map(c=>c.name)];
+  const rows = ql.map((q,qi) => {
+    const ai = periodStart + qi;
+    return [q, ...SHIP_DATA.companies.map(c => c[currentMetric][ai] ?? '')];
+  });
+  downloadCsv('조선사_' + ml.label + '.csv', headers, rows);
+}
+
+initSidebar();
+document.querySelector('[data-metric="revenue"]').classList.add('active');
+document.querySelector('[data-view="summary"]').classList.add('active');
+renderView();
+
+  </script>
+</body>
+</html>

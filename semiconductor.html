@@ -1,0 +1,1708 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>국내 주요 반도체기업 실적 Dashboard</title>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.3/dist/chart.umd.min.js"></script>
+  <style>
+
+  :root {
+    --bg: #f6f7f9;
+    --panel: #ffffff;
+    --text: #18212f;
+    --muted: #667085;
+    --line: #d9dee7;
+    --accent: #1f6feb;
+    --sidebar: #111827;
+    --sidebar-w: 240px;
+    --topbar-h: 52px;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: "Segoe UI", "Noto Sans KR", Arial, sans-serif;
+    font-size: 14px;
+  }
+  .topbar {
+    display: none;
+    position: sticky; top: 0; z-index: 30;
+    height: var(--topbar-h);
+    background: var(--sidebar);
+    color: #e5e7eb;
+    padding: 0 16px;
+    align-items: center;
+    gap: 12px;
+  }
+  .topbar .brand { flex: 1; font-size: 15px; font-weight: 700; }
+  .hamburger {
+    background: none; border: none; cursor: pointer;
+    color: #e5e7eb; padding: 6px;
+    display: flex; flex-direction: column; gap: 5px;
+  }
+  .hamburger span {
+    display: block; width: 22px; height: 2px;
+    background: currentColor; border-radius: 2px;
+  }
+  .sidebar-overlay {
+    display: none; position: fixed; inset: 0;
+    background: rgba(0,0,0,0.5); z-index: 40;
+  }
+  .sidebar-overlay.active { display: block; }
+  .app { display: flex; min-height: 100vh; }
+  aside {
+    width: var(--sidebar-w);
+    background: var(--sidebar);
+    color: #e5e7eb;
+    flex-shrink: 0;
+    display: flex; flex-direction: column;
+    position: sticky; top: 0; height: 100vh;
+    overflow-y: auto;
+    scrollbar-width: thin;
+    scrollbar-color: rgba(255,255,255,0.2) transparent;
+  }
+  .sidebar-header {
+    padding: 20px 16px 12px;
+    border-bottom: 1px solid rgba(255,255,255,0.08);
+    display: flex; align-items: center; justify-content: space-between;
+  }
+  .sidebar-header .brand {
+    font-size: 13px; font-weight: 700; line-height: 1.4;
+    color: #f9fafb;
+  }
+  .sidebar-close { display: none; background: none; border: none; color: #9ca3af; cursor: pointer; font-size: 18px; }
+  .company-list { padding: 8px 0; }
+  .company-list .label {
+    padding: 8px 16px 4px;
+    font-size: 10px; font-weight: 600;
+    color: #6b7280; text-transform: uppercase; letter-spacing: 0.08em;
+  }
+  .nav button {
+    display: block; width: 100%;
+    padding: 8px 16px;
+    background: none; border: none; cursor: pointer;
+    color: #9ca3af; font-size: 13px; text-align: left;
+    transition: background 0.15s, color 0.15s;
+    border-radius: 0;
+  }
+  .nav button:hover { background: rgba(255,255,255,0.06); color: #e5e7eb; }
+  .nav button.active { background: rgba(255,255,255,0.1); color: #ffffff; font-weight: 600; }
+  main {
+    flex: 1; padding: 28px 32px;
+    min-width: 0; overflow-x: hidden;
+  }
+  header { margin-bottom: 20px; }
+  header h1 { font-size: 22px; font-weight: 700; color: var(--text); }
+  header .sub { font-size: 13px; color: var(--muted); margin-top: 4px; }
+  .controls {
+    display: flex; flex-wrap: wrap; gap: 8px;
+    margin-bottom: 24px; align-items: center;
+  }
+  .controls button {
+    padding: 6px 14px; border-radius: 6px;
+    border: 1px solid var(--line);
+    background: var(--panel); color: var(--muted);
+    cursor: pointer; font-size: 13px; font-weight: 500;
+    transition: all 0.15s;
+  }
+  .controls button:hover { border-color: var(--accent); color: var(--accent); }
+  .controls button.active {
+    background: var(--accent); color: #fff; border-color: var(--accent);
+  }
+  .controls select {
+    padding: 6px 10px; border-radius: 6px;
+    border: 1px solid var(--line); background: var(--panel);
+    color: var(--text); font-size: 13px; cursor: pointer;
+  }
+  .controls .sep { color: var(--muted); font-size: 13px; }
+  .grid { display: flex; flex-direction: column; gap: 20px; }
+  .panel {
+    background: var(--panel); border-radius: 10px;
+    border: 1px solid var(--line);
+    padding: 20px;
+    overflow: hidden;
+  }
+  .panel-title {
+    font-size: 15px; font-weight: 600; color: var(--text);
+    margin-bottom: 16px;
+    display: flex; justify-content: space-between; align-items: center;
+  }
+  .panel-hint { font-size: 11px; color: var(--muted); font-weight: 400; }
+  .chart-wrap { position: relative; width: 100%; overflow: hidden; }
+  .chart-scroll { overflow-x: auto; padding-bottom: 6px; }
+  .chart-scroll canvas { min-width: 600px; }
+  .legend-area {
+    margin-top: 14px; display: flex; flex-wrap: wrap; gap: 6px;
+  }
+  .legend-chip {
+    display: inline-flex; align-items: center; gap: 5px;
+    padding: 4px 10px; border-radius: 20px;
+    border: 1.5px solid; cursor: pointer;
+    font-size: 12px; font-weight: 500;
+    transition: opacity 0.15s;
+  }
+  .legend-chip.hidden { opacity: 0.35; }
+  .legend-chip .dot {
+    width: 8px; height: 8px; border-radius: 50%;
+  }
+  .btn-row { display: flex; gap: 8px; margin-bottom: 12px; }
+  .btn-sm {
+    padding: 5px 12px; border-radius: 5px;
+    border: 1px solid var(--line);
+    background: var(--panel); color: var(--muted);
+    cursor: pointer; font-size: 12px;
+  }
+  .btn-sm:hover { background: var(--bg); }
+  table {
+    width: 100%; border-collapse: collapse;
+    font-size: 13px;
+  }
+  thead th {
+    padding: 10px 8px; background: var(--bg);
+    font-weight: 600; color: var(--muted);
+    border-bottom: 1px solid var(--line);
+    text-align: right; white-space: nowrap;
+  }
+  thead th:first-child { text-align: left; }
+  thead th:nth-child(2) { text-align: left; }
+  tbody tr { border-bottom: 1px solid var(--line); }
+  tbody tr:hover { background: #f8fafc; }
+  tbody td {
+    padding: 9px 8px; text-align: right;
+    color: var(--text); white-space: nowrap;
+  }
+  tbody td:first-child { text-align: left; color: var(--muted); font-size: 12px; }
+  tbody td:nth-child(2) { text-align: left; font-weight: 600; }
+  .pos { color: #16a34a; }
+  .neg { color: #dc2626; }
+  .excel-btn {
+    padding: 7px 14px; border-radius: 6px;
+    background: #16a34a; color: #fff;
+    border: none; cursor: pointer; font-size: 13px; font-weight: 600;
+  }
+  .excel-btn:hover { background: #15803d; }
+  .kpi-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+    gap: 12px; margin-bottom: 20px;
+  }
+  .kpi-card {
+    background: var(--panel); border-radius: 8px;
+    border: 1px solid var(--line); padding: 14px 16px;
+  }
+  .kpi-label { font-size: 11px; color: var(--muted); margin-bottom: 4px; }
+  .kpi-value { font-size: 20px; font-weight: 700; color: var(--text); }
+  .kpi-sub { font-size: 11px; color: var(--muted); margin-top: 2px; }
+  .kpi-up { color: #16a34a; }
+  .kpi-dn { color: #dc2626; }
+  .two-col { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+  @media(max-width: 900px) { .two-col { grid-template-columns: 1fr; } }
+  @media(max-width: 768px) {
+    .topbar { display: flex; }
+    aside {
+      position: fixed; left: -280px; top: 0; height: 100%;
+      width: 260px; z-index: 50;
+      transition: left 0.28s ease;
+      box-shadow: 4px 0 20px rgba(0,0,0,0.4);
+    }
+    aside.open { left: 0; }
+    .sidebar-close { display: block; }
+    main { padding: 18px 16px; }
+    .kpi-grid { grid-template-columns: repeat(2, 1fr); }
+  }
+
+
+  :root {
+    --accent: #7c3aed;
+    --sidebar: #13002a;
+  }
+  aside .nav button.active { background: #7c3aed22; color: #7c3aed; }
+  aside .nav button:hover { background: rgba(255,255,255,0.06); }
+  .controls button.active { background: #7c3aed; border-color: #7c3aed; }
+
+
+  /* ============================================================
+     GLOBAL SEMI WATCH (GSW) — Dark Analytical theme
+     Scoped to body.gsw-active so domestic light pages are untouched.
+     ============================================================ */
+  body.gsw-active {
+    --g-bg:#0B1220; --g-card:#141C2E; --g-elev:#1C2740; --g-line:#243049;
+    --g-hi:#E6ECF5; --g-lo:#8A97AD; --g-grid:rgba(255,255,255,0.06);
+    --sig-green:#22C55E; --sig-amber:#F5B301; --sig-red:#EF4444;
+    --acc-a:#2DD4BF; --acc-b:#EF4444; --acc-c:#FBBF24; --est:#A78BFA;
+  }
+  body.gsw-active.gsw-light {
+    --g-bg:#F4F6FB; --g-card:#FFFFFF; --g-elev:#EEF2F9; --g-line:#D9E0EC;
+    --g-hi:#1A2332; --g-lo:#5B6675; --g-grid:rgba(0,0,0,0.06);
+  }
+  body.gsw-active main { background: var(--g-bg); color: var(--g-hi); transition: background .2s; }
+  body.gsw-active header h1 { color: var(--g-hi); }
+  body.gsw-active header .sub { color: var(--g-lo); }
+  body.gsw-active aside .nav button[data-view="gsw"].active {
+    background: linear-gradient(90deg, var(--sig-green) 0%, transparent 3px), rgba(45,212,191,.12);
+    color:#fff; box-shadow: inset 3px 0 0 var(--phase-color, var(--sig-green));
+  }
+
+  .gsw { color: var(--g-hi); font-size:13px; }
+  .gsw .gsw-topbar {
+    display:flex; align-items:center; gap:14px; flex-wrap:wrap;
+    padding:10px 14px; margin-bottom:16px; border-radius:10px;
+    background:var(--g-card); border:1px solid var(--g-line);
+    border-left:4px solid var(--phase-color, var(--sig-green));
+  }
+  .gsw .gsw-topbar .ttl { font-size:16px; font-weight:800; letter-spacing:.06em; }
+  .gsw .gsw-topbar .meta { color:var(--g-lo); font-size:11px; }
+  .gsw .gsw-topbar .spacer { flex:1; }
+  .gsw .seg-ctl { display:inline-flex; border:1px solid var(--g-line); border-radius:7px; overflow:hidden; }
+  .gsw .seg-ctl button { background:transparent; border:none; color:var(--g-lo); padding:5px 11px; cursor:pointer; font-size:12px; font-weight:600; }
+  .gsw .seg-ctl button.active { background:var(--g-elev); color:var(--g-hi); }
+  .gsw .theme-btn, .gsw .csv-btn {
+    background:var(--g-elev); border:1px solid var(--g-line); color:var(--g-hi);
+    border-radius:7px; padding:5px 12px; cursor:pointer; font-size:12px; font-weight:600;
+  }
+
+  /* Level 1 hero */
+  .gsw .l1 { display:grid; grid-template-columns: 1.1fr 1.1fr 2fr; gap:14px; margin-bottom:16px; }
+  .gsw .hero { background:var(--g-card); border:1px solid var(--g-line); border-radius:12px; padding:16px 18px; }
+  .gsw .hero .cap { font-size:10px; letter-spacing:.12em; color:var(--g-lo); text-transform:uppercase; margin-bottom:8px; }
+  .gsw .phase-badge {
+    display:inline-block; font-size:26px; font-weight:900; letter-spacing:.05em;
+    padding:6px 18px; border-radius:10px; color:#0B1220;
+  }
+  .gsw .phase-badge.boom { background:var(--sig-green); }
+  .gsw .phase-badge.recovery { background:var(--sig-amber); }
+  .gsw .phase-badge.trough, .gsw .phase-badge.correction { background:var(--sig-red); color:#fff; }
+  .gsw .hero .big { font-size:30px; font-weight:800; line-height:1.1; margin-top:6px; }
+  .gsw .hero .qoq { font-size:12px; margin-top:6px; color:var(--g-lo); }
+  .gsw .up { color:var(--sig-green); } .gsw .dn { color:var(--sig-red); }
+  .gsw .gauge-wrap { position:relative; height:120px; }
+  .gsw .gauge-label { position:absolute; left:0; right:0; bottom:6px; text-align:center; font-size:11px; color:var(--g-lo); }
+  .gsw .summary-lines { list-style:none; margin:2px 0 0; padding:0; }
+  .gsw .summary-lines li { display:flex; gap:8px; align-items:flex-start; padding:6px 0; border-bottom:1px solid var(--g-line); font-size:12.5px; line-height:1.5; }
+  .gsw .summary-lines li:last-child { border-bottom:none; }
+  .gsw .summary-lines .dot { width:8px; height:8px; border-radius:50%; margin-top:5px; flex-shrink:0; }
+
+  /* collapsible module cards */
+  .gsw .mod { background:var(--g-card); border:1px solid var(--g-line); border-radius:12px; margin-bottom:14px; overflow:hidden; }
+  .gsw .mod > .mod-head {
+    display:flex; align-items:center; gap:10px; padding:13px 16px; cursor:pointer;
+    border-left:4px solid var(--mc, var(--acc-a)); user-select:none;
+  }
+  .gsw .mod > .mod-head .mtag { font-size:10px; font-weight:800; letter-spacing:.1em; color:var(--mc, var(--acc-a)); }
+  .gsw .mod > .mod-head h3 { font-size:14.5px; font-weight:700; }
+  .gsw .mod > .mod-head .mhint { color:var(--g-lo); font-size:11px; font-weight:400; }
+  .gsw .mod > .mod-head .chev { margin-left:auto; color:var(--g-lo); transition:transform .2s; }
+  .gsw .mod.collapsed > .mod-head .chev { transform:rotate(-90deg); }
+  .gsw .mod .mod-body { padding:4px 16px 18px; }
+  .gsw .mod.collapsed .mod-body { display:none; }
+
+  .gsw .grid2 { display:grid; grid-template-columns:1fr 1fr; gap:16px; }
+  .gsw .grid3 { display:grid; grid-template-columns:repeat(3,1fr); gap:14px; }
+  @media(max-width:1100px){ .gsw .l1, .gsw .grid2, .gsw .grid3 { grid-template-columns:1fr; } }
+  .gsw .sub-panel { background:var(--g-bg); border:1px solid var(--g-line); border-radius:10px; padding:12px 14px; }
+  body.gsw-light .gsw .sub-panel { background:var(--g-elev); }
+  .gsw .sp-title { font-size:12px; font-weight:700; color:var(--g-hi); margin-bottom:4px; display:flex; justify-content:space-between; align-items:center; }
+  .gsw .sp-hint { font-size:10.5px; color:var(--g-lo); font-weight:400; }
+  .gsw .chart-box { position:relative; height:230px; }
+  .gsw .chart-box.sm { height:200px; }
+  .gsw .chart-box.tall { height:280px; }
+
+  /* legend chips */
+  .gsw .legend { display:flex; flex-wrap:wrap; gap:6px; margin-top:10px; }
+  .gsw .chip { display:inline-flex; align-items:center; gap:5px; padding:3px 9px; border-radius:14px; border:1.5px solid; cursor:pointer; font-size:11px; font-weight:600; }
+  .gsw .chip.off { opacity:.35; }
+  .gsw .chip .cdot { width:8px; height:8px; border-radius:50%; }
+  .gsw .chip.est { border-style:dashed; }
+
+  /* tables */
+  .gsw table { width:100%; border-collapse:collapse; font-size:12px; }
+  .gsw thead th { padding:8px 7px; background:var(--g-bg); color:var(--g-lo); font-weight:600; border-bottom:1px solid var(--g-line); text-align:right; white-space:nowrap; }
+  body.gsw-light .gsw thead th { background:var(--g-elev); }
+  .gsw thead th:first-child, .gsw tbody td:first-child { text-align:left; }
+  .gsw tbody td { padding:7px; text-align:right; border-bottom:1px solid var(--g-line); color:var(--g-hi); white-space:nowrap; }
+  .gsw tbody tr.est-row { border-left:2px dashed var(--est); background:rgba(167,139,250,.05); }
+  .gsw tbody tr.grp td { background:var(--g-bg); color:var(--g-lo); font-weight:700; font-size:10.5px; letter-spacing:.08em; text-transform:uppercase; }
+  .gsw tbody tr.hl td { background:rgba(245,179,1,.08); }
+  .gsw .conf-dot { display:inline-block; width:7px; height:7px; border-radius:50%; margin-left:4px; }
+
+  /* est / aud badges */
+  .gsw .badge { font-size:9px; font-weight:800; padding:1px 6px; border-radius:9px; letter-spacing:.04em; }
+  .gsw .badge.est { background:rgba(167,139,250,.18); color:var(--est); border:1px dashed var(--est); }
+  .gsw .badge.aud { background:var(--g-elev); color:var(--g-lo); }
+
+  /* heatmap */
+  .gsw .heat { display:grid; gap:3px; }
+  .gsw .heat .hc { padding:9px 6px; border-radius:5px; text-align:center; font-size:11px; font-weight:700; color:#0B1220; }
+  .gsw .heat .hl-lbl { background:transparent; color:var(--g-lo); font-weight:600; text-align:left; padding:9px 6px; font-size:11px; }
+  .gsw .heat .hl-col { color:var(--g-lo); font-weight:600; font-size:10px; text-align:center; padding:4px; }
+
+  /* timeline */
+  .gsw .tl-row { display:grid; grid-template-columns:130px 1fr 90px; gap:8px; align-items:center; padding:7px 0; border-bottom:1px solid var(--g-line); font-size:11.5px; }
+  .gsw .tl-row .tl-lab { color:var(--g-hi); font-weight:600; }
+  .gsw .tl-bar { height:8px; border-radius:4px; background:var(--g-elev); position:relative; }
+  .gsw .tl-bar > span { position:absolute; left:0; top:0; bottom:0; border-radius:4px; }
+  .gsw .tl-gap { color:var(--sig-red); font-weight:700; text-align:right; }
+
+  /* backtest strip */
+  .gsw .bt-strip { display:flex; gap:2px; margin-top:6px; }
+  .gsw .bt-cell { flex:1; height:22px; border-radius:3px; display:flex; align-items:center; justify-content:center; font-size:8px; color:#0B1220; font-weight:700; }
+  .gsw .bt-ok { background:var(--sig-green); } .gsw .bt-no { background:var(--sig-red); color:#fff; }
+  .gsw .bt-lab { font-size:9px; color:var(--g-lo); text-align:center; margin-top:2px; }
+
+  /* signal pills */
+  .gsw .sig { font-size:10px; font-weight:800; padding:2px 8px; border-radius:10px; }
+  .gsw .sig.long { background:rgba(34,197,94,.18); color:var(--sig-green); }
+  .gsw .sig.neutral { background:rgba(245,179,1,.18); color:var(--sig-amber); }
+  .gsw .sig.short { background:rgba(239,68,68,.18); color:var(--sig-red); }
+
+  /* modal */
+  .gsw-modal { position:fixed; inset:0; background:rgba(3,7,18,.7); z-index:200; display:none; align-items:center; justify-content:center; padding:20px; }
+  .gsw-modal.open { display:flex; }
+  .gsw-modal .mbox { background:#141C2E; border:1px solid #243049; border-radius:14px; padding:22px; max-width:560px; width:100%; color:#E6ECF5; box-shadow:0 20px 60px rgba(0,0,0,.5); }
+  body.gsw-light .gsw-modal .mbox { background:#fff; color:#1A2332; border-color:#D9E0EC; }
+  .gsw-modal .mbox h3 { font-size:15px; margin-bottom:4px; }
+  .gsw-modal .mbox .mclose { float:right; cursor:pointer; color:#8A97AD; font-size:18px; background:none; border:none; }
+  .gsw-modal .wf-row { display:grid; grid-template-columns:160px 1fr 64px; gap:10px; align-items:center; padding:7px 0; border-bottom:1px solid #243049; font-size:12px; }
+  body.gsw-light .gsw-modal .wf-row { border-color:#eef; }
+  .gsw-modal .wf-bar { height:14px; border-radius:3px; position:relative; background:rgba(255,255,255,.04); }
+  .gsw-modal .wf-bar > span { position:absolute; top:0; bottom:0; border-radius:3px; }
+
+  .gsw .note { font-size:11px; color:var(--g-lo); line-height:1.6; margin-top:8px; }
+  .gsw .note b { color:var(--g-hi); }
+  .gsw .src-pill { display:inline-block; background:var(--g-elev); border:1px solid var(--g-line); border-radius:9px; padding:1px 7px; font-size:10px; color:var(--est); margin:2px 3px 0 0; }
+
+  /* Module D — foundry node evolution + era history */
+  .gsw .chart-box.foundry { height:360px; }
+  .gsw .era { border:1px solid var(--g-line); border-radius:10px; padding:12px 14px; margin-bottom:10px; background:var(--g-bg); border-left:4px solid var(--era-c, var(--g-lo)); }
+  body.gsw-light .gsw .era { background:var(--g-elev); }
+  .gsw .era-head { display:flex; align-items:center; gap:10px; margin-bottom:6px; flex-wrap:wrap; }
+  .gsw .era-period { font-size:11px; font-weight:800; letter-spacing:.04em; color:#0B1220; background:var(--g-hi); padding:2px 9px; border-radius:10px; }
+  body.gsw-light .gsw .era-period { color:#fff; background:#1A2332; }
+  .gsw .era-title { font-size:13.5px; font-weight:700; color:var(--g-hi); }
+  .gsw .era-row { display:grid; grid-template-columns:84px 110px 1fr; gap:9px; align-items:start; padding:6px 0; border-top:1px solid var(--g-line); font-size:11.5px; }
+  .gsw .era-co { font-weight:800; border-left:2px solid; padding-left:7px; }
+  .gsw .era-tag { font-size:9.5px; font-weight:800; padding:2px 7px; border-radius:9px; text-align:center; height:fit-content; white-space:nowrap; }
+  .gsw .era-text { color:var(--g-lo); line-height:1.55; }
+  @media(max-width:760px){ .gsw .era-row{ grid-template-columns:1fr; gap:3px; } .gsw .era-tag{ justify-self:start; } }
+
+  </style>
+</head>
+<body>
+  <div class="topbar">
+    <button class="hamburger" id="menuBtn">
+      <span></span><span></span><span></span>
+    </button>
+    <span class="brand">국내 주요 반도체기업 실적 Dashboard</span>
+  </div>
+  <div class="sidebar-overlay" id="sidebarOverlay"></div>
+  <div class="app">
+    <aside id="sidebar">
+      <div class="sidebar-header">
+        <div class="brand">국내 주요 반도체기업 실적 Dashboard</div>
+        <button class="sidebar-close" id="sidebarClose">✕</button>
+      </div>
+      
+  <div class="company-list">
+    <div class="label">종합</div>
+    <div class="nav" id="summaryNav">
+      <button data-view="summary">분기별 실적 추이</button>
+      <button data-view="hbm">HBM·사이클 분석</button>
+    </div>
+  </div>
+  <div class="company-list">
+    <div class="label">글로벌 분석</div>
+    <div class="nav" id="gswNav">
+      <button data-view="gsw">🌐 Global Semi Watch</button>
+    </div>
+  </div>
+  <div class="company-list">
+    <div class="label">기업별</div>
+    <div class="nav" id="companyNav">
+      <button data-company="삼성전자(DS)">삼성전자(DS)</button><button data-company="SK하이닉스">SK하이닉스</button><button data-company="DB하이텍">DB하이텍</button><button data-company="한미반도체">한미반도체</button><button data-company="리노공업">리노공업</button><button data-company="HPSP">HPSP</button><button data-company="원익IPS">원익IPS</button><button data-company="주성엔지니어링">주성엔지니어링</button>
+    </div>
+  </div>
+
+    </aside>
+    <main>
+      
+    <header>
+      <h1>국내 주요 반도체기업 실적 Dashboard</h1>
+      <div class="sub">메모리·파운드리·장비/소재 핵심기업 · HBM·사이클 분석 · 2022Q1~2025Q4</div>
+    </header>
+    <div class="controls">
+      <button data-seg="all" class="active">전체</button>
+      <button data-seg="memory">메모리</button>
+      <button data-seg="foundry">파운드리</button>
+      <button data-seg="equipment">장비/소재</button>
+      <span class="sep">|</span>
+      <button data-metric="revenue" class="active">매출액</button>
+      <button data-metric="opProfit">영업이익</button>
+      <button data-metric="opMargin">이익률</button>
+      <button data-metric="netProfit">순이익</button>
+      <button data-metric="netMargin">순이익률</button>
+      <button data-metric="opCashflow">영업CF</button>
+      <button data-metric="eps">EPS</button>
+      <button data-metric="roe">ROE</button>
+      <button data-metric="capex">CAPEX</button>
+      <button data-metric="hbmRevenue">HBM</button>
+      <span class="sep">|</span>
+      <span style="color:#667085;font-size:13px">기간</span>
+      <select id="periodStart"></select>
+      <span class="sep">~</span>
+      <select id="periodEnd"></select>
+    </div>
+    <div class="grid" id="mainContent"></div>
+  
+    </main>
+  </div>
+  <script src="data/semiconductor_data.js" onerror="console.log('semiconductor_data.js 없음 — 샘플 데이터 사용')"></script>
+  <script>
+
+const COLORS = [
+  '#2563eb','#16a34a','#dc2626','#d97706','#7c3aed',
+  '#db2777','#0891b2','#65a30d','#ea580c','#9333ea',
+  '#0284c7','#059669','#b91c1c','#b45309','#6d28d9'
+];
+
+function fmt(n, digits=0) {
+  if (n === null || n === undefined || isNaN(n)) return '-';
+  return Number(n).toLocaleString('ko-KR', {minimumFractionDigits: digits, maximumFractionDigits: digits});
+}
+function fmtPct(n, digits=1) {
+  if (n === null || n === undefined || isNaN(n)) return '-';
+  return Number(n).toFixed(digits) + '%';
+}
+function fmtChange(n, unit='') {
+  if (n === null || n === undefined || isNaN(n)) return '-';
+  const sign = n > 0 ? '+' : '';
+  return sign + Number(n).toLocaleString('ko-KR') + unit;
+}
+function arrow(n) {
+  if (!n || isNaN(n)) return '';
+  return n > 0 ? '<span class="pos">▲</span>' : '<span class="neg">▼</span>';
+}
+
+// 범용 라인 차트 생성
+function makeLineChart(canvasId, labels, datasets, opts={}) {
+  const ctx = document.getElementById(canvasId).getContext('2d');
+  return new Chart(ctx, {
+    type: 'line',
+    data: { labels, datasets },
+    options: {
+      responsive: true,
+      maintainAspectRatio: opts.ratio || false,
+      interaction: { mode: 'index', intersect: false },
+      plugins: {
+        legend: { display: false },
+        tooltip: {
+          backgroundColor: 'rgba(15,23,42,0.92)',
+          titleColor: '#94a3b8', bodyColor: '#f1f5f9',
+          padding: 10, borderColor: '#334155', borderWidth: 1,
+          callbacks: {
+            label: function(ctx) {
+              const v = ctx.raw;
+              if (v === null || v === undefined) return ctx.dataset.label + ': -';
+              const unit = opts.unit || '';
+              return ctx.dataset.label + ': ' + Number(v).toLocaleString('ko-KR') + unit;
+            }
+          }
+        }
+      },
+      scales: {
+        x: {
+          grid: { color: 'rgba(0,0,0,0.05)' },
+          ticks: { font: { size: 11 }, color: '#6b7280', maxRotation: 45 }
+        },
+        y: {
+          title: { display: !!opts.unit && opts.unit !== '%', text: (opts.unit && opts.unit !== '%') ? opts.unit : '', font: { size: 11 }, color: '#94a3b8' },
+          grid: { color: 'rgba(0,0,0,0.05)' },
+          ticks: {
+            font: { size: 11 }, color: '#6b7280',
+            callback: function(v) {
+              if (opts.unit === '%') return v + '%';
+              return Number(v).toLocaleString('ko-KR', { maximumFractionDigits: 0 });
+            }
+          }
+        },
+        ...(opts.y2 ? {
+          y1: {
+            type: 'linear', position: 'right',
+            grid: { drawOnChartArea: false },
+            ticks: {
+              font: { size: 11 }, color: '#6b7280',
+              callback: v => v.toFixed(1) + '%'
+            }
+          }
+        } : {})
+      }
+    }
+  });
+}
+
+// 막대 차트 생성
+function makeBarChart(canvasId, labels, datasets, opts={}) {
+  const ctx = document.getElementById(canvasId).getContext('2d');
+  return new Chart(ctx, {
+    type: 'bar',
+    data: { labels, datasets },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      interaction: { mode: 'index', intersect: false },
+      plugins: {
+        legend: { display: opts.showLegend || false, position: 'bottom', labels: { font: { size: 11 } } },
+        tooltip: {
+          backgroundColor: 'rgba(15,23,42,0.92)',
+          titleColor: '#94a3b8', bodyColor: '#f1f5f9',
+          callbacks: {
+            label: ctx => ctx.dataset.label + ': ' + Number(ctx.raw).toLocaleString('ko-KR') + (opts.unit || '')
+          }
+        }
+      },
+      scales: {
+        x: {
+          stacked: opts.stacked || false,
+          grid: { display: false },
+          ticks: { font: { size: 11 }, color: '#6b7280', maxRotation: 45 }
+        },
+        y: {
+          stacked: opts.stacked || false,
+          title: { display: !!opts.unit && opts.unit !== '%', text: (opts.unit && opts.unit !== '%') ? opts.unit : '', font: { size: 11 }, color: '#94a3b8' },
+          grid: { color: 'rgba(0,0,0,0.05)' },
+          ticks: {
+            font: { size: 11 }, color: '#6b7280',
+            callback: function(v) {
+              if (opts.unit === '%') return v + '%';
+              return Number(v).toLocaleString('ko-KR', { maximumFractionDigits: 0 });
+            }
+          }
+        }
+      }
+    }
+  });
+}
+
+// 도넛 차트 생성
+function makeDonutChart(canvasId, labels, data, colors) {
+  const ctx = document.getElementById(canvasId).getContext('2d');
+  return new Chart(ctx, {
+    type: 'doughnut',
+    data: {
+      labels,
+      datasets: [{ data, backgroundColor: colors, borderWidth: 2, borderColor: '#fff' }]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      plugins: {
+        legend: { position: 'bottom', labels: { font: { size: 11 }, padding: 12 } },
+        tooltip: {
+          callbacks: {
+            label: ctx => ctx.label + ': ' + ctx.raw.toFixed(1) + '%'
+          }
+        }
+      },
+      cutout: '60%'
+    }
+  });
+}
+
+// 범례 칩 렌더링
+function renderLegend(containerId, datasets, chart) {
+  const el = document.getElementById(containerId);
+  if (!el) return;
+  el.innerHTML = '';
+  datasets.forEach((ds, i) => {
+    const chip = document.createElement('span');
+    chip.className = 'legend-chip';
+    chip.style.borderColor = ds.borderColor || COLORS[i];
+    chip.style.color = ds.borderColor || COLORS[i];
+    chip.innerHTML = '<span class="dot" style="background:' + (ds.borderColor||COLORS[i]) + '"></span>' + ds.label;
+    chip.addEventListener('click', () => {
+      const meta = chart.getDatasetMeta(i);
+      meta.hidden = !meta.hidden;
+      chip.classList.toggle('hidden', meta.hidden);
+      chart.update();
+    });
+    el.appendChild(chip);
+  });
+}
+
+// 사이드바 모바일 토글
+function initSidebar() {
+  const menuBtn = document.getElementById('menuBtn');
+  const sidebar = document.getElementById('sidebar');
+  const overlay = document.getElementById('sidebarOverlay');
+  const closeBtn = document.getElementById('sidebarClose');
+  if (menuBtn) menuBtn.addEventListener('click', () => {
+    sidebar.classList.add('open');
+    overlay.classList.add('active');
+  });
+  if (overlay) overlay.addEventListener('click', () => {
+    sidebar.classList.remove('open');
+    overlay.classList.remove('active');
+  });
+  if (closeBtn) closeBtn.addEventListener('click', () => {
+    sidebar.classList.remove('open');
+    overlay.classList.remove('active');
+  });
+}
+
+// 엑셀 다운로드 (CSV 방식)
+function downloadCsv(filename, headers, rows) {
+  const BOM = '\uFEFF';
+  const csv = BOM + [headers.join(','), ...rows.map(r => r.map(v => '"' + String(v).replace(/"/g,'""') + '"').join(','))].join('\r\n');
+  const blob = new Blob([csv], {type: 'text/csv;charset=utf-8'});
+  const a = document.createElement('a'); a.href = URL.createObjectURL(blob);
+  a.download = filename; a.click(); URL.revokeObjectURL(a.href);
+}
+
+
+const SEMI_SAMPLE = {
+  meta: {
+    title: '국내 주요 반도체기업 실적 Dashboard',
+    quarters: ['2022Q1','2022Q2','2022Q3','2022Q4','2023Q1','2023Q2','2023Q3','2023Q4','2024Q1','2024Q2','2024Q3','2024Q4','2025Q1','2025Q2','2025Q3','2025Q4']
+  },
+  companies: [
+    { name: '삼성전자(DS)', ticker: '005930', segment: 'memory',
+      revenue:    [228000,240000,245000,218000,146000,156000,182000,218000,239000,268000,282000,298000,312000,325000,338000,355000],
+      opProfit:   [84000,92000,88000,68000,6400,4500,17000,42000,62000,88000,98000,108000,118000,128000,136000,148000],
+      opMargin:   [36.8,38.3,35.9,31.2,4.4,2.9,9.3,19.3,26.0,32.8,34.8,36.2,37.8,39.4,40.2,41.7],
+      capex:      [12500,13200,13800,14500,12000,11500,12500,13800,14200,15500,16200,17500,18200,19800,21000,22500],
+      hbmRevenue: [null,null,null,null,null,null,null,null,18000,28000,42000,58000,72000,88000,102000,118000],
+      inventory:  [38000,42000,48000,54000,56000,52000,45000,38000,34000,30000,27000,24000,22000,20000,19000,18000]
+    },
+    { name: 'SK하이닉스', ticker: '000660', segment: 'memory',
+      revenue:    [125000,135000,128000,106000,52000,72000,92000,115000,128000,165000,178000,192000,205000,218000,228000,242000],
+      opProfit:   [42000,48000,40000,24000,-3600,-2500,18500,35000,42000,68000,78000,88000,98000,108000,116000,128000],
+      opMargin:   [33.6,35.6,31.3,22.6,-6.9,-3.5,20.1,30.4,32.8,41.2,43.8,45.8,47.8,49.5,50.9,52.9],
+      capex:      [7200,7800,8200,8500,6500,6200,7000,7800,8200,9500,10200,11500,12200,13500,14500,15800],
+      hbmRevenue: [null,null,null,null,null,null,5000,12000,24000,42000,58000,72000,88000,102000,115000,128000],
+      inventory:  [22000,25000,28000,32000,35000,31000,27000,22000,19000,16000,14000,12000,11000,10000,9500,9000]
+    },
+    { name: 'DB하이텍', ticker: '000990', segment: 'foundry',
+      revenue:    [4200,4800,5100,5200,4600,4200,4000,4100,4200,4500,4700,5000,5200,5500,5700,6000],
+      opProfit:   [1400,1680,1800,1900,1550,1350,1260,1320,1360,1500,1600,1750,1850,2000,2100,2250],
+      opMargin:   [33.3,35.0,35.3,36.5,33.7,32.1,31.5,32.2,32.4,33.3,34.0,35.0,35.6,36.4,36.8,37.5],
+      capex:      [450,520,580,620,480,420,410,440,460,510,550,610,650,710,760,820],
+      hbmRevenue: [null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null],
+      inventory:  [850,920,1000,1050,980,920,880,850,840,860,890,920,950,980,1000,1020]
+    },
+    { name: '한미반도체', ticker: '042700', segment: 'equipment',
+      revenue:    [1800,2100,2300,2500,2200,2000,2200,2800,3500,4800,5800,6800,7500,8500,9200,10200],
+      opProfit:   [520,630,710,790,640,570,660,900,1200,1800,2300,2800,3200,3700,4100,4600],
+      opMargin:   [28.9,30.0,30.9,31.6,29.1,28.5,30.0,32.1,34.3,37.5,39.7,41.2,42.7,43.5,44.6,45.1],
+      capex:      [120,145,165,180,155,140,155,195,245,340,415,490,540,615,665,740],
+      hbmRevenue: [null,null,null,null,null,null,null,800,2200,3800,5200,6500,7200,8200,8900,9800],
+      inventory:  [380,420,460,500,480,440,420,400,380,360,340,320,300,280,265,250]
+    },
+    { name: '리노공업', ticker: '058470', segment: 'equipment',
+      revenue:    [980,1150,1250,1350,1180,1050,1100,1380,1550,1850,2100,2450,2650,3000,3250,3600],
+      opProfit:   [380,460,510,560,460,390,420,550,640,800,940,1120,1230,1420,1560,1750],
+      opMargin:   [38.8,40.0,40.8,41.5,39.0,37.1,38.2,39.9,41.3,43.2,44.8,45.7,46.4,47.3,48.0,48.6],
+      capex:      [85,100,110,120,105,95,100,125,145,175,200,235,255,290,315,350],
+      hbmRevenue: [null,null,null,null,null,null,null,200,500,900,1350,1850,2100,2500,2800,3100],
+      inventory:  [180,200,220,240,225,205,195,185,175,165,155,145,135,125,120,115]
+    },
+    { name: 'HPSP', ticker: '403870', segment: 'equipment',
+      revenue:    [580,680,760,840,750,680,720,900,1050,1350,1600,1900,2100,2450,2750,3100],
+      opProfit:   [215,265,310,350,295,258,282,368,440,588,712,872,980,1170,1330,1520],
+      opMargin:   [37.1,39.0,40.8,41.7,39.3,37.9,39.2,40.9,41.9,43.6,44.5,45.9,46.7,47.8,48.4,49.0],
+      capex:      [55,65,75,82,72,65,68,88,104,135,162,194,216,253,285,320],
+      hbmRevenue: [null,null,null,null,null,null,null,null,200,450,780,1200,1500,1900,2200,2600],
+      inventory:  [98,112,126,140,130,118,112,108,102,96,90,84,78,72,68,65]
+    },
+    { name: '원익IPS', ticker: '240810', segment: 'equipment',
+      revenue:    [2800,3200,3500,3800,3400,3000,3200,4000,4500,5500,6500,7600,8200,9500,10500,11800],
+      opProfit:   [420,500,570,640,510,435,480,620,720,930,1170,1440,1600,1900,2150,2480],
+      opMargin:   [15.0,15.6,16.3,16.8,15.0,14.5,15.0,15.5,16.0,16.9,18.0,18.9,19.5,20.0,20.5,21.0],
+      capex:      [200,235,260,285,255,225,240,300,340,415,490,575,620,720,795,895],
+      hbmRevenue: [null,null,null,null,null,null,null,null,500,1200,2200,3500,4500,5800,7000,8500],
+      inventory:  [680,760,840,920,860,780,740,700,660,620,580,540,500,460,430,400]
+    },
+    { name: '주성엔지니어링', ticker: '036930', segment: 'equipment',
+      revenue:    [1200,1400,1550,1700,1500,1350,1450,1800,2050,2550,3050,3650,4000,4700,5200,5900],
+      opProfit:   [168,204,232,261,210,182,203,270,328,434,549,693,780,940,1092,1270],
+      opMargin:   [14.0,14.6,15.0,15.4,14.0,13.5,14.0,15.0,16.0,17.0,18.0,19.0,19.5,20.0,21.0,21.5],
+      capex:      [96,112,124,136,120,108,116,144,164,204,244,292,320,376,416,472],
+      hbmRevenue: [null,null,null,null,null,null,null,null,300,700,1300,2100,2700,3500,4200,5000],
+      inventory:  [320,365,405,445,415,375,355,335,315,295,275,255,235,215,200,188]
+    },
+  ]
+};
+
+// ── 데이터 소스 연결: DART 실데이터(window.INDUSTRY_DATA_SEMICONDUCTOR) 우선, 없으면 샘플 ──
+let IS_SAMPLE = true;
+function buildLiveData(records) {
+  const quarters = [...new Set(records.map(r => r.quarter))].sort();
+  const names = [...new Set(records.map(r => r.company))];
+  const get = (name, q, f) => {
+    const r = records.find(x => x.company === name && x.quarter === q);
+    const v = r ? r[f] : null;
+    return (v === null || v === undefined) ? 0 : v;
+  };
+  const SEG = { '종합반도체':'memory','메모리':'memory','파운드리':'foundry','소재/부품':'equipment','장비':'equipment' };
+  const segOf = name => {
+    const s = SEMI_SAMPLE.companies.find(c => c.name === name);
+    if (s && s.segment) return s.segment;
+    const r = records.find(x => x.company === name);
+    return SEG[r && r.category] || 'memory';
+  };
+  const companies = names.map(name => ({
+    name, segment: segOf(name),
+    revenue: quarters.map(q => get(name, q, 'revenue')),
+    opProfit: quarters.map(q => get(name, q, 'op_income')),
+    opMargin: quarters.map(q => get(name, q, 'op_margin')),
+    netProfit: quarters.map(q => get(name, q, 'net_income')),
+    netMargin: quarters.map(q => get(name, q, 'net_margin')),
+    opCashflow: quarters.map(q => get(name, q, 'op_cashflow')),
+    eps: quarters.map(q => get(name, q, 'eps')),
+    roe: quarters.map(q => get(name, q, 'roe')),
+    capex: quarters.map(q => get(name, q, 'capex')),
+    hbmRevenue: quarters.map(q => get(name, q, 'hbm_revenue')),
+    inventory: quarters.map(q => get(name, q, 'inventory'))
+  }));
+  return { meta: { title: SEMI_SAMPLE.meta.title, quarters }, companies };
+}
+const __live = window.INDUSTRY_DATA_SEMICONDUCTOR;
+const SEMI_DATA = (Array.isArray(__live) && __live.length)
+  ? (IS_SAMPLE = false, buildLiveData(__live))
+  : SEMI_SAMPLE;
+
+(function () {
+  const nav = document.getElementById('companyNav');
+  if (nav) nav.innerHTML = SEMI_DATA.companies
+    .map(c => '<button data-company="' + c.name + '">' + c.name + '</button>').join('');
+})();
+
+(function () {
+  const sub = document.querySelector('header .sub');
+  if (!sub) return;
+  const badge = document.createElement('span');
+  badge.style.cssText = 'margin-left:10px;padding:2px 8px;border-radius:10px;font-size:11px;font-weight:700;'
+    + (IS_SAMPLE ? 'background:#7c2d12;color:#fdba74;' : 'background:#14532d;color:#86efac;');
+  badge.textContent = IS_SAMPLE ? 'SAMPLE' : 'LIVE';
+  sub.appendChild(badge);
+  const meta = (window.INDUSTRY_DATA_SEMICONDUCTOR && window.INDUSTRY_DATA_SEMICONDUCTOR._meta) || null;
+  if (!IS_SAMPLE && meta) {
+    const info = document.createElement('span');
+    info.style.cssText = 'margin-left:8px;color:#667085;font-size:11px;';
+    info.textContent = 'DART · ' + meta.updated + ' · ' + SEMI_DATA.companies.length + '개사 · ' + SEMI_DATA.meta.quarters.length + '분기';
+    sub.appendChild(info);
+  }
+})();
+
+
+let currentView = 'summary';
+let currentMetric = 'revenue';
+let currentFilter = 'all';
+let periodStart = 0;
+let periodEnd = SEMI_DATA.meta.quarters.length - 1;
+let currentCompany = SEMI_DATA.companies[0].name;
+const charts = {};
+
+const METRIC_LABELS = {
+  revenue: { label: '매출액', unit: '억원' },
+  opProfit: { label: '영업이익', unit: '억원' },
+  opMargin: { label: '영업이익률', unit: '%' },
+  netProfit: { label: '순이익', unit: '억원' },
+  netMargin: { label: '순이익률', unit: '%' },
+  opCashflow: { label: '영업현금흐름', unit: '억원' },
+  eps: { label: 'EPS', unit: '원' },
+  roe: { label: 'ROE', unit: '%' },
+  capex: { label: '설비투자(CAPEX)', unit: '억원' },
+  hbmRevenue: { label: 'HBM 매출', unit: '억원' },
+  inventory: { label: '재고자산', unit: '억원' }
+};
+
+// SAMPLE 등에서 누락된 지표(순이익/EPS/ROE 등)는 null 배열로 채워 렌더 크래시 방지
+SEMI_DATA.companies.forEach(c => {
+  Object.keys(METRIC_LABELS).forEach(k => {
+    if (!Array.isArray(c[k])) c[k] = SEMI_DATA.meta.quarters.map(() => null);
+  });
+});
+
+// 표시 단위 통일: 금액 지표(십억원) → 십억원(÷10). %/원(EPS) 지표는 변환하지 않음.
+Object.keys(METRIC_LABELS).forEach(k => {
+  if (METRIC_LABELS[k].unit === '억원') {
+    METRIC_LABELS[k].unit = '십억원';
+    SEMI_DATA.companies.forEach(c => {
+      if (Array.isArray(c[k])) c[k] = c[k].map(v => (v == null ? null : Math.round(v / 10)));
+    });
+  }
+});
+
+const SEG_LABELS = { memory: '메모리', foundry: '파운드리', equipment: '장비/소재' };
+
+document.querySelectorAll('#summaryNav button').forEach(btn => {
+  btn.addEventListener('click', () => {
+    currentView = btn.dataset.view;
+    document.querySelectorAll('#summaryNav button, #companyNav button, #gswNav button').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    renderView();
+  });
+});
+document.querySelectorAll('#companyNav button').forEach(btn => {
+  btn.addEventListener('click', () => {
+    currentView = 'company';
+    currentCompany = btn.dataset.company;
+    document.querySelectorAll('#summaryNav button, #companyNav button, #gswNav button').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    renderView();
+  });
+});
+document.querySelectorAll('[data-metric]').forEach(btn => {
+  btn.addEventListener('click', () => {
+    currentMetric = btn.dataset.metric;
+    document.querySelectorAll('[data-metric]').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    renderView();
+  });
+});
+document.querySelectorAll('[data-seg]').forEach(btn => {
+  btn.addEventListener('click', () => {
+    currentFilter = btn.dataset.seg;
+    document.querySelectorAll('[data-seg]').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    renderView();
+  });
+});
+
+const qs = SEMI_DATA.meta.quarters;
+const psEl = document.getElementById('periodStart');
+const peEl = document.getElementById('periodEnd');
+qs.forEach((q,i) => { psEl.appendChild(new Option(q,i)); peEl.appendChild(new Option(q,i)); });
+peEl.value = qs.length - 1;
+psEl.addEventListener('change', () => { periodStart = +psEl.value; renderView(); });
+peEl.addEventListener('change', () => { periodEnd = +peEl.value; renderView(); });
+
+function filteredCompanies() {
+  return currentFilter === 'all' ? SEMI_DATA.companies : SEMI_DATA.companies.filter(c => c.segment === currentFilter);
+}
+
+function destroyAll() {
+  Object.values(charts).forEach(c => { if(c) c.destroy(); });
+  Object.keys(charts).forEach(k => delete charts[k]);
+}
+
+let __gswHeader = null;
+function setGswChrome(on) {
+  const h1 = document.querySelector('header h1');
+  const sub = document.querySelector('header .sub');
+  const controls = document.querySelector('.controls');
+  if (__gswHeader === null) __gswHeader = { h1: h1.innerHTML, sub: sub.innerHTML };
+  document.body.classList.toggle('gsw-active', on);
+  if (controls) controls.style.display = on ? 'none' : 'flex';
+  if (on) {
+    h1.textContent = 'Global Semi Watch';
+    sub.innerHTML = '글로벌 메모리 사이클 · 중국 신흥 위협 · AI 수요 파이프라인 · 2024Q1~2025Q4 · USD mn';
+  } else {
+    h1.innerHTML = __gswHeader.h1;
+    sub.innerHTML = __gswHeader.sub;
+    document.body.style.removeProperty('--phase-color');
+  }
+}
+
+function renderView() {
+  const main = document.getElementById('mainContent');
+  destroyAll();
+  setGswChrome(currentView === 'gsw');
+  if (currentView === 'gsw') { renderGswView(main); return; }
+  const ql = qs.slice(periodStart, periodEnd + 1);
+  if (currentView === 'summary') renderSummaryView(main, ql);
+  else if (currentView === 'hbm') renderHbmView(main, ql);
+  else if (currentView === 'company') renderCompanyView(main, ql);
+}
+
+function renderSummaryView(main, ql) {
+  const companies = filteredCompanies();
+  const ml = METRIC_LABELS[currentMetric];
+  const datasets = companies.map((c, i) => ({
+    label: c.name, data: c[currentMetric].slice(periodStart, periodEnd+1),
+    borderColor: COLORS[i], backgroundColor: COLORS[i]+'18',
+    tension: 0.35, borderWidth: 2.5, pointRadius: 3.5, spanGaps: true
+  }));
+  main.innerHTML = `
+    <div class="panel">
+      <div class="panel-title">${ml.label} 분기별 추이 <span class="panel-hint">(${ml.unit})</span></div>
+      <div class="chart-scroll"><canvas id="mainChart" height="320"></canvas></div>
+      <div class="legend-area" id="mainLegend"></div>
+    </div>
+    <div class="panel" style="margin-top:20px">
+      <div class="panel-title">분기별 비교 <button class="excel-btn" onclick="exportSummary()">⬇ CSV</button></div>
+      <div style="overflow-x:auto"><table><thead><tr>
+        <th>분기</th>${companies.map(c=>'<th>'+c.name+'<br><span style=\"font-size:10px;color:#94a3b8\">'+SEG_LABELS[c.segment]+'</span></th>').join('')}
+      </tr></thead><tbody id="summaryTbody"></tbody></table></div>
+    </div>
+  `;
+  charts.main = makeLineChart('mainChart', ql, datasets, { unit: ml.unit });
+  renderLegend('mainLegend', datasets, charts.main);
+  const tbody = document.getElementById('summaryTbody');
+  ql.forEach((q,qi) => {
+    const ai = periodStart+qi;
+    const tr = document.createElement('tr');
+    tr.innerHTML = '<td>' + q + '</td>' + companies.map(c => {
+      const v = c[currentMetric][ai];
+      if(v == null) return '<td>-</td>';
+      const isPct = ml.unit === '%';
+      const isNeg = (currentMetric === 'opProfit' || currentMetric === 'netProfit') && v < 0;
+      return '<td class="' + (isNeg ? 'neg' : '') + '">' + (isPct ? v.toFixed(1)+'%' : Number(v).toLocaleString('ko-KR')) + '</td>';
+    }).join('');
+    tbody.appendChild(tr);
+  });
+}
+
+function renderHbmView(main, ql) {
+  const memCos = SEMI_DATA.companies.filter(c => c.segment === 'memory' || c.hbmRevenue.some(v=>v));
+  const equip = SEMI_DATA.companies.filter(c => c.segment === 'equipment');
+  main.innerHTML = `
+    <div class="panel">
+      <div class="panel-title">HBM 매출 추이 <span class="panel-hint">(AI 반도체 수요 핵심 지표)</span></div>
+      <div class="chart-scroll"><canvas id="hbmChart" height="300"></canvas></div>
+      <div class="legend-area" id="hbmLegend"></div>
+    </div>
+    <div class="two-col" style="margin-top:20px">
+      <div class="panel">
+        <div class="panel-title">메모리 영업이익률 사이클</div>
+        <div class="chart-scroll"><canvas id="memMarginChart" height="260"></canvas></div>
+        <div class="legend-area" id="memMarginLegend"></div>
+      </div>
+      <div class="panel">
+        <div class="panel-title">메모리 재고자산 추이</div>
+        <div class="chart-scroll"><canvas id="invChart" height="260"></canvas></div>
+        <div class="legend-area" id="invLegend"></div>
+      </div>
+    </div>
+    <div class="panel" style="margin-top:20px">
+      <div class="panel-title">반도체 장비사 영업이익률 비교</div>
+      <div class="chart-scroll"><canvas id="equipMarginChart" height="260"></canvas></div>
+      <div class="legend-area" id="equipMarginLegend"></div>
+    </div>
+  `;
+
+  const hbmCos = SEMI_DATA.companies.filter(c => c.hbmRevenue.some(v=>v));
+  const hbmDs = hbmCos.map((c,i) => ({
+    label: c.name, data: c.hbmRevenue.slice(periodStart, periodEnd+1),
+    borderColor: COLORS[i], backgroundColor: COLORS[i]+'18',
+    tension: 0.35, borderWidth: 2.5, pointRadius: 4, spanGaps: true
+  }));
+  charts.hbm = makeLineChart('hbmChart', ql, hbmDs);
+  renderLegend('hbmLegend', hbmDs, charts.hbm);
+
+  const memCosOnly = SEMI_DATA.companies.filter(c => c.segment === 'memory');
+  const memDs = memCosOnly.map((c,i) => ({
+    label: c.name, data: c.opMargin.slice(periodStart, periodEnd+1),
+    borderColor: COLORS[i], backgroundColor: COLORS[i]+'18',
+    tension: 0.35, borderWidth: 2, pointRadius: 3
+  }));
+  charts.memMargin = makeLineChart('memMarginChart', ql, memDs, { unit: '%' });
+  renderLegend('memMarginLegend', memDs, charts.memMargin);
+
+  const invDs = memCosOnly.map((c,i) => ({
+    label: c.name, data: c.inventory.slice(periodStart, periodEnd+1),
+    borderColor: COLORS[i], backgroundColor: COLORS[i]+'18',
+    tension: 0.35, borderWidth: 2, pointRadius: 3
+  }));
+  charts.inv = makeLineChart('invChart', ql, invDs);
+  renderLegend('invLegend', invDs, charts.inv);
+
+  const equipDs = equip.map((c,i) => ({
+    label: c.name, data: c.opMargin.slice(periodStart, periodEnd+1),
+    borderColor: COLORS[i+3], backgroundColor: COLORS[i+3]+'18',
+    tension: 0.35, borderWidth: 2, pointRadius: 3
+  }));
+  charts.equipMargin = makeLineChart('equipMarginChart', ql, equipDs, { unit: '%' });
+  renderLegend('equipMarginLegend', equipDs, charts.equipMargin);
+}
+
+function renderCompanyView(main, ql) {
+  const c = SEMI_DATA.companies.find(co => co.name === currentCompany);
+  if (!c) return;
+  const latest = periodEnd;
+  const yoyIdx = latest >= 4 ? latest-4 : null;
+  const revYoY = yoyIdx !== null ? ((c.revenue[latest]-c.revenue[yoyIdx])/c.revenue[yoyIdx]*100).toFixed(1) : null;
+  const hbmLatest = c.hbmRevenue[latest];
+
+  main.innerHTML = `
+    <div class="kpi-grid">
+      <div class="kpi-card">
+        <div class="kpi-label">매출액 <span style="font-size:10px;color:#94a3b8">[${SEG_LABELS[c.segment]}]</span></div>
+        <div class="kpi-value">${(c.revenue[latest]/10000).toFixed(1)}<span style="font-size:12px;color:#6b7280">조원</span></div>
+        ${revYoY ? '<div class="kpi-sub ' + (revYoY>=0?'kpi-up':'kpi-dn') + '">' + (revYoY>=0?'▲':'▼') + Math.abs(revYoY) + '% YoY</div>' : ''}
+      </div>
+      <div class="kpi-card">
+        <div class="kpi-label">영업이익</div>
+        <div class="kpi-value ${c.opProfit[latest]>=0?'':'neg'}">${(c.opProfit[latest]/10000).toFixed(2)}<span style="font-size:12px;color:#6b7280">조원</span></div>
+        <div class="kpi-sub">이익률 ${c.opMargin[latest].toFixed(1)}%</div>
+      </div>
+      <div class="kpi-card">
+        <div class="kpi-label">CAPEX</div>
+        <div class="kpi-value">${Number(c.capex[latest]).toLocaleString('ko-KR')}<span style="font-size:12px;color:#6b7280">십억원</span></div>
+      </div>
+      ${hbmLatest ? '<div class="kpi-card"><div class="kpi-label">HBM 매출</div><div class="kpi-value">' + (hbmLatest/10000).toFixed(2) + '<span style="font-size:12px;color:#6b7280">조원</span></div><div class="kpi-sub">전체의 ' + (hbmLatest/c.revenue[latest]*100).toFixed(1) + '%</div></div>' : ''}
+      <div class="kpi-card">
+        <div class="kpi-label">재고자산</div>
+        <div class="kpi-value">${Number(c.inventory[latest]).toLocaleString('ko-KR')}<span style="font-size:12px;color:#6b7280">십억원</span></div>
+      </div>
+    </div>
+    <div class="two-col">
+      <div class="panel">
+        <div class="panel-title">매출 / 영업이익</div>
+        <div class="chart-scroll"><canvas id="revChart" height="260"></canvas></div>
+      </div>
+      <div class="panel">
+        <div class="panel-title">영업이익률 추이</div>
+        <div class="chart-scroll"><canvas id="marginChart" height="260"></canvas></div>
+      </div>
+    </div>
+    ${c.hbmRevenue.some(v=>v) ? `
+    <div class="two-col" style="margin-top:20px">
+      <div class="panel">
+        <div class="panel-title">HBM 매출 추이</div>
+        <div class="chart-scroll"><canvas id="hbmChart" height="240"></canvas></div>
+      </div>
+      <div class="panel">
+        <div class="panel-title">CAPEX / 재고자산</div>
+        <div class="chart-scroll"><canvas id="capexChart" height="240"></canvas></div>
+      </div>
+    </div>` : `<div class="panel" style="margin-top:20px">
+      <div class="panel-title">CAPEX / 재고자산</div>
+      <div class="chart-scroll"><canvas id="capexChart" height="240"></canvas></div>
+    </div>`}
+  `;
+
+  charts.rev = makeBarChart('revChart', ql, [
+    { label: '매출액', data: c.revenue.slice(periodStart, periodEnd+1), backgroundColor: '#7c3aed88' },
+    { label: '영업이익', data: c.opProfit.slice(periodStart, periodEnd+1), backgroundColor: '#16a34a88' }
+  ], { showLegend: true });
+  charts.margin = makeLineChart('marginChart', ql, [{
+    label: '영업이익률', data: c.opMargin.slice(periodStart, periodEnd+1),
+    borderColor: '#7c3aed', backgroundColor: '#7c3aed22',
+    tension: 0.35, borderWidth: 2.5, fill: true, pointRadius: 4
+  }], { unit: '%' });
+
+  if (c.hbmRevenue.some(v=>v)) {
+    charts.hbm = makeLineChart('hbmChart', ql, [{
+      label: 'HBM 매출', data: c.hbmRevenue.slice(periodStart, periodEnd+1),
+      borderColor: '#ea580c', backgroundColor: '#ea580c22',
+      tension: 0.35, borderWidth: 2.5, fill: true, pointRadius: 4, spanGaps: true
+    }]);
+  }
+  charts.capex = makeLineChart('capexChart', ql, [
+    { label: 'CAPEX', data: c.capex.slice(periodStart, periodEnd+1), borderColor: '#0891b2', backgroundColor: '#0891b222', tension: 0.35, borderWidth: 2, pointRadius: 3 },
+    { label: '재고자산', data: c.inventory.slice(periodStart, periodEnd+1), borderColor: '#d97706', backgroundColor: '#d9770622', tension: 0.35, borderWidth: 2, pointRadius: 3 }
+  ]);
+}
+
+function exportSummary() {
+  const companies = filteredCompanies();
+  const ml = METRIC_LABELS[currentMetric];
+  const ql = qs.slice(periodStart, periodEnd+1);
+  const headers = ['분기', ...companies.map(c=>c.name)];
+  const rows = ql.map((q,qi) => {
+    const ai = periodStart+qi;
+    return [q, ...companies.map(c => c[currentMetric][ai] ?? '')];
+  });
+  downloadCsv('반도체_' + ml.label + '.csv', headers, rows);
+}
+
+
+// ===== Global Semi Watch data (canonical spec, embedded) =====
+const SEMICONDUCTOR_MASTER = {"quarters":["2024Q1","2024Q2","2024Q3","2024Q4","2025Q1","2025Q2","2025Q3","2025Q4"],"companies":[{"company_id":"samsung","ticker":"005930","name_en":"Samsung Electronics (DS)","name_ko":"삼성전자 DS부문","segment":["DRAM","NAND"],"listing_status":"subsidiary","data_reliability":"audited","confidence_level":5,"tech_node_leading":"DRAM 1b (12nm급), V8 NAND","yield_maturity":"mass_production","market_share_pct":40.5,"market_share_delta_yoy":-2.5,"estimation_methodology":null,"series":{"revenue_usd_mn":[16200,18500,20800,21500,19800,21000,24500,27000],"op_margin_pct":[1,8,15,18,10,7,16,22],"gross_margin_pct":[28,33,38,40,35,32,40,45],"inventory_days":[185,170,150,135,130,140,120,108],"asp_qoq_pct":[4,11,7,2,-3,5,9,7],"utilization_rate_pct":[78,85,90,92,88,85,93,96],"capex_usd_mn":[9500,10500,11000,12500,11000,13000,15000,14500],"hbm_related_revenue_share_pct":[3,5,8,11,10,9,14,18],"hbm_capex_share_pct":[12,18,24,30,28,30,38,42],"book_to_bill":[null,null,null,null,null,null,null,null],"order_backlog_usd_mn":[null,null,null,null,null,null,null,null],"euv_shipment_units":[null,null,null,null,null,null,null,null]}},{"company_id":"skhynix","ticker":"000660","name_en":"SK hynix","name_ko":"SK하이닉스","segment":["DRAM","NAND"],"listing_status":"listed","data_reliability":"audited","confidence_level":5,"tech_node_leading":"DRAM 1b/1c, HBM3E 12Hi 선두","yield_maturity":"mass_production","market_share_pct":36,"market_share_delta_yoy":3.5,"estimation_methodology":null,"series":{"revenue_usd_mn":[9100,12300,13800,14600,13900,16200,19500,22000],"op_margin_pct":[12,28,40,42,38,42,45,47],"gross_margin_pct":[35,48,58,60,56,60,63,65],"inventory_days":[145,120,100,90,88,85,80,78],"asp_qoq_pct":[6,14,9,4,-1,7,11,9],"utilization_rate_pct":[82,90,95,97,94,95,98,99],"capex_usd_mn":[3200,4000,4500,5500,4800,6000,7000,6500],"hbm_related_revenue_share_pct":[18,28,38,45,48,52,58,62],"hbm_capex_share_pct":[25,35,45,52,55,58,62,65],"book_to_bill":[null,null,null,null,null,null,null,null],"order_backlog_usd_mn":[null,null,null,null,null,null,null,null],"euv_shipment_units":[null,null,null,null,null,null,null,null]}},{"company_id":"micron","ticker":"MU","name_en":"Micron Technology","name_ko":"마이크론","segment":["DRAM","NAND"],"listing_status":"listed","data_reliability":"audited","confidence_level":5,"tech_node_leading":"DRAM 1b/1γ, HBM3E 8Hi/12Hi","yield_maturity":"mass_production","market_share_pct":23,"market_share_delta_yoy":-0.5,"estimation_methodology":null,"series":{"revenue_usd_mn":[5820,6810,7750,8710,8050,9300,11200,12500],"op_margin_pct":[3,14,23,28,25,30,36,40],"gross_margin_pct":[20,28,36,40,38,42,46,49],"inventory_days":[160,140,118,105,100,95,88,85],"asp_qoq_pct":[5,12,8,3,-2,6,10,8],"utilization_rate_pct":[80,87,92,94,90,92,96,98],"capex_usd_mn":[2100,2800,3000,3500,3200,4000,5000,4800],"hbm_related_revenue_share_pct":[2,5,9,13,15,18,24,28],"hbm_capex_share_pct":[15,22,30,38,40,45,50,55],"book_to_bill":[null,null,null,null,null,null,null,null],"order_backlog_usd_mn":[null,null,null,null,null,null,null,null],"euv_shipment_units":[null,null,null,null,null,null,null,null]}},{"company_id":"cxmt","ticker":"unlisted","name_en":"ChangXin Memory (CXMT)","name_ko":"창신메모리(CXMT)","segment":["DRAM"],"listing_status":"unlisted","data_reliability":"estimated","confidence_level":2,"tech_node_leading":"DRAM 17nm/G4 (DDR4/DDR5 초기), EUV 미보유","yield_maturity":"ramping","market_share_pct":9,"market_share_delta_yoy":6,"estimation_methodology":{"basis":"비상장. 웨이퍼 capa(추정 200k→320k wpm) × 추정 수율 × 블렌디드 ASP로 매출 역산. 점유율은 글로벌 DRAM bit 공급 대비 비중 추정. 영업이익률은 레거시 DDR4 덤핑가격+낮은 수율 가정 음수/저마진. 기술격차 선두 대비 4-5년(EUV 부재, 1z세대 수준).","sources":["https://www.trendforce.com/","https://www.techinsights.com/","https://www.bloomberg.com/","https://www.scmp.com/tech"],"error_band_pct":35},"series":{"revenue_usd_mn":[450,650,900,1200,1450,1750,2100,2500],"op_margin_pct":[-25,-18,-10,-5,-8,-3,2,5],"gross_margin_pct":[-5,2,8,12,10,14,18,20],"inventory_days":[200,190,180,170,175,165,160,155],"asp_qoq_pct":[-8,-5,-3,-2,-6,-4,-2,-1],"utilization_rate_pct":[60,68,75,80,78,82,85,88],"capex_usd_mn":[1800,2200,2500,3000,3200,3500,4000,4500],"hbm_related_revenue_share_pct":[0,0,0,0,0,0,1,2],"hbm_capex_share_pct":[0,0,0,0,2,3,5,8],"book_to_bill":[null,null,null,null,null,null,null,null],"order_backlog_usd_mn":[null,null,null,null,null,null,null,null],"euv_shipment_units":[null,null,null,null,null,null,null,null]}},{"company_id":"wdc","ticker":"WDC","name_en":"Western Digital / SanDisk","name_ko":"웨스턴디지털/샌디스크","segment":["NAND"],"listing_status":"listed","data_reliability":"audited","confidence_level":5,"tech_node_leading":"BiCS8 218L NAND","yield_maturity":"mass_production","market_share_pct":13,"market_share_delta_yoy":-0.5,"estimation_methodology":null,"series":{"revenue_usd_mn":[3460,3760,4100,4290,3900,4200,4600,4900],"op_margin_pct":[-5,5,12,16,10,8,15,18],"gross_margin_pct":[15,24,31,35,30,28,34,37],"inventory_days":[150,135,120,110,108,115,100,95],"asp_qoq_pct":[8,15,10,4,-3,4,8,6],"utilization_rate_pct":[75,82,88,90,86,84,90,92],"capex_usd_mn":[400,450,500,550,500,600,700,650],"hbm_related_revenue_share_pct":[null,null,null,null,null,null,null,null],"hbm_capex_share_pct":[null,null,null,null,null,null,null,null],"book_to_bill":[null,null,null,null,null,null,null,null],"order_backlog_usd_mn":[null,null,null,null,null,null,null,null],"euv_shipment_units":[null,null,null,null,null,null,null,null]}},{"company_id":"ymtc","ticker":"unlisted","name_en":"Yangtze Memory (YMTC)","name_ko":"양쯔메모리(YMTC)","segment":["NAND"],"listing_status":"unlisted","data_reliability":"estimated","confidence_level":2,"tech_node_leading":"Xtacking 3.0 232L NAND, 미국 제재 대상","yield_maturity":"ramping","market_share_pct":6,"market_share_delta_yoy":2,"estimation_methodology":{"basis":"비상장+제재로 가시성 낮음. 추정 NAND capa(130k→180k wpm) × 232L bit density × 추정 수율로 bit 공급 산출, 글로벌 NAND 비중 추정. ASP는 내수+가격공세 가정. 장비 수입제한으로 capex 변동성 큼.","sources":["https://www.trendforce.com/","https://www.techinsights.com/","https://www.reuters.com/technology/"],"error_band_pct":40},"series":{"revenue_usd_mn":[600,750,900,1050,1100,1250,1450,1650],"op_margin_pct":[-20,-12,-5,0,-3,2,5,8],"gross_margin_pct":[0,6,12,16,14,18,22,25],"inventory_days":[180,170,160,155,160,150,145,140],"asp_qoq_pct":[-6,-3,-2,-1,-5,-3,-1,0],"utilization_rate_pct":[65,70,76,80,78,82,85,87],"capex_usd_mn":[1200,1400,1500,1700,1600,1800,2000,2200],"hbm_related_revenue_share_pct":[null,null,null,null,null,null,null,null],"hbm_capex_share_pct":[null,null,null,null,null,null,null,null],"book_to_bill":[null,null,null,null,null,null,null,null],"order_backlog_usd_mn":[null,null,null,null,null,null,null,null],"euv_shipment_units":[null,null,null,null,null,null,null,null]}},{"company_id":"tsmc","ticker":"TSM","name_en":"TSMC","name_ko":"TSMC","segment":["Foundry"],"listing_status":"listed","data_reliability":"audited","confidence_level":5,"tech_node_leading":"N3/N2 양산, CoWoS AI 패키징","yield_maturity":"mass_production","market_share_pct":62,"market_share_delta_yoy":3,"estimation_methodology":null,"series":{"revenue_usd_mn":[18870,20820,23500,26880,25500,30000,32500,34500],"op_margin_pct":[42,42.5,47.5,49,48,49.5,50.5,51],"gross_margin_pct":[53,53.2,57.8,59,58.8,59.5,60.2,61],"inventory_days":[null,null,null,null,null,null,null,null],"asp_qoq_pct":[null,null,null,null,null,null,null,null],"utilization_rate_pct":[80,85,92,95,90,93,97,99],"capex_usd_mn":[5770,6360,6400,11200,10000,11000,12000,13000],"hbm_related_revenue_share_pct":[null,null,null,null,null,null,null,null],"hbm_capex_share_pct":[null,null,null,null,null,null,null,null],"book_to_bill":[null,null,null,null,null,null,null,null],"order_backlog_usd_mn":[null,null,null,null,null,null,null,null],"euv_shipment_units":[null,null,null,null,null,null,null,null]}},{"company_id":"intel","ticker":"INTC","name_en":"Intel","name_ko":"인텔","segment":["Logic","Foundry"],"listing_status":"listed","data_reliability":"audited","confidence_level":5,"tech_node_leading":"Intel 4/3, 18A 개발","yield_maturity":"ramping","market_share_pct":null,"market_share_delta_yoy":null,"estimation_methodology":null,"series":{"revenue_usd_mn":[12720,12830,13280,14260,12700,12900,13300,13800],"op_margin_pct":[5,0,-8,-12,-10,-5,2,5],"gross_margin_pct":[41,38,18,39.2,36,37,40,42],"inventory_days":[null,null,null,null,null,null,null,null],"asp_qoq_pct":[null,null,null,null,null,null,null,null],"utilization_rate_pct":[70,72,74,76,74,75,78,80],"capex_usd_mn":[5980,6400,6500,6300,6000,5800,5500,5200],"hbm_related_revenue_share_pct":[null,null,null,null,null,null,null,null],"hbm_capex_share_pct":[null,null,null,null,null,null,null,null],"book_to_bill":[null,null,null,null,null,null,null,null],"order_backlog_usd_mn":[null,null,null,null,null,null,null,null],"euv_shipment_units":[null,null,null,null,null,null,null,null]}},{"company_id":"asml","ticker":"ASML","name_en":"ASML","name_ko":"ASML","segment":["Equipment"],"listing_status":"listed","data_reliability":"audited","confidence_level":5,"tech_node_leading":"EUV NXE/High-NA EXE","yield_maturity":"mass_production","market_share_pct":null,"market_share_delta_yoy":null,"estimation_methodology":null,"series":{"revenue_usd_mn":[6010,6740,8260,10350,8800,9500,10500,11200],"op_margin_pct":[27,26,32,35,30,32,34,36],"gross_margin_pct":[51,51.5,50.8,51.7,51,52,53,54],"inventory_days":[null,null,null,null,null,null,null,null],"asp_qoq_pct":[null,null,null,null,null,null,null,null],"utilization_rate_pct":[null,null,null,null,null,null,null,null],"capex_usd_mn":[null,null,null,null,null,null,null,null],"hbm_related_revenue_share_pct":[null,null,null,null,null,null,null,null],"hbm_capex_share_pct":[null,null,null,null,null,null,null,null],"book_to_bill":[0.85,0.95,1.05,1.2,0.95,1.1,1.25,1.3],"order_backlog_usd_mn":[42000,41000,39000,40000,38000,42000,48000,52000],"euv_shipment_units":[8,10,12,13,9,11,13,14]}},{"company_id":"amat","ticker":"AMAT","name_en":"Applied Materials","name_ko":"어플라이드머티어리얼즈","segment":["Equipment"],"listing_status":"listed","data_reliability":"audited","confidence_level":5,"tech_node_leading":"증착/식각/이온주입 종합","yield_maturity":"mass_production","market_share_pct":null,"market_share_delta_yoy":null,"estimation_methodology":null,"series":{"revenue_usd_mn":[6650,6780,7050,7170,7000,7200,7600,7900],"op_margin_pct":[28.5,29,30,30.5,29,30,31,32],"gross_margin_pct":[47.5,47.5,47.3,47.5,47.4,47.8,48.2,48.5],"inventory_days":[null,null,null,null,null,null,null,null],"asp_qoq_pct":[null,null,null,null,null,null,null,null],"utilization_rate_pct":[null,null,null,null,null,null,null,null],"capex_usd_mn":[null,null,null,null,null,null,null,null],"hbm_related_revenue_share_pct":[null,null,null,null,null,null,null,null],"hbm_capex_share_pct":[null,null,null,null,null,null,null,null],"book_to_bill":[0.9,0.96,1,1.04,0.98,1.04,1.1,1.14],"order_backlog_usd_mn":[19000,19500,20000,20500,20000,20800,21800,22500],"euv_shipment_units":[null,null,null,null,null,null,null,null]}},{"company_id":"lrcx","ticker":"LRCX","name_en":"Lam Research","name_ko":"램리서치","segment":["Equipment"],"listing_status":"listed","data_reliability":"audited","confidence_level":5,"tech_node_leading":"식각/증착, NAND 고단/HBM TSV","yield_maturity":"mass_production","market_share_pct":null,"market_share_delta_yoy":null,"estimation_methodology":null,"series":{"revenue_usd_mn":[3790,3870,4170,4380,4200,4500,4900,5200],"op_margin_pct":[29,29.5,30,31,30,31,32.5,33.5],"gross_margin_pct":[48.7,48.5,47.5,48,47.8,48.5,49.5,50],"inventory_days":[null,null,null,null,null,null,null,null],"asp_qoq_pct":[null,null,null,null,null,null,null,null],"utilization_rate_pct":[null,null,null,null,null,null,null,null],"capex_usd_mn":[null,null,null,null,null,null,null,null],"hbm_related_revenue_share_pct":[null,null,null,null,null,null,null,null],"hbm_capex_share_pct":[null,null,null,null,null,null,null,null],"book_to_bill":[0.94,1,1.04,1.07,1.02,1.07,1.15,1.18],"order_backlog_usd_mn":[9000,9300,9600,9900,9700,10200,11000,11500],"euv_shipment_units":[null,null,null,null,null,null,null,null]}},{"company_id":"klac","ticker":"KLAC","name_en":"KLA Corporation","name_ko":"KLA","segment":["Equipment"],"listing_status":"listed","data_reliability":"audited","confidence_level":5,"tech_node_leading":"공정제어/검사 (메트롤로지 독점적)","yield_maturity":"mass_production","market_share_pct":null,"market_share_delta_yoy":null,"estimation_methodology":null,"series":{"revenue_usd_mn":[2360,2570,2840,3080,2950,3100,3400,3650],"op_margin_pct":[38,39,40,40.5,39.5,40.5,42,43],"gross_margin_pct":[59.8,60.5,61,61.3,60.8,61.5,62.2,63],"inventory_days":[null,null,null,null,null,null,null,null],"asp_qoq_pct":[null,null,null,null,null,null,null,null],"utilization_rate_pct":[null,null,null,null,null,null,null,null],"capex_usd_mn":[null,null,null,null,null,null,null,null],"hbm_related_revenue_share_pct":[null,null,null,null,null,null,null,null],"hbm_capex_share_pct":[null,null,null,null,null,null,null,null],"book_to_bill":[0.96,1.02,1.06,1.08,1.03,1.08,1.14,1.16],"order_backlog_usd_mn":[null,null,null,null,null,null,null,null],"euv_shipment_units":[null,null,null,null,null,null,null,null]}},{"company_id":"entegris","ticker":"ENTG","name_en":"Entegris (incl. CMC Materials)","name_ko":"엔테그리스(+구 CMC)","segment":["Materials"],"listing_status":"listed","data_reliability":"audited","confidence_level":5,"tech_node_leading":"CMP슬러리/필터/특수가스 소재","yield_maturity":"mass_production","market_share_pct":null,"market_share_delta_yoy":null,"estimation_methodology":null,"series":{"revenue_usd_mn":[771,807,808,850,820,870,930,980],"op_margin_pct":[18,19,20,21,20,21,22.5,23.5],"gross_margin_pct":[44.5,45,45.5,46,45.5,46.2,47,47.5],"inventory_days":[null,null,null,null,null,null,null,null],"asp_qoq_pct":[null,null,null,null,null,null,null,null],"utilization_rate_pct":[null,null,null,null,null,null,null,null],"capex_usd_mn":[null,null,null,null,null,null,null,null],"hbm_related_revenue_share_pct":[null,null,null,null,null,null,null,null],"hbm_capex_share_pct":[null,null,null,null,null,null,null,null],"book_to_bill":[0.95,1,1.02,1.05,1,1.05,1.1,1.12],"order_backlog_usd_mn":[null,null,null,null,null,null,null,null],"euv_shipment_units":[null,null,null,null,null,null,null,null]}}],"cycle":{"indicators":[{"key":"mem_inventory_days","label":"메모리3사 평균 재고일수","weight":0.25,"direction":"inverse","norm_rule":"raw=삼성/하이닉스/마이크론 재고일수 단순평균. norm=(130-raw)/20, [-2,2] 클램프. 임계치: 160일이상→-1.5이하(과잉재고), 130일=0(중립), 90일이하→+2(타이트).","raw_series":[163.3,143.3,122.7,110,106,106.7,96,90.3],"norm_series":[-1.67,-0.67,0.37,1,1.2,1.17,1.7,1.98]},{"key":"mem_op_margin","label":"메모리3사 평균 영업이익률","weight":0.3,"direction":"normal","norm_rule":"raw=삼성DS/하이닉스/마이크론 영업이익률 평균(%). norm=(raw-5)/17.5, [-2,2] 클램프. 임계치: -30%→-2(딥트로프), 5%=0(BEP부근), 40%이상→+2(슈퍼사이클피크).","raw_series":[5.3,16.7,26,29.3,24.3,26.3,32.3,36.3],"norm_series":[0.02,0.67,1.2,1.39,1.1,1.22,1.56,1.79]},{"key":"contract_price_qoq","label":"DRAM/NAND 고정가격 QoQ(TrendForce 추정)","weight":0.2,"direction":"normal","norm_rule":"raw=DRAM·NAND 블렌디드 고정거래가 QoQ변화율(%). norm=raw/5, [-2,2] 클램프. 임계치: +10%이상→+2(강세), 0%=0, -10%이하→-2(급락).","raw_series":[5,12,8,3,-2,6,10,8],"norm_series":[1,2,1.6,0.6,-0.4,1.2,2,1.6]},{"key":"equip_b2b","label":"장비3사(AMAT/LRCX/KLA) 합산 book-to-bill","weight":0.15,"direction":"normal","norm_rule":"raw=3사 신규수주/매출 가중 b2b. norm=(raw-1.0)/0.075, [-2,2] 클램프. 임계치: 1.15이상→+2(오더북확장), 1.0=0(균형), 0.85이하→-2(수주둔화).","raw_series":[0.93,0.99,1.03,1.06,1.01,1.06,1.13,1.16],"norm_series":[-0.93,-0.13,0.4,0.8,0.13,0.8,1.73,2]},{"key":"dram_big3_capex_qoq","label":"DRAM 빅3 합산 CAPEX QoQ","weight":0.1,"direction":"normal","norm_rule":"raw=삼성/하이닉스/마이크론 합산 CAPEX QoQ변화율(%). norm=raw/7.5, [-2,2] 클램프. 임계치: +15%이상→+2(증설가속), 0%=0, -15%이하→-2(투자축소).","raw_series":[6,8,4,10,-5,12,15,8],"norm_series":[0.8,1.07,0.53,1.33,-0.67,1.6,2,1.07]}],"composite_series":[-0.27,0.39,0.64,0.87,0.53,1.39,1.88,1.8],"phase_series":["Recovery","Recovery","Boom","Boom","Correction","Boom","Boom","Boom"],"phase_thresholds":{"Trough":"composite < -1.0","Recovery":"-1.0 <= composite < 0.5","Boom":"composite >= 0.5","Correction":"전분기 대비 composite -0.10 이상 하락 시 (절대수준 무관하게 우선 적용); 단 여전히 Boom구간 유지하며 둔화 시 'Boom(둔화)'로 해석","rule_priority":"1)방향체크(QoQ -0.10↓ 그리고 절대수준<0.7 → Correction) 2)절대수준 구간 매핑"},"signal_map":[{"range":"composite < -1.0","phase":"Trough","signal":"Long","note":"바닥 매집 구간. 메모리 롱(하이닉스/마이크론) 비중확대 시작, 밸류에이션 P/B 1배 부근. 장비 b2b<1 확인하며 분할매수."},{"range":"-1.0 ~ 0.5","phase":"Recovery","signal":"Long","note":"가격반등+재고정상화 초입. 메모리 롱 유지/확대. HBM 익스포저 큰 하이닉스 우선. CXMT숏은 아직 이름."},{"range":">= 0.5 (상승방향)","phase":"Boom","signal":"Long/Neutral","note":"이익 모멘텀 정점 추적. 롱 유지하되 composite 1.8+ 도달 시 차익 트림 검토. 장비 오더북·HBM capex비중으로 지속성 확인."},{"range":"QoQ 하락전환 & <0.7","phase":"Correction","signal":"Short/Neutral","note":"가격QoQ 음전환·capex축소 동반 시 사이클 피크아웃 신호. 메모리 롱 트림, CXMT 밸류체인 노출 숏 진입 타이밍. 2025Q1 미니조정 사례."}]},"aiMomentum":{"indicators":[{"key":"asml_euv_shipments","label":"ASML EUV 분기 출하대수","lead":"T-2","weight":0.2},{"key":"equip_b2b","label":"장비3사 합산 book-to-bill","lead":"T-2","weight":0.15},{"key":"tsmc_ai_revenue","label":"TSMC AI/HPC 매출 프록시","lead":"T-1","weight":0.2},{"key":"nvda_dc_revenue_proxy","label":"엔비디아 데이터센터 매출 프록시","lead":"T-1","weight":0.2},{"key":"hbm_capex_share","label":"메모리3사 HBM CAPEX 비중","lead":"coincident","weight":0.15},{"key":"micron_hbm_rev_share","label":"마이크론 HBM 매출비중","lead":"coincident","weight":0.1}],"index_series":[28,40,52,62,58,68,80,88],"formula_desc":"각 지표를 0-100으로 min-max 정규화 후 가중합. EUV출하: (units-6)/(16-6)×100. b2b: (raw-0.85)/(1.30-0.85)×100. TSMC AI매출·NVDA DC프록시: 사이클 저점대비 매출 인덱싱(저점=0, 추정피크=100). HBM capex비중: raw%를 65%피크 기준 ×(100/65). 마이크론 HBM매출비중: raw%×(100/30). index=Σ(weight×지표점수). T-2/T-1 선행지표는 해당 분기에 lead만큼 시프트하여 선행성 반영. 50=중립, 70+=AI수요 강세확장, 80+=피크국면."},"threat":{"categories":["공정노드갭","수율성숙도","제품포트폴리오","고객침투"],"heatmap":[{"company_id":"skhynix","scores":{"공정노드갭":98,"수율성숙도":97,"제품포트폴리오":95,"고객침투":98}},{"company_id":"micron","scores":{"공정노드갭":90,"수율성숙도":92,"제품포트폴리오":88,"고객침투":85}},{"company_id":"samsung","scores":{"공정노드갭":88,"수율성숙도":90,"제품포트폴리오":92,"고객침투":90}},{"company_id":"cxmt","scores":{"공정노드갭":35,"수율성숙도":40,"제품포트폴리오":30,"고객침투":25}},{"company_id":"ymtc","scores":{"공정노드갭":42,"수율성숙도":45,"제품포트폴리오":38,"고객침투":20}}],"bubble":[{"company_id":"skhynix","x_share":36,"y_delta":3.5,"size_capex":24300},{"company_id":"samsung","x_share":40.5,"y_delta":-2.5,"size_capex":53500},{"company_id":"micron","x_share":23,"y_delta":-0.5,"size_capex":17000},{"company_id":"cxmt","x_share":9,"y_delta":6,"size_capex":15200}],"asp_sensitivity":[{"cxmt_share_pct":5,"dram_asp_delta_pct":-2,"hynix_opmargin_delta_pp":-1,"micron_opmargin_delta_pp":-1.2},{"cxmt_share_pct":8,"dram_asp_delta_pct":-5,"hynix_opmargin_delta_pp":-2.5,"micron_opmargin_delta_pp":-3},{"cxmt_share_pct":10,"dram_asp_delta_pct":-8,"hynix_opmargin_delta_pp":-4,"micron_opmargin_delta_pp":-4.8},{"cxmt_share_pct":13,"dram_asp_delta_pct":-13,"hynix_opmargin_delta_pp":-6.5,"micron_opmargin_delta_pp":-7.8},{"cxmt_share_pct":16,"dram_asp_delta_pct":-19,"hynix_opmargin_delta_pp":-9.5,"micron_opmargin_delta_pp":-11.4}]},"backtest":{"periods":["2016H1","2016H2","2017H1","2017H2","2018H1","2018H2","2019H1","2019H2","2020H1","2020H2","2021H1","2021H2","2022H1","2022H2","2023H1","2023H2","2024H1","2024H2","2025H1","2025H2"],"composite":[-0.3,0.4,1.3,1.7,1.8,1,-0.8,-1.4,-0.5,0.6,1.2,1.6,0.3,-1.2,-1.7,-1.5,0.3,0.9,1,1.85],"actual_phase":["Recovery","Recovery","Boom","Boom","Boom","Correction","Trough","Trough","Recovery","Recovery","Boom","Boom","Correction","Correction","Trough","Trough","Recovery","Boom","Boom","Boom"],"predicted_phase":["Recovery","Recovery","Boom","Boom","Boom","Boom","Correction","Correction","Recovery","Boom","Boom","Boom","Correction","Correction","Trough","Trough","Recovery","Boom","Boom","Boom"],"accuracy_pct":80}};
+
+/* ===================================================================
+   GLOBAL SEMI WATCH — analysis engine + render (Dark Analytical)
+   Single source of truth: SEMICONDUCTOR_MASTER (defined just above).
+   =================================================================== */
+(function(){
+  const M = SEMICONDUCTOR_MASTER;
+  const QA = M.quarters;                       // absolute quarter labels (8)
+  const byId = Object.fromEntries(M.companies.map(c => [c.company_id, c]));
+  let gswWin = QA.length;                       // visible window (quarters from end)
+
+  // ---- small utils ----
+  const clamp = (x,a=-2,b=2)=>Math.max(a,Math.min(b,x));
+  const round = (x,d=2)=>{const p=Math.pow(10,d);return Math.round(x*p)/p;};
+  const num = n => (n==null||isNaN(n))?'-':Number(n).toLocaleString('en-US');
+  const pp = (n,d=1)=> (n==null||isNaN(n))?'-':(n>0?'+':'')+Number(n).toFixed(d);
+  const startIdx = ()=> QA.length - gswWin;
+  const visQ = ()=> QA.slice(startIdx());
+
+  function palette(){
+    const light = document.body.classList.contains('gsw-light');
+    return {
+      hi: light?'#1A2332':'#E6ECF5', lo: light?'#5B6675':'#8A97AD',
+      grid: light?'rgba(0,0,0,0.07)':'rgba(255,255,255,0.06)',
+      green:'#22C55E', amber:'#F5B301', red:'#EF4444',
+      a:'#2DD4BF', b:'#EF4444', c:'#FBBF24', est:'#A78BFA',
+      tooltipBg: light?'rgba(20,28,46,0.95)':'rgba(3,7,18,0.95)'
+    };
+  }
+  const GCOL = { samsung:'#60A5FA', skhynix:'#22C55E', micron:'#F59E0B', cxmt:'#A78BFA',
+    wdc:'#94A3B8', ymtc:'#F472B6', tsmc:'#2DD4BF', intel:'#38BDF8',
+    asml:'#FBBF24', amat:'#34D399', lrcx:'#F87171', klac:'#A3E635', entegris:'#C084FC' };
+  const PHASE_COLOR = { Boom:'#22C55E', Recovery:'#F5B301', Trough:'#EF4444', Correction:'#EF4444' };
+
+  // ---- cycle engine: norm rules + weights (the single, decomposable formula) ----
+  const NORM = {
+    mem_inventory_days: r => clamp((130 - r) / 20),
+    mem_op_margin:      r => clamp((r - 5) / 17.5),
+    contract_price_qoq: r => clamp(r / 5),
+    equip_b2b:          r => clamp((r - 1.0) / 0.075),
+    dram_big3_capex_qoq:r => clamp(r / 7.5),
+  };
+  const CW = { mem_inventory_days:.25, mem_op_margin:.30, contract_price_qoq:.20, equip_b2b:.15, dram_big3_capex_qoq:.10 };
+
+  function phaseOf(c, prev){
+    if (prev!=null && (c-prev)<=-0.10 && c<0.7) return 'Correction';
+    if (c < -1.0) return 'Trough';
+    if (c < 0.5)  return 'Recovery';
+    return 'Boom';
+  }
+  function computeCycle(){
+    const inds = M.cycle.indicators;
+    const norm = {};
+    inds.forEach(ind => { norm[ind.key] = ind.raw_series.map(r => r==null?0:round(NORM[ind.key](r),3)); });
+    const composite = QA.map((q,i)=> round(inds.reduce((a,ind)=>a+CW[ind.key]*norm[ind.key][i],0),2));
+    const phase = composite.map((c,i)=> phaseOf(c, i?composite[i-1]:null));
+    return { inds, norm, composite, phase };
+  }
+  const CYC = computeCycle();
+  // Reconcile embedded arrays with the live engine (single source of truth — avoid stale duplicates)
+  M.cycle.composite_series = CYC.composite.slice();
+  M.cycle.phase_series = CYC.phase.slice();
+  M.cycle.indicators.forEach(ind => { ind.norm_series = CYC.norm[ind.key].slice(); });
+
+  // ---- custom chart plugins (inline, scoped per chart) ----
+  function phaseBandsPlugin(phases){
+    return {
+      id:'phaseBands',
+      beforeDraw(chart){
+        const {ctx, chartArea:ca, scales:{x}} = chart;
+        if(!x||!ca) return;
+        const n = phases.length;
+        for(let i=0;i<n;i++){
+          const cx = x.getPixelForValue(i);
+          const prev = i>0 ? x.getPixelForValue(i-1) : cx;
+          const next = i<n-1 ? x.getPixelForValue(i+1) : cx;
+          const left = i===0 ? ca.left : (prev+cx)/2;
+          const right = i===n-1 ? ca.right : (cx+next)/2;
+          ctx.save();
+          ctx.fillStyle = (PHASE_COLOR[phases[i]]||'#888') + '22';
+          ctx.fillRect(left, ca.top, right-left, ca.bottom-ca.top);
+          ctx.restore();
+        }
+      }
+    };
+  }
+  function thresholdPlugin(lines){
+    return { id:'thr', afterDraw(chart){
+      const {ctx, chartArea:ca, scales:{y}} = chart; if(!y) return;
+      lines.forEach(L=>{
+        const py = y.getPixelForValue(L.y); if(py<ca.top||py>ca.bottom) return;
+        ctx.save(); ctx.setLineDash([5,4]); ctx.strokeStyle=L.color; ctx.lineWidth=1;
+        ctx.beginPath(); ctx.moveTo(ca.left,py); ctx.lineTo(ca.right,py); ctx.stroke();
+        ctx.setLineDash([]); ctx.fillStyle=L.color; ctx.font='10px Segoe UI';
+        ctx.fillText(L.label, ca.left+4, py-3); ctx.restore();
+      });
+    }};
+  }
+  function gaugeCenterPlugin(value, zoneColor){
+    return { id:'gc', afterDraw(chart){
+      const {ctx, chartArea:ca} = chart; const P=palette();
+      const cx=(ca.left+ca.right)/2, cy=ca.bottom-6;
+      ctx.save(); ctx.textAlign='center';
+      ctx.fillStyle=zoneColor; ctx.font='800 30px Segoe UI'; ctx.fillText(value, cx, cy-4);
+      ctx.fillStyle=P.lo; ctx.font='10px Segoe UI'; ctx.fillText('/ 100', cx, cy+11);
+      ctx.restore();
+    }};
+  }
+
+  // ---- chart factory (dark/light theme-aware) ----
+  function baseScales(P, opts){
+    const s = {
+      x:{ grid:{color:P.grid}, ticks:{color:P.lo, font:{size:10}, maxRotation:0} },
+      y:{ grid:{color:P.grid}, ticks:{color:P.lo, font:{size:10},
+           callback:v=> (opts.unit==='%'? v+'%' : Number(v).toLocaleString('en-US')) },
+          title:{display:!!opts.yTitle, text:opts.yTitle||'', color:P.lo, font:{size:10}} }
+    };
+    if(opts.yMin!=null) s.y.min=opts.yMin; if(opts.yMax!=null) s.y.max=opts.yMax;
+    if(opts.dual){
+      s.y1={ position:'right', reverse:!!opts.dual.reverse, grid:{drawOnChartArea:false},
+        ticks:{color:P.lo, font:{size:10}, callback:v=>Number(v).toLocaleString('en-US')+(opts.dual.unit||'')},
+        title:{display:!!opts.dual.title, text:opts.dual.title||'', color:P.lo, font:{size:10}} };
+    }
+    return s;
+  }
+  function lineChart(cid, labels, datasets, opts={}){
+    const P=palette();
+    const plugins=[]; if(opts.phases) plugins.push(phaseBandsPlugin(opts.phases));
+    if(opts.thresholds) plugins.push(thresholdPlugin(opts.thresholds));
+    const ctx=document.getElementById(cid); if(!ctx) return null;
+    return new Chart(ctx.getContext('2d'), { type:'line', data:{labels,datasets}, plugins,
+      options:{ responsive:true, maintainAspectRatio:false, interaction:{mode:'index',intersect:false},
+        onClick: opts.onClick||undefined,
+        plugins:{ legend:{display:false},
+          tooltip:{ backgroundColor:P.tooltipBg, titleColor:P.lo, bodyColor:P.hi, borderColor:P.grid, borderWidth:1, padding:9,
+            callbacks: opts.tip || { label:c=> c.dataset.label+': '+(c.raw==null?'-':Number(c.raw).toLocaleString('en-US')+(opts.unit||'')) } } },
+        scales: baseScales(P, opts) } });
+  }
+  function bubbleChart(cid, points, opts={}){
+    const P=palette();
+    const ctx=document.getElementById(cid); if(!ctx) return null;
+    return new Chart(ctx.getContext('2d'), { type:'bubble',
+      data:{ datasets: points.map(pt=>({ label:pt.label, data:[{x:pt.x,y:pt.y,r:pt.r}],
+        backgroundColor:(GCOL[pt.id]||'#888')+'66', borderColor:GCOL[pt.id]||'#888',
+        borderWidth: pt.est?2:1.5, borderDash: pt.est?[5,3]:[] })) },
+      options:{ responsive:true, maintainAspectRatio:false,
+        plugins:{ legend:{display:false},
+          tooltip:{ backgroundColor:P.tooltipBg, titleColor:P.lo, bodyColor:P.hi, borderColor:P.grid, borderWidth:1,
+            callbacks:{ label:c=>{const d=points[c.datasetIndex]; return d.label+': 점유율 '+d.x+'% · YoYΔ '+pp(d.y)+'%p · CAPEX $'+num(d.capex)+'mn'+(d.est?' · Est.±35%':''); } } } },
+        scales:{ x:{ title:{display:true,text:'DRAM 점유율 (%)',color:P.lo,font:{size:10}}, grid:{color:P.grid}, ticks:{color:P.lo,font:{size:10}}, min:0 },
+          y:{ title:{display:true,text:'점유율 YoY Δ (%p)',color:P.lo,font:{size:10}}, grid:{color:P.grid}, ticks:{color:P.lo,font:{size:10}} } } } });
+  }
+  function radarChart(cid, axes, series){
+    const P=palette();
+    const ctx=document.getElementById(cid); if(!ctx) return null;
+    return new Chart(ctx.getContext('2d'), { type:'radar',
+      data:{ labels:axes, datasets: series.map(s=>({ label:s.label, data:s.data,
+        borderColor:s.color, backgroundColor:s.color+'25', borderWidth:2, pointRadius:3, borderDash:s.dash||[] })) },
+      options:{ responsive:true, maintainAspectRatio:false,
+        plugins:{ legend:{display:true, position:'bottom', labels:{color:P.lo, font:{size:10}, boxWidth:10} },
+          tooltip:{ backgroundColor:P.tooltipBg, titleColor:P.lo, bodyColor:P.hi } },
+        scales:{ r:{ min:-2, max:2, ticks:{display:false, stepSize:1}, grid:{color:P.grid}, angleLines:{color:P.grid},
+          pointLabels:{color:P.lo, font:{size:10}} } } } });
+  }
+  function gaugeChart(cid, value){
+    const P=palette();
+    const zone = value>=80?P.red : value>=70?P.amber : value>=50?P.amber : P.lo;
+    const ctx=document.getElementById(cid); if(!ctx) return null;
+    return new Chart(ctx.getContext('2d'), { type:'doughnut', plugins:[gaugeCenterPlugin(value, zone)],
+      data:{ datasets:[{ data:[value,100-value], backgroundColor:[zone, P.grid], borderWidth:0 }] },
+      options:{ responsive:true, maintainAspectRatio:false, cutout:'72%', circumference:180, rotation:270,
+        plugins:{ legend:{display:false}, tooltip:{enabled:false} } } });
+  }
+
+  // ---- legend chips (toggle datasets on a chart) ----
+  function legendChips(containerId, chart, metas){
+    const el=document.getElementById(containerId); if(!el) return;
+    el.innerHTML='';
+    metas.forEach((m,i)=>{
+      const chip=document.createElement('span');
+      chip.className='chip'+(m.est?' est':'');
+      chip.style.borderColor=m.color; chip.style.color=m.color;
+      chip.innerHTML='<span class="cdot" style="background:'+m.color+'"></span>'+m.label+(m.est?' <span style="font-size:8px">Est.</span>':'');
+      chip.addEventListener('click',()=>{ const dm=chart.getDatasetMeta(i); dm.hidden=!dm.hidden; chip.classList.toggle('off',dm.hidden); chart.update(); });
+      el.appendChild(chip);
+    });
+  }
+
+  // ---- reliability tooltip for company-series charts ----
+  function relTip(getCo, unit){
+    return { label(c){
+      const co=getCo(c.datasetIndex); const v=c.raw;
+      let s=(co?co.name_ko:c.dataset.label)+': '+(v==null?'-':Number(v).toLocaleString('en-US')+(unit||''));
+      if(co){ s+='  ['+(co.data_reliability==='estimated'?'Est.·conf'+co.confidence_level+(co.estimation_methodology?'·±'+co.estimation_methodology.error_band_pct+'%':''):'Aud.·conf'+co.confidence_level)+']'; }
+      return s;
+    }};
+  }
+
+  // ---- Module D: foundry node evolution (nm by year) + industry-history eras ----
+  const FOUNDRY = [
+    { label:'Intel', id:'intel', color:'#4285F4', data:[
+      {x:2010,y:32},{x:2012,y:22,note:'22nm FinFET 세계 최초 상용화'},{x:2014,y:14},
+      {x:2017,y:10,note:'10nm 수율 참사·다년 지연'},{x:2021,y:7,note:'Intel 7 (10nm ESF)'},{x:2024,y:2,note:'Intel 3→18A 선두복귀 시도'}] },
+    { label:'SMIC', id:'smic', color:'#34A853', data:[
+      {x:2015,y:28},{x:2019,y:14,note:'14nm 양산(제재 본격화 전)'},{x:2022,y:7,note:'7nm DUV 강행'},{x:2025,y:5,note:'5nm DUV·경제성 수율 구조적 난망'}] },
+    { label:'TSMC', id:'tsmc', color:'#FBBC04', data:[
+      {x:2011,y:28,note:'28nm 수율 선안정→모바일 AP 독식'},{x:2014,y:16,note:'16nm FinFET'},{x:2018,y:7,note:'7nm EUV 선제 도입'},
+      {x:2020,y:5,note:'5nm 수율 80%+ 빠른 달성'},{x:2022,y:3,note:'3nm(FinFET 유지·보수적)'},{x:2025,y:2,note:'2nm GAA 예정'}] },
+    { label:'삼성전자', id:'samsung', color:'#EA4335', data:[
+      {x:2010,y:32},{x:2015,y:14,note:'14nm FinFET 세계 최초 양산(애플 A9)'},{x:2018,y:7,note:'7nm EUV'},
+      {x:2020,y:5,note:'5/4nm 발열·수율 고전→물량 이탈'},{x:2022,y:3,note:'3nm GAA 세계 최초'},{x:2025,y:2,note:'2nm(SF2) 반전 모색'}] },
+  ];
+  const ERAS = [
+    { period:'2010–2014', title:'인텔의 독주와 FinFET의 서막', color:'#4285F4', rows:[
+      {co:'Intel', tag:'압도적 선두', color:'#4285F4', text:'2012년 22nm에서 세계 최초 3D FinFET 상용화 — 타 파운드리 대비 2~3년 앞선 기술력과 압도적 수율.'},
+      {co:'TSMC·삼성', tag:'추격자', color:'#FBBC04', text:'28nm(평면 2D 트랜지스터 마지막 세대) 경쟁. TSMC가 2011년 28nm 수율을 빠르게 안정화→퀄컴 등 모바일 AP 물량 싹쓸이, 파운드리 생태계 절대강자 발판 마련.'} ]},
+    { period:'2015–2018', title:'10nm 수율 참사와 패권의 이동', color:'#EA4335', rows:[
+      {co:'Intel', tag:'10nm 참사', color:'#4285F4', text:'14nm까지 순항했으나 10nm에서 멀티패터닝 과적용→수율 확보 완전 실패. 다년 지연으로 틱톡(Tick-Tock) 전략 붕괴.'},
+      {co:'삼성', tag:'도약', color:'#EA4335', text:'2015년 14nm FinFET을 TSMC(16nm)보다 먼저 세계 최초 양산→애플 A9 칩 수주 쾌거.'},
+      {co:'TSMC', tag:'도약', color:'#FBBC04', text:'인텔이 주춤한 사이 10nm·7nm로 거침없이 미세화. 제조 헤게모니가 미국→아시아로 완전 이동.'} ]},
+    { period:'2019–2022', title:'EUV 도입과 5nm/4nm 병목', color:'#FBBC04', rows:[
+      {co:'TSMC', tag:'초격차 완성', color:'#FBBC04', text:'7nm 후반부터 EUV를 선제·안정 도입. 5nm 수율 80%+를 빠르게 달성→애플·AMD·엔비디아 독식, 완벽한 1위 체제.'},
+      {co:'삼성', tag:'수율 고전', color:'#EA4335', text:'7nm 건너뛰고 5/4nm 직행했으나 발열·수율 난항→퀄컴 8 Gen 1·엔비디아 핵심 물량 TSMC 이탈의 뼈아픈 타격.'},
+      {co:'SMIC', tag:'제재 직격', color:'#34A853', text:'제재 본격화 전 14nm 양산 성공했으나 이후 EUV 반입 차단→선단 공정 진입에 치명적 제동.'} ]},
+    { period:'2023–2026', title:'3nm GAA 시대와 국가 대항전', color:'#34A853', rows:[
+      {co:'TSMC', tag:'보수적 안정', color:'#FBBC04', text:'3nm까지 FinFET을 유지하는 보수 전략으로 수율 안정화 성공. 2025년 하반기 2nm부터 GAA 도입 예정.'},
+      {co:'삼성', tag:'승부수→반전', color:'#EA4335', text:'세계 최초 3nm GAA 승부수를 띄웠으나 초기 수율 극복에 예상보다 장기 소요→현재 2nm(SF2)에서 반전 모색.'},
+      {co:'Intel', tag:'복귀 시도', color:'#4285F4', text:'18A(1.8nm급) 공정으로 단숨에 선두 그룹 복귀 노림.'},
+      {co:'SMIC', tag:'구조적 한계', color:'#34A853', text:'EUV 없이 구형 DUV만으로 7nm→5nm 강행하나 극한의 다중 패터닝으로 경제성 있는 수율 확보는 구조적으로 불가능.'} ]},
+  ];
+  function foundryChart(cid, series){
+    const P=palette(); const ctx=document.getElementById(cid); if(!ctx) return null;
+    return new Chart(ctx.getContext('2d'), { type:'line',
+      data:{ datasets: series.map(s=>({ label:s.label, data:s.data, borderColor:s.color, backgroundColor:s.color+'22',
+        tension:.35, borderWidth:2.6, pointRadius:4, pointHoverRadius:7, spanGaps:true })) },
+      options:{ responsive:true, maintainAspectRatio:false, interaction:{mode:'nearest', intersect:false},
+        plugins:{ legend:{display:true, position:'top', labels:{color:P.lo, font:{size:11}, boxWidth:12, usePointStyle:true} },
+          tooltip:{ backgroundColor:P.tooltipBg, titleColor:P.lo, bodyColor:P.hi, borderColor:P.grid, borderWidth:1, padding:9,
+            callbacks:{ title:items=> items.length?(items[0].raw.x+'년'):'',
+              label:c=> c.dataset.label+': '+c.raw.y+'nm'+(c.raw.note?' — '+c.raw.note:'') } } },
+        scales:{ x:{ type:'linear', min:2010, max:2026, grid:{color:P.grid},
+            ticks:{ stepSize:2, color:P.lo, font:{size:10}, callback:v=>v },
+            title:{display:true, text:'연도 (Year) →', color:P.lo, font:{size:10}} },
+          y:{ reverse:true, min:0, max:34, grid:{color:P.grid},
+            ticks:{ color:P.lo, font:{size:10}, callback:v=>v },
+            title:{display:true, text:'Process Node (nm) ↑  작을수록 선단', color:P.lo, font:{size:10}} } } } });
+  }
+
+  // ===================================================================
+  //  MAIN RENDER
+  // ===================================================================
+  window.renderGswView = function(main){
+    destroyAll();                 // tear down any existing GSW charts (window/theme re-renders)
+    const P = palette();
+    const sIdx = startIdx();
+    const Q = visQ();
+    const cyc = CYC;
+    const cur = QA.length-1;                       // absolute latest index
+    const phaseNow = cyc.phase[cur];
+    const compNow = cyc.composite[cur];
+    const compPrev = cyc.composite[cur-1];
+    const dComp = round(compNow-compPrev,2);
+    const aiNow = M.aiMomentum.index_series[cur];
+    const aiPrev = M.aiMomentum.index_series[cur-1];
+    document.body.style.setProperty('--phase-color', PHASE_COLOR[phaseNow]);
+
+    const big3=['samsung','skhynix','micron'];
+    const memOpmNow = round(big3.reduce((a,id)=>a+byId[id].series.op_margin_pct[cur],0)/3,1);
+    const invNow = Math.round(big3.reduce((a,id)=>a+byId[id].series.inventory_days[cur],0)/3);
+    const cxmt=byId.cxmt;
+    const cxShareNow = cxmt.market_share_pct, cxDelta = cxmt.market_share_delta_yoy;
+    const aspNow = (function(){ const s=M.threat.asp_sensitivity; // interp at current cxmt share
+      let lo=s[0]; for(const r of s){ if(r.cxmt_share_pct<=cxShareNow) lo=r; } return lo.dram_asp_delta_pct; })();
+    const eqB2bNow = round(['amat','lrcx','klac'].reduce((a,id)=>a+byId[id].series.book_to_bill[cur],0)/3,2);
+    const euvNow = byId.asml.series.euv_shipment_units[cur];
+
+    const phCls = phaseNow.toLowerCase();
+    const sigNow = (phaseNow==='Boom') ? 'Long/Neutral' : (phaseNow==='Correction'?'Short/Neutral':'Long');
+
+    main.innerHTML = `
+    <div class="gsw">
+      <div class="gsw-topbar">
+        <span class="ttl">🌐 GLOBAL SEMI WATCH</span>
+        <span class="meta">2024Q1–2025Q4 · USD mn · 메모리 사이클 / 중국 위협 / AI 파이프라인</span>
+        <span class="spacer"></span>
+        <span class="meta">기간</span>
+        <span class="seg-ctl" id="gswWinCtl">
+          <button data-win="4">4Q</button><button data-win="6">6Q</button><button data-win="8">8Q</button>
+        </span>
+        <button class="theme-btn" id="gswTheme">◐ Dark/Light</button>
+      </div>
+
+      <!-- LEVEL 1 -->
+      <div class="l1">
+        <div class="hero">
+          <div class="cap">Cycle Phase · 2025Q4</div>
+          <div class="phase-badge ${phCls}">${phaseNow.toUpperCase()}</div>
+          <div class="big" style="cursor:pointer" id="compHero">${pp(compNow,2)} <span style="font-size:13px;color:var(--g-lo)">composite</span></div>
+          <div class="qoq">QoQ <span class="${dComp>=0?'up':'dn'}">${dComp>=0?'▲':'▼'} ${Math.abs(dComp).toFixed(2)}</span> · Signal <span class="sig ${phaseNow==='Correction'?'short':(phaseNow==='Boom'?'neutral':'long')}">${sigNow}</span> · <span style="color:var(--g-lo)">점수 클릭→기여도</span></div>
+        </div>
+        <div class="hero">
+          <div class="cap">AI Momentum Index</div>
+          <div class="gauge-wrap"><canvas id="gGauge"></canvas></div>
+          <div class="gauge-label">전분기 ${aiPrev} → <b style="color:var(--g-hi)">${aiNow}</b> (${aiNow-aiPrev>=0?'▲':'▼'}${Math.abs(aiNow-aiPrev)}) · ${aiNow>=80?'피크국면':aiNow>=70?'강세확장':aiNow>=50?'중립상회':'회복초입'}</div>
+        </div>
+        <div class="hero">
+          <div class="cap">금주 핵심 변화 (3-Line)</div>
+          <ul class="summary-lines">
+            <li><span class="dot" style="background:var(--acc-a)"></span><div><b>사이클</b> — 메모리3사 평균 영업이익률 <b>${memOpmNow}%</b>, 재고일수 <b>${invNow}일</b>로 타이트. composite ${pp(compNow,2)} → <b>${phaseNow}</b> (피크 추적, 1.8 근접 시 트림 검토).</div></li>
+            <li><span class="dot" style="background:var(--acc-b)"></span><div><b>중국</b> — CXMT DRAM 점유율 <b>${cxShareNow}%</b> (YoY ${pp(cxDelta)}%p), 레거시 덤핑으로 DRAM ASP 추정 <b>${aspNow}%</b> 압력. 점유율 10% = Short 트리거.</div></li>
+            <li><span class="dot" style="background:var(--acc-c)"></span><div><b>AI</b> — 장비3사 B2B <b>${eqB2bNow}</b>, ASML EUV 분기 <b>${euvNow}대</b> 출하. 오더북 확장 지속, 모멘텀 ${aiNow} 피크국면.</div></li>
+          </ul>
+        </div>
+      </div>
+
+      <!-- MODULE A -->
+      <div class="mod" id="modA" style="--mc:var(--acc-a)">
+        <div class="mod-head"><span class="mtag">MODULE A</span><h3>글로벌 메모리 사이클 레이더</h3><span class="mhint">5지표 가중합 → Phase 자동판정 · 백테스트 80%</span><span class="chev">▾</span></div>
+        <div class="mod-body">
+          <div class="grid2">
+            <div class="sub-panel"><div class="sp-title">사이클 추이 <span class="sp-hint">영업이익률(좌) + 재고일수(우·역축) + Phase 밴드</span></div><div class="chart-box"><canvas id="gDual"></canvas></div></div>
+            <div class="sub-panel"><div class="sp-title">사이클 레이더 <span class="sp-hint">5지표 norm · 2025Q4 vs 2025Q3</span></div><div class="chart-box"><canvas id="gRadar"></canvas></div></div>
+          </div>
+          <div class="sub-panel" style="margin-top:14px"><div class="sp-title">복합 사이클 점수 <span class="sp-hint">Σ wᵢ×normᵢ · 점 클릭 → 기여도 분해 · 임계선 +0.5(Boom)/−1.0(Trough)</span></div><div class="chart-box sm"><canvas id="gComp"></canvas></div></div>
+          <div class="sub-panel" style="margin-top:14px">
+            <div class="sp-title">백테스트 2016H1–2025H2 <span class="sp-hint">예측 vs 실제 Phase · 적중률 ${M.backtest.accuracy_pct}%</span></div>
+            <div id="gBT"></div>
+          </div>
+          <table style="margin-top:14px"><thead><tr><th>Composite 구간</th><th>Phase</th><th>Signal</th><th>운용 가이드</th></tr></thead><tbody id="gSig"></tbody></table>
+        </div>
+      </div>
+
+      <!-- MODULE B -->
+      <div class="mod" id="modB" style="--mc:var(--acc-b)">
+        <div class="mod-head"><span class="mtag">MODULE B</span><h3>신흥 플레이어 위협 매트릭스</h3><span class="mhint">CXMT/YMTC 추정 · 기술격차 · ASP 감도</span><span class="chev">▾</span></div>
+        <div class="mod-body">
+          <div class="grid2">
+            <div class="sub-panel"><div class="sp-title">경쟁 포지셔닝 <span class="sp-hint">X=점유율 · Y=YoYΔ · 버블=8Q CAPEX · <span style="color:var(--est)">⌁CXMT Est.</span></span></div><div class="chart-box"><canvas id="gBubble"></canvas></div></div>
+            <div class="sub-panel"><div class="sp-title">기술격차 히트맵 <span class="sp-hint">0(취약)~100(선두) · 4축</span></div><div id="gHeat" class="heat"></div></div>
+          </div>
+          <div class="sub-panel" style="margin-top:14px"><div class="sp-title">기술 노드 진화 타임라인</div><div id="gTL"></div></div>
+          <div class="sub-panel" style="margin-top:14px">
+            <div class="sp-title">CXMT 점유율 임계 감도 <span class="sp-hint">ASP → 하이닉스/마이크론 OPM · 현재 ${cxShareNow}% 강조</span></div>
+            <table><thead><tr><th>CXMT 점유율</th><th>DRAM ASP Δ</th><th>하이닉스 OPM Δ</th><th>마이크론 OPM Δ</th><th>신호</th></tr></thead><tbody id="gAsp"></tbody></table>
+            <div class="note">*CXMT/YMTC는 비상장 추정(conf 2). CXMT ±35%·YMTC ±40% 오차밴드. 점유율 9%의 실질 밴드 ≈ 5.9~12.2%p — 밴드 상단은 이미 10% Short 트리거 진입.</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- MODULE C -->
+      <div class="mod" id="modC" style="--mc:var(--acc-c)">
+        <div class="mod-head"><span class="mtag">MODULE C</span><h3>AI 수요 파이프라인 트래커</h3><span class="mhint">장비 오더북(T-2) → 메모리 CAPEX → HBM 매출 · 모멘텀 ${aiNow}</span><span class="chev">▾</span></div>
+        <div class="mod-body">
+          <div class="grid2">
+            <div class="sub-panel"><div class="sp-title">PANEL A · 장비 오더북 <span class="sp-hint">b2b(좌) + ASML backlog(우) · T-2 선행</span></div><div class="chart-box"><canvas id="gB2B"></canvas></div><div class="legend" id="gB2BLeg"></div></div>
+            <div class="sub-panel"><div class="sp-title">PANEL B · HBM 매출비중 <span class="sp-hint">하이닉스 vs 마이크론 · 동행</span></div><div class="chart-box"><canvas id="gHBM"></canvas></div><div class="legend" id="gHBMLeg"></div></div>
+          </div>
+          <div class="grid2" style="margin-top:14px">
+            <div class="sub-panel"><div class="sp-title">AI 수요 모멘텀 지수 <span class="sp-hint">0–100 가중복합 · 28→${aiNow}</span></div><div class="chart-box sm"><canvas id="gMom"></canvas></div></div>
+            <div class="sub-panel"><div class="sp-title">모멘텀 구간별 HBM 포지션 가중치</div><table><thead><tr><th>지수 구간</th><th>국면</th><th>SK하이닉스</th><th>마이크론</th><th>운용</th></tr></thead><tbody id="gPos"></tbody></table></div>
+          </div>
+          <div class="sub-panel" style="margin-top:14px"><div class="sp-title">선행지표 체계 (Lead / Weight)</div><table><thead><tr><th>지표</th><th>Lead</th><th>Weight</th></tr></thead><tbody id="gLead"></tbody></table></div>
+        </div>
+      </div>
+
+      <!-- MODULE D -->
+      <div class="mod" id="modD" style="--mc:#FBBC04">
+        <div class="mod-head"><span class="mtag">MODULE D</span><h3>파운드리 노드 진화 &amp; 산업사 (2010–2026)</h3><span class="mhint">선단공정 리더십 이동 · 범례 클릭=토글 · 점 hover=마일스톤</span><span class="chev">▾</span></div>
+        <div class="mod-body">
+          <div class="sub-panel"><div class="sp-title">Foundry Node Evolution <span class="sp-hint">Y축 역축 — 작을수록 선단(위로)</span></div><div class="chart-box foundry"><canvas id="gFoundry"></canvas></div></div>
+          <div id="gEras" style="margin-top:14px"></div>
+        </div>
+      </div>
+
+      <!-- LEVEL 3 -->
+      <div class="mod collapsed" id="modT" style="--mc:var(--g-lo)">
+        <div class="mod-head"><span class="mtag">LEVEL 3</span><h3>기업 상세 테이블 (2025Q4 스냅샷)</h3><span class="mhint">13개사 · 추정행 점선 · CSV</span><span class="chev">▾</span></div>
+        <div class="mod-body">
+          <div style="margin-bottom:8px"><button class="csv-btn" id="gCsv">⬇ CSV</button></div>
+          <div style="overflow-x:auto"><table><thead><tr><th>기업</th><th>티커</th><th>매출($mn)</th><th>OPM%</th><th>재고일</th><th>점유율%</th><th>HBM매출%</th><th>b2b</th><th>신뢰</th></tr></thead><tbody id="gTbl"></tbody></table></div>
+        </div>
+      </div>
+      <div class="mod collapsed" id="modM" style="--mc:var(--est)">
+        <div class="mod-head"><span class="mtag">근거</span><h3>비상장 추정 방법론 노트</h3><span class="mhint">CXMT / YMTC · 4-Tier 역산</span><span class="chev">▾</span></div>
+        <div class="mod-body" id="gMethod"></div>
+      </div>
+    </div>
+    <div class="gsw-modal" id="gswModal"><div class="mbox"><button class="mclose" id="gModalClose">✕</button><div id="gModalBody"></div></div></div>
+    `;
+
+    // ---------- LEVEL 1 gauge ----------
+    charts.gsw_gauge = gaugeChart('gGauge', aiNow);
+
+    // ---------- MODULE A ----------
+    // dual axis: OPM (left) + inventory days (right, reversed) + phase bands
+    const memOpm = QA.map((q,i)=> round(big3.reduce((a,id)=>a+byId[id].series.op_margin_pct[i],0)/3,1));
+    const memInv = QA.map((q,i)=> round(big3.reduce((a,id)=>a+byId[id].series.inventory_days[i],0)/3,1));
+    charts.gsw_dual = lineChart('gDual', Q, [
+      { label:'메모리3사 평균 OPM', data:memOpm.slice(sIdx), borderColor:P.green, backgroundColor:P.green+'22', tension:.35, borderWidth:2.6, pointRadius:3, yAxisID:'y' },
+      { label:'평균 재고일수(역축)', data:memInv.slice(sIdx), borderColor:P.amber, backgroundColor:'transparent', borderDash:[6,4], tension:.35, borderWidth:2, pointRadius:2.5, yAxisID:'y1' },
+    ], { unit:'%', yTitle:'영업이익률 %', dual:{reverse:true, unit:'일', title:'재고일수(역축)'}, phases:cyc.phase.slice(sIdx) });
+
+    // radar: current vs prev norms
+    const axes=['재고','OPM','가격QoQ','b2b','CAPEX QoQ'];
+    const order=['mem_inventory_days','mem_op_margin','contract_price_qoq','equip_b2b','dram_big3_capex_qoq'];
+    charts.gsw_radar = radarChart('gRadar', axes, [
+      { label:'2025Q4', data:order.map(k=>cyc.norm[k][cur]), color:P.a },
+      { label:'2025Q3', data:order.map(k=>cyc.norm[k][cur-1]), color:P.lo, dash:[5,4] },
+    ]);
+
+    // composite line + thresholds + click decomposition
+    charts.gsw_comp = lineChart('gComp', Q, [
+      { label:'Composite', data:cyc.composite.slice(sIdx), borderColor:P.a, backgroundColor:P.a+'22', tension:.3, borderWidth:2.6, pointRadius:4, fill:true }
+    ], { yMin:-2, yMax:2, phases:cyc.phase.slice(sIdx),
+         thresholds:[{y:0.5,color:P.green,label:'+0.5 Boom'},{y:-1.0,color:P.red,label:'−1.0 Trough'}],
+         tip:{ label(c){ const ai=sIdx+c.dataIndex; return 'Composite '+pp(cyc.composite[ai],2)+' · '+cyc.phase[ai]; } },
+         onClick(evt){ const el=charts.gsw_comp.getElementsAtEventForMode(evt,'nearest',{intersect:false},true); if(el.length){ openDecomp(sIdx+el[0].index); } } });
+
+    // backtest strip
+    const bt=M.backtest;
+    document.getElementById('gBT').innerHTML =
+      '<div class="bt-strip">'+bt.periods.map((p,i)=>{ const ok=bt.actual_phase[i]===bt.predicted_phase[i];
+        return '<div class="bt-cell '+(ok?'bt-ok':'bt-no')+'" title="'+p+' · 실제 '+bt.actual_phase[i]+' / 예측 '+bt.predicted_phase[i]+'">'+(ok?'✓':'✗')+'</div>'; }).join('')+'</div>'+
+      '<div class="bt-strip" style="margin-top:2px">'+bt.periods.map(p=>'<div class="bt-lab" style="flex:1">'+p.replace('20','').replace('H','H')+'</div>').join('')+'</div>';
+
+    // signal table
+    document.getElementById('gSig').innerHTML = M.cycle.signal_map.map(s=>{
+      const cls = /Short/.test(s.signal)?'short':(/Neutral/.test(s.signal)&&!/Long/.test(s.signal)?'neutral':'long');
+      return '<tr><td>'+s.range+'</td><td>'+s.phase+'</td><td style="text-align:left"><span class="sig '+cls+'">'+s.signal+'</span></td><td style="text-align:left;white-space:normal;color:var(--g-lo)">'+s.note+'</td></tr>';
+    }).join('');
+
+    // ---------- MODULE B ----------
+    const bub = M.threat.bubble.map(p=>{ const co=byId[p.company_id];
+      return { id:p.company_id, label:co.name_ko, x:p.x_share, y:p.y_delta, r:Math.max(8,Math.sqrt(p.size_capex)/8), capex:p.size_capex, est:co.data_reliability==='estimated' }; });
+    charts.gsw_bubble = bubbleChart('gBubble', bub);
+
+    // heatmap
+    const cats=M.threat.categories;
+    const heatRows=M.threat.heatmap;
+    const heatEl=document.getElementById('gHeat');
+    heatEl.style.gridTemplateColumns='90px repeat('+cats.length+',1fr)';
+    let hh='<div class="hl-lbl"></div>'+cats.map(c=>'<div class="hl-col">'+c+'</div>').join('');
+    heatRows.forEach(r=>{ const co=byId[r.company_id];
+      hh+='<div class="hl-lbl">'+co.name_ko+(co.data_reliability==='estimated'?' <span class="badge est">Est</span>':'')+'</div>';
+      cats.forEach(c=>{ const v=r.scores[c]; hh+='<div class="hc" style="background:'+heatColor(v)+'">'+v+'</div>'; });
+    });
+    heatEl.innerHTML=hh;
+
+    // node timeline
+    document.getElementById('gTL').innerHTML = [
+      {lab:'선두 DRAM', node:'1b(12nm) → 1c ramp · HBM3E 12Hi', pct:100, gap:'기준선', col:P.green},
+      {lab:'CXMT DRAM', node:'17nm/G4 · DDR4 + DDR5초기 · EUV 미보유', pct:42, gap:'4–5년', col:P.est},
+      {lab:'선두 NAND', node:'218–238L · BiCS8/V8', pct:100, gap:'기준선', col:P.green},
+      {lab:'YMTC NAND', node:'Xtacking 3.0 232L · 제재', pct:62, gap:'장비제약', col:P.est},
+    ].map(t=>'<div class="tl-row"><div class="tl-lab">'+t.lab+'</div><div><div style="color:var(--g-lo);font-size:10.5px;margin-bottom:3px">'+t.node+'</div><div class="tl-bar"><span style="width:'+t.pct+'%;background:'+t.col+'"></span></div></div><div class="tl-gap">'+t.gap+'</div></div>').join('');
+
+    // asp sensitivity
+    document.getElementById('gAsp').innerHTML = M.threat.asp_sensitivity.map(r=>{
+      const near = Math.abs(r.cxmt_share_pct-cxShareNow)<=1 || (r.cxmt_share_pct===10);
+      const sig = r.cxmt_share_pct>=13?'short':(r.cxmt_share_pct>=10?'short':(r.cxmt_share_pct>=8?'neutral':'long'));
+      const lab = r.cxmt_share_pct>=16?'사이클 훼손':r.cxmt_share_pct>=13?'Short 강화':r.cxmt_share_pct>=10?'⚠ Short 트리거':r.cxmt_share_pct>=8?'Watch':'Neutral';
+      return '<tr class="'+(near?'hl':'')+'"><td>'+r.cxmt_share_pct+'%</td><td>'+r.dram_asp_delta_pct+'%</td><td class="dn">'+pp(r.hynix_opmargin_delta_pp)+'pp</td><td class="dn">'+pp(r.micron_opmargin_delta_pp)+'pp</td><td style="text-align:left"><span class="sig '+sig+'">'+lab+'</span></td></tr>';
+    }).join('');
+
+    // ---------- MODULE C ----------
+    const eqIds=['asml','amat','lrcx','klac'];
+    const b2bDs = eqIds.map(id=>({ label:byId[id].name_en, data:byId[id].series.book_to_bill.slice(sIdx),
+      borderColor:GCOL[id], backgroundColor:GCOL[id]+'18', tension:.3, borderWidth:2, pointRadius:2.5, yAxisID:'y' }));
+    b2bDs.push({ label:'ASML backlog', type:'bar', data:byId.asml.series.order_backlog_usd_mn.slice(sIdx),
+      backgroundColor:P.amber+'33', borderColor:P.amber+'55', yAxisID:'y1', order:9 });
+    charts.gsw_b2b = lineChart('gB2B', Q, b2bDs, { yTitle:'book-to-bill', yMin:0.8, yMax:1.35,
+      dual:{unit:'k', title:'backlog $mn'}, thresholds:[{y:1.0,color:P.lo,label:'1.0 균형'}] });
+    charts.gsw_b2b.options.scales.y1.ticks.callback=v=>Math.round(v/1000)+'k';
+    charts.gsw_b2b.update();
+    legendChips('gB2BLeg', charts.gsw_b2b, eqIds.map(id=>({label:byId[id].name_en.split(' ')[0],color:GCOL[id]})).concat([{label:'ASML backlog',color:P.amber}]));
+
+    const hbmIds=['skhynix','micron'];
+    const hbmDs=hbmIds.map(id=>({ label:byId[id].name_ko, data:byId[id].series.hbm_related_revenue_share_pct.slice(sIdx),
+      borderColor:GCOL[id], backgroundColor:GCOL[id]+'22', tension:.35, borderWidth:2.6, pointRadius:3, fill:true }));
+    charts.gsw_hbm = lineChart('gHBM', Q, hbmDs, { unit:'%', yTitle:'HBM 매출비중 %', tip: relTip(i=>byId[hbmIds[i]], '%') });
+    legendChips('gHBMLeg', charts.gsw_hbm, hbmIds.map(id=>({label:byId[id].name_ko,color:GCOL[id]})));
+
+    charts.gsw_mom = lineChart('gMom', Q, [
+      { label:'AI 모멘텀', data:M.aiMomentum.index_series.slice(sIdx), borderColor:P.c, backgroundColor:P.c+'22', tension:.35, borderWidth:2.6, pointRadius:3.5, fill:true }
+    ], { yMin:0, yMax:100, thresholds:[{y:50,color:P.lo,label:'50 중립'},{y:80,color:P.red,label:'80 피크'}] });
+
+    // position weight guide
+    document.getElementById('gPos').innerHTML = [
+      ['< 40','회복초입','60%','40%','바닥매집·하이닉스 집중'],
+      ['40–60','확장','55%','45%','풀포지션 구축'],
+      ['60–70','중립상회','50%','50%','동등·마이크론 캐치업'],
+      ['70–80','강세확장','45%','55%','트림 대비'],
+      ['≥ 80','피크 (현재 '+aiNow+')','40%','40%+현금20%','차익실현·CXMT 숏 헤지'],
+    ].map(r=>{ const hot=r[0]==='≥ 80'; return '<tr class="'+(hot?'hl':'')+'"><td>'+r[0]+'</td><td>'+r[1]+'</td><td>'+r[2]+'</td><td>'+r[3]+'</td><td style="text-align:left;white-space:normal;color:var(--g-lo)">'+r[4]+'</td></tr>'; }).join('');
+
+    // lead table
+    document.getElementById('gLead').innerHTML = M.aiMomentum.indicators.map(i=>{
+      const c = i.lead==='T-2'?'var(--acc-c)':i.lead==='T-1'?'var(--acc-a)':'var(--g-lo)';
+      return '<tr><td style="text-align:left">'+i.label+'</td><td><span class="sig" style="background:'+c+'22;color:'+c+'">'+i.lead+'</span></td><td>'+i.weight.toFixed(2)+'</td></tr>';
+    }).join('');
+
+    // ---------- MODULE D ----------
+    charts.gsw_foundry = foundryChart('gFoundry', FOUNDRY);
+    document.getElementById('gEras').innerHTML = ERAS.map(e=>
+      '<div class="era" style="--era-c:'+e.color+'"><div class="era-head"><span class="era-period">'+e.period+'</span><span class="era-title">'+e.title+'</span></div>'+
+      e.rows.map(r=>'<div class="era-row"><span class="era-co" style="border-color:'+r.color+';color:'+r.color+'">'+r.co+'</span><span class="era-tag" style="background:'+r.color+'22;color:'+r.color+'">'+r.tag+'</span><span class="era-text">'+r.text+'</span></div>').join('')+
+      '</div>').join('');
+
+    // ---------- LEVEL 3 table ----------
+    renderCompanyTable();
+    document.getElementById('gMethod').innerHTML = M.companies.filter(c=>c.estimation_methodology).map(c=>{
+      const m=c.estimation_methodology;
+      return '<div class="note" style="margin-bottom:12px"><b>'+c.name_ko+' ('+c.name_en+')</b> · conf '+c.confidence_level+' · 오차밴드 ±'+m.error_band_pct+'%<br>'+m.basis+'<br>'+m.sources.map(s=>'<span class="src-pill">'+s.replace('https://','').replace(/\/$/,'')+'</span>').join('')+'</div>';
+    }).join('') + '<div class="note"><b>4-Tier 역산</b> — Primary(모기업 IR·채권공시) → Secondary(중국세관 HS854232·SEMI통계) → Tertiary(채널체크·웨이퍼 출하 역산 = bit output × ASP) → 교차검증(TrendForce·Omdia·IDC 삼각측량). 추정 매출 = capa(wpm) × 가동률 × bit density × 수율 × 블렌디드 ASP.</div>';
+
+    // ---------- interactions ----------
+    document.querySelectorAll('#gswWinCtl button').forEach(b=>{ b.classList.toggle('active', +b.dataset.win===gswWin);
+      b.addEventListener('click',()=>{ gswWin=+b.dataset.win; renderGswView(main); }); });
+    document.getElementById('gswTheme').addEventListener('click',()=>{ document.body.classList.toggle('gsw-light'); renderGswView(main); });
+    document.querySelectorAll('.gsw .mod-head').forEach(h=> h.addEventListener('click',()=> h.parentElement.classList.toggle('collapsed')));
+    document.getElementById('compHero').addEventListener('click',()=>openDecomp(cur));
+    document.getElementById('gCsv').addEventListener('click', exportGsw);
+    const modal=document.getElementById('gswModal');
+    document.getElementById('gModalClose').addEventListener('click',()=>modal.classList.remove('open'));
+    modal.addEventListener('click',e=>{ if(e.target===modal) modal.classList.remove('open'); });
+  };
+
+  function heatColor(v){ // 0 red → 50 amber → 100 green
+    const g = v>=50 ? [Math.round(245-(v-50)/50*(245-34)), Math.round(179+(v-50)/50*(197-179)), Math.round(1+(v-50)/50*(94-1))]
+                    : [239, Math.round(68+v/50*(179-68)), Math.round(68-v/50*68+1)];
+    return 'rgb('+g[0]+','+g[1]+','+g[2]+')';
+  }
+
+  function renderCompanyTable(){
+    const cur=QA.length-1;
+    const groups=[['DRAM·NAND 메모리',['samsung','skhynix','micron','cxmt','wdc','ymtc']],['Foundry·Logic',['tsmc','intel']],['Equipment',['asml','amat','lrcx','klac']],['Materials',['entegris']]];
+    let h='';
+    groups.forEach(([g,ids])=>{
+      h+='<tr class="grp"><td colspan="9">'+g+'</td></tr>';
+      ids.forEach(id=>{ const c=byId[id], s=c.series; const est=c.data_reliability==='estimated';
+        const cdot = c.confidence_level>=5?'#22C55E':c.confidence_level>=3?'#F5B301':'#A78BFA';
+        const title = est?('추정 · conf '+c.confidence_level+' · ±'+c.estimation_methodology.error_band_pct+'% · '+c.estimation_methodology.sources[0].replace('https://','')):('감사공시 · conf '+c.confidence_level);
+        h+='<tr class="'+(est?'est-row':'')+'" title="'+title+'"><td>'+c.name_ko+' '+(est?'<span class="badge est">Est</span>':'<span class="badge aud">Aud</span>')+'</td><td style="color:var(--g-lo)">'+c.ticker+'</td>'+
+          '<td>'+num(s.revenue_usd_mn[cur])+'</td><td>'+(s.op_margin_pct[cur]==null?'-':s.op_margin_pct[cur]+'%')+'</td>'+
+          '<td>'+(s.inventory_days[cur]==null?'-':s.inventory_days[cur])+'</td><td>'+(c.market_share_pct==null?'-':c.market_share_pct+'%')+'</td>'+
+          '<td>'+(s.hbm_related_revenue_share_pct[cur]==null?'-':s.hbm_related_revenue_share_pct[cur]+'%')+'</td>'+
+          '<td>'+(s.book_to_bill[cur]==null?'-':s.book_to_bill[cur])+'</td>'+
+          '<td>'+c.confidence_level+'<span class="conf-dot" style="background:'+cdot+'"></span></td></tr>';
+      });
+    });
+    document.getElementById('gTbl').innerHTML=h;
+  }
+
+  function openDecomp(idx){
+    if(idx==null || idx<0 || idx>=QA.length) return;
+    const cyc=CYC; const P=palette();
+    const labels={mem_inventory_days:'재고일수',mem_op_margin:'영업이익률',contract_price_qoq:'고정가격 QoQ',equip_b2b:'장비 b2b',dram_big3_capex_qoq:'CAPEX QoQ'};
+    const rows=cyc.inds.map(ind=>{ const n=cyc.norm[ind.key][idx]; const contrib=round(CW[ind.key]*n,3);
+      return {key:ind.key, label:labels[ind.key], w:CW[ind.key], norm:n, raw:ind.raw_series[idx], contrib}; });
+    const total=round(rows.reduce((a,r)=>a+r.contrib,0),2);
+    const maxAbs=Math.max(...rows.map(r=>Math.abs(r.contrib)),0.5);
+    const body=document.getElementById('gModalBody');
+    body.innerHTML='<h3>사이클 점수 분해 · '+QA[idx]+'</h3><div style="color:'+P.lo+';font-size:11px;margin-bottom:12px">composite = Σ wᵢ × normᵢ = <b style="color:'+P.a+'">'+pp(total,2)+'</b> → '+cyc.phase[idx]+'</div>'+
+      rows.map(r=>{ const pos=r.contrib>=0; const w=Math.abs(r.contrib)/maxAbs*50;
+        return '<div class="wf-row"><div>'+r.label+' <span style="color:'+P.lo+';font-size:10px">(w '+r.w+' × '+r.norm.toFixed(2)+')</span></div>'+
+          '<div class="wf-bar"><span style="'+(pos?'left:50%':'right:50%')+';width:'+w+'%;background:'+(pos?P.green:P.red)+'"></span><span style="left:50%;width:1px;background:'+P.lo+'"></span></div>'+
+          '<div style="text-align:right;color:'+(pos?P.green:P.red)+';font-weight:700">'+pp(r.contrib,2)+'</div></div>'; }).join('')+
+      '<div class="note" style="margin-top:10px">raw 입력: '+rows.map(r=>r.label+' '+r.raw).join(' · ')+'</div>';
+    document.getElementById('gswModal').classList.add('open');
+  }
+
+  function exportGsw(){
+    const cur=QA.length-1;
+    const headers=['기업','티커','세그먼트','매출_USDmn','OPM_%','재고일','점유율_%','HBM매출_%','b2b','신뢰도','데이터'];
+    const rows=M.companies.map(c=>{ const s=c.series; return [c.name_ko,c.ticker,c.segment.join('/'),s.revenue_usd_mn[cur],s.op_margin_pct[cur],s.inventory_days[cur]??'',c.market_share_pct??'',s.hbm_related_revenue_share_pct[cur]??'',s.book_to_bill[cur]??'',c.confidence_level,c.data_reliability]; });
+    downloadCsv('GlobalSemiWatch_2025Q4.csv', headers, rows);
+  }
+
+  // attach nav handler
+  document.querySelectorAll('#gswNav button').forEach(btn=>{
+    btn.addEventListener('click',()=>{ currentView='gsw';
+      document.querySelectorAll('#summaryNav button, #companyNav button, #gswNav button').forEach(b=>b.classList.remove('active'));
+      btn.classList.add('active'); renderView(); });
+  });
+})();
+
+
+initSidebar();
+document.querySelector('[data-seg="all"]').classList.add('active');
+document.querySelector('[data-metric="revenue"]').classList.add('active');
+document.querySelector('[data-view="summary"]').classList.add('active');
+renderView();
+
+  </script>
+</body>
+</html>

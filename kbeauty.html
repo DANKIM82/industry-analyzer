@@ -1,0 +1,283 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>K-뷰티 실적 Dashboard</title>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+<style>:root{--theme:#ec4899;}
+* { margin:0; padding:0; box-sizing:border-box; }
+body { font-family:'Pretendard','Noto Sans KR',sans-serif; background:#0d1117; color:#e6edf3; min-height:100vh; display:flex; }
+
+/* 사이드바 */
+.sidebar { width:220px; min-height:100vh; background:#161b22; border-right:1px solid #30363d; display:flex; flex-direction:column; position:fixed; top:0; left:0; z-index:100; }
+.sidebar-logo { padding:20px 16px 12px; border-bottom:1px solid #30363d; }
+.sidebar-logo .sector-badge { display:inline-block; padding:3px 8px; border-radius:4px; font-size:11px; font-weight:700; letter-spacing:1px; margin-bottom:6px; }
+.sidebar-logo h2 { font-size:15px; font-weight:700; line-height:1.3; }
+.sidebar-logo p { font-size:11px; color:#8b949e; margin-top:2px; }
+.sidebar-nav { padding:12px 0; flex:1; overflow-y:auto; }
+.sidebar-nav .nav-section { padding:6px 16px 4px; font-size:10px; font-weight:700; color:#8b949e; letter-spacing:1px; text-transform:uppercase; }
+.sidebar-nav a { display:flex; align-items:center; gap:8px; padding:8px 16px; font-size:13px; color:#8b949e; text-decoration:none; transition:all .15s; cursor:pointer; border-left:2px solid transparent; }
+.sidebar-nav a:hover { color:#e6edf3; background:#21262d; }
+.sidebar-nav a.active { color:#e6edf3; background:#21262d; border-left-color:var(--theme); }
+.sidebar-nav a .icon { font-size:15px; }
+.sidebar-footer { padding:12px 16px; border-top:1px solid #30363d; font-size:11px; color:#8b949e; }
+.sidebar-footer a { color:#58a6ff; text-decoration:none; }
+
+/* 메인 */
+.main { margin-left:220px; flex:1; display:flex; flex-direction:column; min-height:100vh; }
+.topbar { padding:14px 24px; border-bottom:1px solid #30363d; display:flex; align-items:center; justify-content:space-between; background:#0d1117; position:sticky; top:0; z-index:50; }
+.topbar h1 { font-size:18px; font-weight:700; }
+.topbar .controls { display:flex; gap:10px; align-items:center; flex-wrap:wrap; }
+.topbar select { background:#21262d; border:1px solid #30363d; color:#e6edf3; padding:6px 10px; border-radius:6px; font-size:13px; }
+.btn { padding:6px 14px; border-radius:6px; font-size:13px; font-weight:600; border:none; cursor:pointer; transition:all .15s; }
+.btn-primary { background:var(--theme); color:#fff; }
+.btn-primary:hover { opacity:.85; }
+.btn-outline { background:transparent; border:1px solid #30363d; color:#8b949e; }
+.btn-outline:hover { border-color:#58a6ff; color:#58a6ff; }
+.btn-sm { padding:4px 10px; font-size:12px; }
+
+/* 데이터 소스 바 */
+.data-source-bar { background:#161b22; border-bottom:1px solid #30363d; padding:8px 24px; display:flex; align-items:center; gap:12px; font-size:12px; }
+.ds-badge { padding:2px 8px; border-radius:10px; font-weight:700; font-size:11px; }
+.ds-badge.sample { background:#2d1b00; color:#f59e0b; border:1px solid #92400e; }
+.ds-badge.live { background:#0d2818; color:#3fb950; border:1px solid #1a4731; }
+.ds-info { color:#8b949e; }
+.ds-actions { margin-left:auto; display:flex; gap:8px; }
+
+/* 컨텐츠 */
+.content { padding:24px; flex:1; }
+.section-title { font-size:15px; font-weight:700; color:#e6edf3; margin-bottom:16px; display:flex; align-items:center; gap:8px; }
+.section-title::before { content:''; width:3px; height:16px; background:var(--theme); border-radius:2px; display:block; }
+
+/* KPI 카드 */
+.kpi-grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(180px,1fr)); gap:12px; margin-bottom:24px; }
+.kpi-card { background:#161b22; border:1px solid #30363d; border-radius:10px; padding:16px; }
+.kpi-card .label { font-size:11px; color:#8b949e; margin-bottom:6px; }
+.kpi-card .value { font-size:22px; font-weight:700; color:#e6edf3; }
+.kpi-card .unit { font-size:12px; color:#8b949e; margin-left:2px; }
+.kpi-card .delta { font-size:12px; margin-top:4px; }
+.delta.up { color:#3fb950; }
+.delta.down { color:#f85149; }
+
+/* 차트 그리드 */
+.chart-grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(460px,1fr)); gap:16px; margin-bottom:24px; }
+.chart-card { background:#161b22; border:1px solid #30363d; border-radius:10px; padding:20px; }
+.chart-card h3 { font-size:13px; font-weight:600; color:#8b949e; margin-bottom:14px; }
+.chart-card canvas { max-height:240px; }
+
+/* 테이블 */
+.table-wrap { background:#161b22; border:1px solid #30363d; border-radius:10px; overflow:hidden; margin-bottom:24px; }
+.table-wrap table { width:100%; border-collapse:collapse; font-size:13px; }
+.table-wrap th { padding:10px 14px; text-align:left; font-size:11px; font-weight:700; color:#8b949e; text-transform:uppercase; letter-spacing:.5px; border-bottom:1px solid #30363d; background:#0d1117; }
+.table-wrap td { padding:10px 14px; border-bottom:1px solid #21262d; color:#e6edf3; }
+.table-wrap tr:last-child td { border-bottom:none; }
+.table-wrap tr:hover td { background:#21262d; }
+.tag { display:inline-block; padding:2px 7px; border-radius:4px; font-size:11px; font-weight:600; }
+
+/* 필터 버튼 */
+.filter-bar { display:flex; gap:8px; flex-wrap:wrap; margin-bottom:16px; }
+.filter-btn { padding:5px 12px; border-radius:16px; font-size:12px; font-weight:600; border:1px solid #30363d; background:transparent; color:#8b949e; cursor:pointer; transition:all .15s; }
+.filter-btn.active, .filter-btn:hover { background:var(--theme); color:#fff; border-color:var(--theme); }
+
+/* 반응형 */
+@media(max-width:768px){
+  .sidebar { transform:translateX(-220px); }
+  .main { margin-left:0; }
+  .chart-grid { grid-template-columns:1fr; }
+  .kpi-grid { grid-template-columns:repeat(2,1fr); }
+}
+
+/* 뷰 전환 */
+.view { display:none; }
+.view.active { display:block; }
+
+/* 스켈레톤/로딩 */
+.loading-msg { text-align:center; padding:60px; color:#8b949e; font-size:14px; }
+</style>
+</head>
+<body>
+<nav class="sidebar">
+  <div class="sidebar-logo">
+    <span class="sector-badge" style="background:#500724;color:#f472b6;">K-BEAUTY</span>
+    <h2>K-뷰티 실적</h2><p>글로벌 K-Beauty Dashboard</p>
+  </div>
+  <div class="sidebar-nav">
+    <div class="nav-section">Views</div>
+    <a class="active" onclick="switchView('summary',event)"><span class="icon">📊</span>종합 현황</a>
+    <a onclick="switchView('global',event)"><span class="icon">🌍</span>해외·지역 분석</a>
+    <a onclick="switchView('company',event)"><span class="icon">🏢</span>기업별 분석</a>
+    <a onclick="switchView('table',event)"><span class="icon">📋</span>데이터 테이블</a>
+    <div class="nav-section" style="margin-top:12px;">Hub</div>
+    <a href="index.html"><span class="icon">🏠</span>메인 허브</a>
+  </div>
+  <div class="sidebar-footer">데이터: DART OpenAPI<br>자동업데이트: 분기별</div>
+</nav>
+<div class="main">
+  <div class="topbar">
+    <h1>💄 K-뷰티 실적 Dashboard</h1>
+    <div class="controls">
+      <select id="quarterFilter" onchange="renderAll()"><option value="all">전체 분기</option></select>
+      <select id="categoryFilter" onchange="renderAll()"><option value="all">전체 구분</option><option>브랜드</option><option>ODM</option><option>유통</option></select>
+      <button class="btn btn-outline btn-sm" onclick="exportCSV()">⬇ CSV 내보내기</button>
+    </div>
+  </div>
+  <div class="data-source-bar">
+    <span class="ds-badge sample" id="dsBadge">SAMPLE</span>
+    <span class="ds-info" id="dsInfo">샘플 데이터 | data/kbeauty_data.js 로드 필요</span>
+    <div class="ds-actions"><button class="btn btn-outline btn-sm" onclick="resetToSample()">🔄 샘플로 초기화</button></div>
+  </div>
+  <div class="content">
+    <div class="view active" id="view-summary">
+      <div class="filter-bar" id="metricFilter">
+        <button class="filter-btn active" onclick="setMetric('revenue',this)">매출액</button>
+        <button class="filter-btn" onclick="setMetric('op_income',this)">영업이익</button>
+        <button class="filter-btn" onclick="setMetric('op_margin',this)">영업이익률(%)</button>
+        <button class="filter-btn" onclick="setMetric('net_income',this)">순이익</button>
+        <button class="filter-btn" onclick="setMetric('net_margin',this)">순이익률(%)</button>
+        <button class="filter-btn" onclick="setMetric('op_cashflow',this)">영업현금흐름</button>
+        <button class="filter-btn" onclick="setMetric('eps',this)">EPS(원)</button>
+        <button class="filter-btn" onclick="setMetric('roe',this)">ROE(%)</button>
+        <button class="filter-btn" onclick="setMetric('overseas_ratio',this)">해외비중(%)</button>
+        <button class="filter-btn" onclick="setMetric('online_ratio',this)">온라인비중(%)</button>
+      </div>
+      <div class="chart-grid">
+        <div class="chart-card" style="grid-column:1/-1"><h3 id="mainTitle">기업별 매출액 추이 (십억원)</h3><canvas id="mainChart"></canvas></div>
+        <div class="chart-card"><h3>최근 분기 영업이익률 (%)</h3><canvas id="marginChart"></canvas></div>
+        <div class="chart-card"><h3>구분별 매출 비중 (브랜드/ODM/유통)</h3><canvas id="typeChart"></canvas></div>
+      </div>
+    </div>
+    <div class="view" id="view-global">
+      <div class="section-title">해외·지역별 분석</div>
+      <div class="chart-grid">
+        <div class="chart-card" style="grid-column:1/-1"><h3>해외매출 비중 추이 (%)</h3><canvas id="overseasTrendChart"></canvas></div>
+        <div class="chart-card"><h3>지역별 해외매출 구성 (최근분기, 십억원)</h3><canvas id="regionChart"></canvas></div>
+        <div class="chart-card"><h3>북미 매출 추이 vs 중국 매출 (십억원)</h3><canvas id="naVsCnChart"></canvas></div>
+      </div>
+    </div>
+    <div class="view" id="view-company">
+      <div class="filter-bar" id="companyFilter"></div>
+      <div class="kpi-grid" id="companyKPI"></div>
+      <div class="chart-grid">
+        <div class="chart-card"><h3>매출액·영업이익 (십억원)</h3><canvas id="companyBarChart"></canvas></div>
+        <div class="chart-card"><h3>북미·중국 매출 추이 (십억원)</h3><canvas id="companyRegionChart"></canvas></div>
+      </div>
+    </div>
+    <div class="view" id="view-table">
+      <div class="section-title">전체 데이터</div>
+      <div class="table-wrap"><table>
+        <thead><tr><th>분기</th><th>기업명</th><th>구분</th><th>매출액(억)</th><th>영업이익(억)</th><th>영업이익률(%)</th><th>해외매출(억)</th><th>해외비중(%)</th><th>북미(억)</th><th>중국(억)</th><th>온라인비중(%)</th></tr></thead>
+        <tbody id="dataTable"></tbody>
+      </table></div>
+    </div>
+  </div>
+</div>
+<script src="data/kbeauty_data.js" onerror="console.log('kbeauty_data.js 없음')"></script>
+<script>
+const SAMPLE=[
+  {quarter:'2023Q1',company:'아모레퍼시픽',category:'브랜드',revenue:10580,op_income:580,op_margin:5.5,overseas_revenue:4820,overseas_ratio:45.6,north_america:680,china:2850,online_ratio:38},
+  {quarter:'2023Q2',company:'아모레퍼시픽',category:'브랜드',revenue:11200,op_income:720,op_margin:6.4,overseas_revenue:5250,overseas_ratio:46.9,north_america:820,china:2950,online_ratio:40},
+  {quarter:'2023Q3',company:'아모레퍼시픽',category:'브랜드',revenue:11850,op_income:880,op_margin:7.4,overseas_revenue:5750,overseas_ratio:48.5,north_america:980,china:3050,online_ratio:42},
+  {quarter:'2023Q4',company:'아모레퍼시픽',category:'브랜드',revenue:12500,op_income:1050,op_margin:8.4,overseas_revenue:6300,overseas_ratio:50.4,north_america:1150,china:3150,online_ratio:44},
+  {quarter:'2024Q1',company:'아모레퍼시픽',category:'브랜드',revenue:13200,op_income:1250,op_margin:9.5,overseas_revenue:6950,overseas_ratio:52.7,north_america:1350,china:3250,online_ratio:46},
+  {quarter:'2024Q2',company:'아모레퍼시픽',category:'브랜드',revenue:13950,op_income:1480,op_margin:10.6,overseas_revenue:7650,overseas_ratio:54.8,north_america:1580,china:3350,online_ratio:48},
+  {quarter:'2024Q3',company:'아모레퍼시픽',category:'브랜드',revenue:14750,op_income:1750,op_margin:11.9,overseas_revenue:8420,overseas_ratio:57.1,north_america:1850,china:3450,online_ratio:50},
+  {quarter:'2024Q4',company:'아모레퍼시픽',category:'브랜드',revenue:15600,op_income:2050,op_margin:13.1,overseas_revenue:9250,overseas_ratio:59.3,north_america:2150,china:3550,online_ratio:52},
+
+  {quarter:'2023Q1',company:'코스맥스',category:'ODM',revenue:4820,op_income:380,op_margin:7.9,overseas_revenue:2650,overseas_ratio:55.0,north_america:480,china:1850,online_ratio:0},
+  {quarter:'2023Q2',company:'코스맥스',category:'ODM',revenue:5180,op_income:430,op_margin:8.3,overseas_revenue:2950,overseas_ratio:56.9,north_america:550,china:2050,online_ratio:0},
+  {quarter:'2023Q3',company:'코스맥스',category:'ODM',revenue:5580,op_income:490,op_margin:8.8,overseas_revenue:3280,overseas_ratio:58.8,north_america:650,china:2250,online_ratio:0},
+  {quarter:'2023Q4',company:'코스맥스',category:'ODM',revenue:5950,op_income:550,op_margin:9.2,overseas_revenue:3620,overseas_ratio:60.8,north_america:750,china:2450,online_ratio:0},
+  {quarter:'2024Q1',company:'코스맥스',category:'ODM',revenue:6380,op_income:620,op_margin:9.7,overseas_revenue:3980,overseas_ratio:62.4,north_america:870,china:2650,online_ratio:0},
+  {quarter:'2024Q2',company:'코스맥스',category:'ODM',revenue:6850,op_income:700,op_margin:10.2,overseas_revenue:4390,overseas_ratio:64.1,north_america:1000,china:2850,online_ratio:0},
+  {quarter:'2024Q3',company:'코스맥스',category:'ODM',revenue:7350,op_income:790,op_margin:10.7,overseas_revenue:4850,overseas_ratio:66.0,north_america:1150,china:3050,online_ratio:0},
+  {quarter:'2024Q4',company:'코스맥스',category:'ODM',revenue:7900,op_income:890,op_margin:11.3,overseas_revenue:5380,overseas_ratio:68.1,north_america:1320,china:3280,online_ratio:0},
+
+  {quarter:'2023Q1',company:'실리콘투',category:'유통',revenue:1850,op_income:280,op_margin:15.1,overseas_revenue:1650,overseas_ratio:89.2,north_america:850,china:420,online_ratio:75},
+  {quarter:'2023Q2',company:'실리콘투',category:'유통',revenue:2250,op_income:370,op_margin:16.4,overseas_revenue:2030,overseas_ratio:90.2,north_america:1050,china:500,online_ratio:77},
+  {quarter:'2023Q3',company:'실리콘투',category:'유통',revenue:2720,op_income:480,op_margin:17.6,overseas_revenue:2480,overseas_ratio:91.2,north_america:1300,china:580,online_ratio:79},
+  {quarter:'2023Q4',company:'실리콘투',category:'유통',revenue:3250,op_income:610,op_margin:18.8,overseas_revenue:2980,overseas_ratio:91.7,north_america:1600,china:650,online_ratio:81},
+  {quarter:'2024Q1',company:'실리콘투',category:'유통',revenue:3850,op_income:770,op_margin:20.0,overseas_revenue:3550,overseas_ratio:92.2,north_america:1950,china:720,online_ratio:83},
+  {quarter:'2024Q2',company:'실리콘투',category:'유통',revenue:4520,op_income:960,op_margin:21.2,overseas_revenue:4200,overseas_ratio:92.9,north_america:2350,china:780,online_ratio:85},
+  {quarter:'2024Q3',company:'실리콘투',category:'유통',revenue:5280,op_income:1180,op_margin:22.3,overseas_revenue:4940,overseas_ratio:93.6,north_america:2800,china:840,online_ratio:87},
+  {quarter:'2024Q4',company:'실리콘투',category:'유통',revenue:6100,op_income:1420,op_margin:23.3,overseas_revenue:5750,overseas_ratio:94.3,north_america:3300,china:900,online_ratio:89},
+
+  {quarter:'2023Q1',company:'클리오',category:'브랜드',revenue:820,op_income:85,op_margin:10.4,overseas_revenue:380,overseas_ratio:46.3,north_america:120,china:180,online_ratio:52},
+  {quarter:'2023Q2',company:'클리오',category:'브랜드',revenue:920,op_income:105,op_margin:11.4,overseas_revenue:450,overseas_ratio:48.9,north_america:150,china:200,online_ratio:54},
+  {quarter:'2023Q3',company:'클리오',category:'브랜드',revenue:1050,op_income:130,op_margin:12.4,overseas_revenue:530,overseas_ratio:50.5,north_america:185,china:220,online_ratio:56},
+  {quarter:'2023Q4',company:'클리오',category:'브랜드',revenue:1180,op_income:158,op_margin:13.4,overseas_revenue:620,overseas_ratio:52.5,north_america:220,china:240,online_ratio:58},
+  {quarter:'2024Q1',company:'클리오',category:'브랜드',revenue:1320,op_income:190,op_margin:14.4,overseas_revenue:720,overseas_ratio:54.5,north_america:260,china:260,online_ratio:60},
+  {quarter:'2024Q2',company:'클리오',category:'브랜드',revenue:1480,op_income:228,op_margin:15.4,overseas_revenue:835,overseas_ratio:56.4,north_america:305,china:280,online_ratio:62},
+  {quarter:'2024Q3',company:'클리오',category:'브랜드',revenue:1650,op_income:270,op_margin:16.4,overseas_revenue:960,overseas_ratio:58.2,north_america:355,china:300,online_ratio:64},
+  {quarter:'2024Q4',company:'클리오',category:'브랜드',revenue:1840,op_income:320,op_margin:17.4,overseas_revenue:1105,overseas_ratio:60.1,north_america:410,china:320,online_ratio:66},
+];
+
+let DATA=[],currentMetric='revenue',currentCompany=null,charts={},isSample=true;
+const COLORS=['#f472b6','#3fb950','#f59e0b','#38bdf8','#a78bfa','#f85149','#fb923c','#bc8cff'];
+const ML={revenue:'매출액(십억원)',op_income:'영업이익(십억원)',op_margin:'영업이익률(%)',net_income:'순이익(십억원)',net_margin:'순이익률(%)',op_cashflow:'영업현금흐름(십억원)',eps:'EPS(원)',roe:'ROE(%)',overseas_ratio:'해외비중(%)',online_ratio:'온라인비중(%)'};
+function unitOf(metric){const m=(ML[metric]||'').match(/\(([^)]+)\)/);return m?m[1]:'';}
+
+function getCompanies(){return[...new Set(DATA.map(d=>d.company))];}
+function getQuarters(){return[...new Set(DATA.map(d=>d.quarter))].sort();}
+function destroyChart(id){if(charts[id]){charts[id].destroy();delete charts[id];}}
+function switchView(v,e){document.querySelectorAll('.view').forEach(el=>el.classList.remove('active'));document.getElementById('view-'+v).classList.add('active');document.querySelectorAll('.sidebar-nav a').forEach(a=>a.classList.remove('active'));if(e&&e.target)e.target.closest('a').classList.add('active');renderAll();}
+function setMetric(m,btn){currentMetric=m;document.querySelectorAll('#metricFilter .filter-btn').forEach(b=>b.classList.remove('active'));btn.classList.add('active');renderSummary();}
+function renderAll(){const active=document.querySelector('.view.active');if(!active)return;if(active.id==='view-summary')renderSummary();else if(active.id==='view-global')renderGlobal();else if(active.id==='view-company')renderCompany();else if(active.id==='view-table')renderTable();}
+
+function renderSummary(){
+  const companies=getCompanies(),quarters=getQuarters();
+  destroyChart('main');destroyChart('margin');destroyChart('type');
+  document.getElementById('mainTitle').textContent='기업별 '+ML[currentMetric]+' 추이';
+  charts['main']=new Chart(document.getElementById('mainChart'),{type:'line',data:{labels:quarters,datasets:companies.map((c,i)=>({label:c,data:quarters.map(q=>{const r=DATA.find(d=>d.company===c&&d.quarter===q);return (r&&r[currentMetric]!=null)?r[currentMetric]:null;}),borderColor:COLORS[i],backgroundColor:COLORS[i]+'33',tension:.3,fill:false,pointRadius:4}))},options:{responsive:true,plugins:{legend:{position:'bottom',labels:{color:'#8b949e',font:{size:11}}}},scales:{x:{ticks:{color:'#8b949e'},grid:{color:'#21262d'}},y:{title:{display:true,text:unitOf(currentMetric),color:'#8b949e'},ticks:{color:'#8b949e'},grid:{color:'#21262d'}}}}});
+  const lastQ=quarters[quarters.length-1];
+  charts['margin']=new Chart(document.getElementById('marginChart'),{type:'bar',data:{labels:companies,datasets:[{label:'영업이익률(%)',data:companies.map(c=>{const r=DATA.find(d=>d.company===c&&d.quarter===lastQ);return r?r.op_margin:0;}),backgroundColor:COLORS.map(c=>c+'cc')}]},options:{responsive:true,plugins:{legend:{display:false}},scales:{x:{ticks:{color:'#8b949e'},grid:{color:'#21262d'}},y:{ticks:{color:'#8b949e'},grid:{color:'#21262d'}}}}});
+  const cats=[...new Set(DATA.map(d=>d.category))];
+  charts['type']=new Chart(document.getElementById('typeChart'),{type:'doughnut',data:{labels:cats,datasets:[{data:cats.map(cat=>DATA.filter(d=>d.category===cat&&d.quarter===lastQ).reduce((s,d)=>s+d.revenue,0)),backgroundColor:['#f472b6','#3fb950','#38bdf8']}]},options:{responsive:true,plugins:{legend:{position:'bottom',labels:{color:'#8b949e'}}}}});
+}
+
+function renderGlobal(){
+  const companies=getCompanies(),quarters=getQuarters();
+  destroyChart('overseasTrend');destroyChart('region');destroyChart('naVsCn');
+  charts['overseasTrend']=new Chart(document.getElementById('overseasTrendChart'),{type:'line',data:{labels:quarters,datasets:companies.map((c,i)=>({label:c,data:quarters.map(q=>{const r=DATA.find(d=>d.company===c&&d.quarter===q);return r?r.overseas_ratio:null;}),borderColor:COLORS[i],tension:.3,fill:false,pointRadius:4}))},options:{responsive:true,plugins:{legend:{position:'bottom',labels:{color:'#8b949e'}}},scales:{x:{ticks:{color:'#8b949e'},grid:{color:'#21262d'}},y:{max:100,ticks:{color:'#8b949e'},grid:{color:'#21262d'}}}}});
+  const lastQ=quarters[quarters.length-1];
+  const naT=DATA.filter(d=>d.quarter===lastQ).reduce((s,d)=>s+d.north_america,0);
+  const cnT=DATA.filter(d=>d.quarter===lastQ).reduce((s,d)=>s+d.china,0);
+  const otherT=DATA.filter(d=>d.quarter===lastQ).reduce((s,d)=>s+Math.max(0,d.overseas_revenue-d.north_america-d.china),0);
+  charts['region']=new Chart(document.getElementById('regionChart'),{type:'doughnut',data:{labels:['북미','중국','기타아시아'],datasets:[{data:[naT,cnT,otherT],backgroundColor:['#f472b6','#f59e0b','#38bdf8']}]},options:{responsive:true,plugins:{legend:{position:'bottom',labels:{color:'#8b949e'}}}}});
+  charts['naVsCn']=new Chart(document.getElementById('naVsCnChart'),{type:'line',data:{labels:quarters,datasets:[
+    {label:'북미합계',data:quarters.map(q=>DATA.filter(d=>d.quarter===q).reduce((s,d)=>s+d.north_america,0)),borderColor:'#f472b6',tension:.3,fill:false,pointRadius:4},
+    {label:'중국합계',data:quarters.map(q=>DATA.filter(d=>d.quarter===q).reduce((s,d)=>s+d.china,0)),borderColor:'#f59e0b',tension:.3,fill:false,pointRadius:4}
+  ]},options:{responsive:true,plugins:{legend:{labels:{color:'#8b949e'}}},scales:{x:{ticks:{color:'#8b949e'},grid:{color:'#21262d'}},y:{ticks:{color:'#8b949e'},grid:{color:'#21262d'}}}}});
+}
+
+function renderCompany(){
+  const companies=getCompanies();if(!currentCompany)currentCompany=companies[0];
+  document.getElementById('companyFilter').innerHTML=companies.map(c=>`<button class="filter-btn ${c===currentCompany?'active':''}" onclick="selectCompany('${c}',this)">${c}</button>`).join('');
+  updateCompanyView();
+}
+function selectCompany(c,btn){currentCompany=c;document.querySelectorAll('#companyFilter .filter-btn').forEach(b=>b.classList.remove('active'));btn.classList.add('active');updateCompanyView();}
+function updateCompanyView(){
+  const cData=DATA.filter(d=>d.company===currentCompany).sort((a,b)=>a.quarter.localeCompare(b.quarter));if(!cData.length)return;
+  const last=cData[cData.length-1],prev=cData[cData.length-2];
+  function delta(k){if(!prev)return'';const d=last[k]-prev[k];return `<span class="delta ${d>=0?'up':'down'}">${d>=0?'▲':'▼'}${Math.abs(d).toLocaleString()}</span>`;}
+  document.getElementById('companyKPI').innerHTML=`
+    <div class="kpi-card"><div class="label">매출액</div><div class="value">${last.revenue.toLocaleString()}<span class="unit">십억원</span></div>${delta('revenue')}</div>
+    <div class="kpi-card"><div class="label">영업이익</div><div class="value">${last.op_income.toLocaleString()}<span class="unit">십억원</span></div>${delta('op_income')}</div>
+    <div class="kpi-card"><div class="label">영업이익률</div><div class="value">${last.op_margin}<span class="unit">%</span></div>${delta('op_margin')}</div>
+    <div class="kpi-card"><div class="label">해외비중</div><div class="value">${last.overseas_ratio}<span class="unit">%</span></div>${delta('overseas_ratio')}</div>
+    <div class="kpi-card"><div class="label">온라인비중</div><div class="value">${last.online_ratio}<span class="unit">%</span></div>${delta('online_ratio')}</div>
+  `;
+  const qs=cData.map(d=>d.quarter);
+  destroyChart('companyBar');destroyChart('companyRegion');
+  charts['companyBar']=new Chart(document.getElementById('companyBarChart'),{type:'bar',data:{labels:qs,datasets:[{label:'매출액',data:cData.map(d=>d.revenue),backgroundColor:'#ec489966'},{label:'영업이익',data:cData.map(d=>d.op_income),backgroundColor:'#3fb95066'}]},options:{responsive:true,plugins:{legend:{labels:{color:'#8b949e'}}},scales:{x:{ticks:{color:'#8b949e'},grid:{color:'#21262d'}},y:{ticks:{color:'#8b949e'},grid:{color:'#21262d'}}}}});
+  charts['companyRegion']=new Chart(document.getElementById('companyRegionChart'),{type:'line',data:{labels:qs,datasets:[{label:'북미',data:cData.map(d=>d.north_america),borderColor:'#f472b6',tension:.3,fill:false},{label:'중국',data:cData.map(d=>d.china),borderColor:'#f59e0b',tension:.3,fill:false}]},options:{responsive:true,plugins:{legend:{labels:{color:'#8b949e'}}},scales:{x:{ticks:{color:'#8b949e'},grid:{color:'#21262d'}},y:{ticks:{color:'#8b949e'},grid:{color:'#21262d'}}}}});
+}
+function renderTable(){document.getElementById('dataTable').innerHTML=DATA.map(d=>`<tr><td>${d.quarter}</td><td>${d.company}</td><td><span class="tag" style="background:#500724;color:#f472b6;">${d.category}</span></td><td>${d.revenue.toLocaleString()}</td><td>${d.op_income.toLocaleString()}</td><td>${d.op_margin}%</td><td>${d.overseas_revenue.toLocaleString()}</td><td>${d.overseas_ratio}%</td><td>${d.north_america.toLocaleString()}</td><td>${d.china.toLocaleString()}</td><td>${d.online_ratio}%</td></tr>`).join('');}
+function exportCSV(){const h=['분기','기업명','구분','매출액','영업이익','영업이익률','해외매출','해외비중','북미','중국','온라인비중'];const rows=DATA.map(d=>[d.quarter,d.company,d.category,d.revenue,d.op_income,d.op_margin,d.overseas_revenue,d.overseas_ratio,d.north_america,d.china,d.online_ratio]);const csv=[h,...rows].map(r=>r.join(',')).join('\n');const blob=new Blob(['\uFEFF'+csv],{type:'text/csv;charset=utf-8'});const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download='kbeauty_data.csv';a.click();}
+function resetToSample(){DATA=SAMPLE.map(r=>({...r}));isSample=true;DATA.forEach(r=>MONEY_FIELDS.forEach(f=>{if(typeof r[f]==='number')r[f]=Math.round(r[f]/10);}));updateSourceBar();populateFilters();renderSummary();}
+function updateSourceBar(){document.getElementById('dsBadge').className='ds-badge '+(isSample?'sample':'live');document.getElementById('dsBadge').textContent=isSample?'SAMPLE':'LIVE';document.getElementById('dsInfo').textContent=isSample?'샘플 데이터 | collect_data.py 실행 후 data/kbeauty_data.js 필요':`DART 데이터 | ${DATA.length}건`;}
+function populateFilters(){const qs=getQuarters();document.getElementById('quarterFilter').innerHTML='<option value="all">전체 분기</option>'+qs.map(q=>`<option value="${q}">${q}</option>`).join('');}
+const MONEY_FIELDS=['revenue','op_income','net_income','op_cashflow','overseas_revenue','north_america','china'];
+function loadExternalData(){if(window.INDUSTRY_DATA_KBEAUTY&&Array.isArray(window.INDUSTRY_DATA_KBEAUTY)){DATA=window.INDUSTRY_DATA_KBEAUTY;isSample=false;}else{DATA=[...SAMPLE];isSample=true;}DATA.forEach(r=>MONEY_FIELDS.forEach(f=>{if(typeof r[f]==='number')r[f]=Math.round(r[f]/10);}));}
+loadExternalData();updateSourceBar();populateFilters();renderSummary();
+</script>
+</body></html>

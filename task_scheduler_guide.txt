@@ -1,0 +1,49 @@
+# Windows Task Scheduler 등록 가이드
+# 분기 실적 시즌 자동 실행 설정
+
+## 방법 1: 수동 실행 (간단)
+- run_update.bat 더블클릭 → 자동 수집 + JS 파일 업데이트
+
+## 방법 2: Task Scheduler 자동 실행
+
+### 등록 방법:
+1. Windows 검색 → "작업 스케줄러" 실행
+2. 오른쪽 패널 → "기본 작업 만들기..."
+3. 이름: "산업실적_자동수집"
+4. 트리거: "매월" 선택
+   - 1월 25일 (4Q 실적 시즌 시작)
+   - 4월 25일 (1Q)
+   - 7월 25일 (2Q)
+   - 10월 25일 (3Q)
+5. 작업: "프로그램 시작"
+6. 프로그램: C:\\Windows\\System32\\cmd.exe
+   인수: /c "C:\\[your-path]\\run_update.bat"
+7. 완료
+
+### PowerShell로 자동 등록 (관리자 권한):
+------------------------------------------
+$action = New-ScheduledTaskAction -Execute "cmd.exe" `
+  -Argument "/c C:\[your-path]\run_update.bat"
+
+# 분기별 4회 트리거
+$triggers = @(
+  New-ScheduledTaskTrigger -Monthly -DaysOfMonth 25 -MonthsOfYear January,
+  New-ScheduledTaskTrigger -Monthly -DaysOfMonth 25 -MonthsOfYear April,
+  New-ScheduledTaskTrigger -Monthly -DaysOfMonth 25 -MonthsOfYear July,
+  New-ScheduledTaskTrigger -Monthly -DaysOfMonth 25 -MonthsOfYear October
+)
+
+Register-ScheduledTask -TaskName "산업실적_자동수집" `
+  -Action $action -Trigger $triggers -RunLevel Highest
+------------------------------------------
+
+## 초기 설정:
+# run_update.bat 가 .venv 를 자동으로 만들고 requirements 도 설치하므로
+# 보통은 그냥 run_update.bat 한 번 실행하면 됩니다.
+# 수동으로 venv 를 다루려면:
+.venv\Scripts\python.exe -m pip install -r requirements.txt
+.venv\Scripts\python.exe collect_data.py --sector all
+
+## 특정 섹터만 업데이트 (venv 파이썬 사용):
+.venv\Scripts\python.exe collect_data.py --sector finance
+.venv\Scripts\python.exe collect_data.py --sector semiconductor

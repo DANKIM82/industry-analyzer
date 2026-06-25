@@ -1,0 +1,943 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>국내 주요 금융사 실적 Dashboard</title>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.3/dist/chart.umd.min.js"></script>
+  <style>
+
+  :root {
+    --bg: #f6f7f9;
+    --panel: #ffffff;
+    --text: #18212f;
+    --muted: #667085;
+    --line: #d9dee7;
+    --accent: #1f6feb;
+    --sidebar: #111827;
+    --sidebar-w: 240px;
+    --topbar-h: 52px;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: "Segoe UI", "Noto Sans KR", Arial, sans-serif;
+    font-size: 14px;
+  }
+  .topbar {
+    display: none;
+    position: sticky; top: 0; z-index: 30;
+    height: var(--topbar-h);
+    background: var(--sidebar);
+    color: #e5e7eb;
+    padding: 0 16px;
+    align-items: center;
+    gap: 12px;
+  }
+  .topbar .brand { flex: 1; font-size: 15px; font-weight: 700; }
+  .hamburger {
+    background: none; border: none; cursor: pointer;
+    color: #e5e7eb; padding: 6px;
+    display: flex; flex-direction: column; gap: 5px;
+  }
+  .hamburger span {
+    display: block; width: 22px; height: 2px;
+    background: currentColor; border-radius: 2px;
+  }
+  .sidebar-overlay {
+    display: none; position: fixed; inset: 0;
+    background: rgba(0,0,0,0.5); z-index: 40;
+  }
+  .sidebar-overlay.active { display: block; }
+  .app { display: flex; min-height: 100vh; }
+  aside {
+    width: var(--sidebar-w);
+    background: var(--sidebar);
+    color: #e5e7eb;
+    flex-shrink: 0;
+    display: flex; flex-direction: column;
+    position: sticky; top: 0; height: 100vh;
+    overflow-y: auto;
+    scrollbar-width: thin;
+    scrollbar-color: rgba(255,255,255,0.2) transparent;
+  }
+  .sidebar-header {
+    padding: 20px 16px 12px;
+    border-bottom: 1px solid rgba(255,255,255,0.08);
+    display: flex; align-items: center; justify-content: space-between;
+  }
+  .sidebar-header .brand {
+    font-size: 13px; font-weight: 700; line-height: 1.4;
+    color: #f9fafb;
+  }
+  .sidebar-close { display: none; background: none; border: none; color: #9ca3af; cursor: pointer; font-size: 18px; }
+  .company-list { padding: 8px 0; }
+  .company-list .label {
+    padding: 8px 16px 4px;
+    font-size: 10px; font-weight: 600;
+    color: #6b7280; text-transform: uppercase; letter-spacing: 0.08em;
+  }
+  .nav button {
+    display: block; width: 100%;
+    padding: 8px 16px;
+    background: none; border: none; cursor: pointer;
+    color: #9ca3af; font-size: 13px; text-align: left;
+    transition: background 0.15s, color 0.15s;
+    border-radius: 0;
+  }
+  .nav button:hover { background: rgba(255,255,255,0.06); color: #e5e7eb; }
+  .nav button.active { background: rgba(255,255,255,0.1); color: #ffffff; font-weight: 600; }
+  main {
+    flex: 1; padding: 28px 32px;
+    min-width: 0; overflow-x: hidden;
+  }
+  header { margin-bottom: 20px; }
+  header h1 { font-size: 22px; font-weight: 700; color: var(--text); }
+  header .sub { font-size: 13px; color: var(--muted); margin-top: 4px; }
+  .controls {
+    display: flex; flex-wrap: wrap; gap: 8px;
+    margin-bottom: 24px; align-items: center;
+  }
+  .controls button {
+    padding: 6px 14px; border-radius: 6px;
+    border: 1px solid var(--line);
+    background: var(--panel); color: var(--muted);
+    cursor: pointer; font-size: 13px; font-weight: 500;
+    transition: all 0.15s;
+  }
+  .controls button:hover { border-color: var(--accent); color: var(--accent); }
+  .controls button.active {
+    background: var(--accent); color: #fff; border-color: var(--accent);
+  }
+  .controls select {
+    padding: 6px 10px; border-radius: 6px;
+    border: 1px solid var(--line); background: var(--panel);
+    color: var(--text); font-size: 13px; cursor: pointer;
+  }
+  .controls .sep { color: var(--muted); font-size: 13px; }
+  .grid { display: flex; flex-direction: column; gap: 20px; }
+  .panel {
+    background: var(--panel); border-radius: 10px;
+    border: 1px solid var(--line);
+    padding: 20px;
+    overflow: hidden;
+  }
+  .panel-title {
+    font-size: 15px; font-weight: 600; color: var(--text);
+    margin-bottom: 16px;
+    display: flex; justify-content: space-between; align-items: center;
+  }
+  .panel-hint { font-size: 11px; color: var(--muted); font-weight: 400; }
+  .chart-wrap { position: relative; width: 100%; overflow: hidden; }
+  .chart-scroll { overflow-x: auto; padding-bottom: 6px; }
+  .chart-scroll canvas { min-width: 600px; }
+  .legend-area {
+    margin-top: 14px; display: flex; flex-wrap: wrap; gap: 6px;
+  }
+  .legend-chip {
+    display: inline-flex; align-items: center; gap: 5px;
+    padding: 4px 10px; border-radius: 20px;
+    border: 1.5px solid; cursor: pointer;
+    font-size: 12px; font-weight: 500;
+    transition: opacity 0.15s;
+  }
+  .legend-chip.hidden { opacity: 0.35; }
+  .legend-chip .dot {
+    width: 8px; height: 8px; border-radius: 50%;
+  }
+  .btn-row { display: flex; gap: 8px; margin-bottom: 12px; }
+  .btn-sm {
+    padding: 5px 12px; border-radius: 5px;
+    border: 1px solid var(--line);
+    background: var(--panel); color: var(--muted);
+    cursor: pointer; font-size: 12px;
+  }
+  .btn-sm:hover { background: var(--bg); }
+  table {
+    width: 100%; border-collapse: collapse;
+    font-size: 13px;
+  }
+  thead th {
+    padding: 10px 8px; background: var(--bg);
+    font-weight: 600; color: var(--muted);
+    border-bottom: 1px solid var(--line);
+    text-align: right; white-space: nowrap;
+  }
+  thead th:first-child { text-align: left; }
+  thead th:nth-child(2) { text-align: left; }
+  tbody tr { border-bottom: 1px solid var(--line); }
+  tbody tr:hover { background: #f8fafc; }
+  tbody td {
+    padding: 9px 8px; text-align: right;
+    color: var(--text); white-space: nowrap;
+  }
+  tbody td:first-child { text-align: left; color: var(--muted); font-size: 12px; }
+  tbody td:nth-child(2) { text-align: left; font-weight: 600; }
+  .pos { color: #16a34a; }
+  .neg { color: #dc2626; }
+  .excel-btn {
+    padding: 7px 14px; border-radius: 6px;
+    background: #16a34a; color: #fff;
+    border: none; cursor: pointer; font-size: 13px; font-weight: 600;
+  }
+  .excel-btn:hover { background: #15803d; }
+  .kpi-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+    gap: 12px; margin-bottom: 20px;
+  }
+  .kpi-card {
+    background: var(--panel); border-radius: 8px;
+    border: 1px solid var(--line); padding: 14px 16px;
+  }
+  .kpi-label { font-size: 11px; color: var(--muted); margin-bottom: 4px; }
+  .kpi-value { font-size: 20px; font-weight: 700; color: var(--text); }
+  .kpi-sub { font-size: 11px; color: var(--muted); margin-top: 2px; }
+  .kpi-up { color: #16a34a; }
+  .kpi-dn { color: #dc2626; }
+  .two-col { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+  @media(max-width: 900px) { .two-col { grid-template-columns: 1fr; } }
+  @media(max-width: 768px) {
+    .topbar { display: flex; }
+    aside {
+      position: fixed; left: -280px; top: 0; height: 100%;
+      width: 260px; z-index: 50;
+      transition: left 0.28s ease;
+      box-shadow: 4px 0 20px rgba(0,0,0,0.4);
+    }
+    aside.open { left: 0; }
+    .sidebar-close { display: block; }
+    main { padding: 18px 16px; }
+    .kpi-grid { grid-template-columns: repeat(2, 1fr); }
+  }
+
+
+  :root {
+    --accent: #1f6feb;
+    --sidebar: #0f172a;
+  }
+  aside .nav button.active { background: #1f6feb22; color: #1f6feb; }
+  aside .nav button:hover { background: rgba(255,255,255,0.06); }
+  .controls button.active { background: #1f6feb; border-color: #1f6feb; }
+  
+
+  </style>
+</head>
+<body>
+  <div class="topbar">
+    <button class="hamburger" id="menuBtn">
+      <span></span><span></span><span></span>
+    </button>
+    <span class="brand">국내 주요 금융사 실적 Dashboard</span>
+  </div>
+  <div class="sidebar-overlay" id="sidebarOverlay"></div>
+  <div class="app">
+    <aside id="sidebar">
+      <div class="sidebar-header">
+        <div class="brand">국내 주요 금융사 실적 Dashboard</div>
+        <button class="sidebar-close" id="sidebarClose">✕</button>
+      </div>
+      
+  <div class="company-list">
+    <div class="label">종합</div>
+    <div class="nav" id="summaryNav">
+      <button data-view="summary">분기별 실적 추이</button>
+      <button data-view="kpi">핵심 지표 (손해율·K-ICS)</button>
+    </div>
+  </div>
+  <div class="company-list">
+    <div class="label">기업별</div>
+    <div class="nav" id="companyNav">
+      <button data-company="삼성생명">삼성생명</button><button data-company="한화생명">한화생명</button><button data-company="교보생명">교보생명</button><button data-company="삼성화재">삼성화재</button><button data-company="KB손해보험">KB손해보험</button><button data-company="현대해상">현대해상</button><button data-company="DB손해보험">DB손해보험</button><button data-company="카카오뱅크">카카오뱅크</button><button data-company="미래에셋생명">미래에셋생명</button>
+    </div>
+  </div>
+
+    </aside>
+    <main>
+      
+  <header>
+    <h1>국내 주요 금융사 실적 Dashboard</h1>
+    <div class="sub">생보·손보·은행 주요 기업 분기 실적 · 2022Q1~2025Q4</div>
+  </header>
+  
+  <div class="controls">
+    <button data-type="all" class="active">전체</button>
+    <button data-type="life">생보</button>
+    <button data-type="nonlife">손보</button>
+    <button data-type="bank">은행</button>
+    <span class="sep">|</span>
+    <button data-metric="revenue" class="active">영업수익</button>
+    <button data-metric="opProfit">영업이익</button>
+    <button data-metric="netProfit">순이익</button>
+    <button data-metric="netMargin">순이익률</button>
+    <button data-metric="opCashflow">영업현금흐름</button>
+    <button data-metric="eps">EPS</button>
+    <button data-metric="roe">ROE</button>
+    <span class="sep">|</span>
+    <span style="color:#667085;font-size:13px">기간</span>
+    <select id="periodStart"></select>
+    <span class="sep">~</span>
+    <select id="periodEnd"></select>
+  </div>
+
+  <div class="grid" id="mainContent"></div>
+
+    </main>
+  </div>
+  <script src="data/finance_data.js" onerror="console.log('finance_data.js 없음 — 샘플 데이터 사용')"></script>
+  <script>
+
+const COLORS = [
+  '#2563eb','#16a34a','#dc2626','#d97706','#7c3aed',
+  '#db2777','#0891b2','#65a30d','#ea580c','#9333ea',
+  '#0284c7','#059669','#b91c1c','#b45309','#6d28d9'
+];
+
+function fmt(n, digits=0) {
+  if (n === null || n === undefined || isNaN(n)) return '-';
+  return Number(n).toLocaleString('ko-KR', {minimumFractionDigits: digits, maximumFractionDigits: digits});
+}
+function fmtPct(n, digits=1) {
+  if (n === null || n === undefined || isNaN(n)) return '-';
+  return Number(n).toFixed(digits) + '%';
+}
+function fmtChange(n, unit='') {
+  if (n === null || n === undefined || isNaN(n)) return '-';
+  const sign = n > 0 ? '+' : '';
+  return sign + Number(n).toLocaleString('ko-KR') + unit;
+}
+function arrow(n) {
+  if (!n || isNaN(n)) return '';
+  return n > 0 ? '<span class="pos">▲</span>' : '<span class="neg">▼</span>';
+}
+
+// 범용 라인 차트 생성
+function makeLineChart(canvasId, labels, datasets, opts={}) {
+  const ctx = document.getElementById(canvasId).getContext('2d');
+  return new Chart(ctx, {
+    type: 'line',
+    data: { labels, datasets },
+    options: {
+      responsive: true,
+      maintainAspectRatio: opts.ratio || false,
+      interaction: { mode: 'index', intersect: false },
+      plugins: {
+        legend: { display: false },
+        tooltip: {
+          backgroundColor: 'rgba(15,23,42,0.92)',
+          titleColor: '#94a3b8', bodyColor: '#f1f5f9',
+          padding: 10, borderColor: '#334155', borderWidth: 1,
+          callbacks: {
+            label: function(ctx) {
+              const v = ctx.raw;
+              if (v === null || v === undefined) return ctx.dataset.label + ': -';
+              const unit = opts.unit || '';
+              return ctx.dataset.label + ': ' + Number(v).toLocaleString('ko-KR') + unit;
+            }
+          }
+        }
+      },
+      scales: {
+        x: {
+          grid: { color: 'rgba(0,0,0,0.05)' },
+          ticks: { font: { size: 11 }, color: '#6b7280', maxRotation: 45 }
+        },
+        y: {
+          title: { display: !!opts.unit && opts.unit !== '%', text: (opts.unit && opts.unit !== '%') ? opts.unit : '', font: { size: 11 }, color: '#94a3b8' },
+          grid: { color: 'rgba(0,0,0,0.05)' },
+          ticks: {
+            font: { size: 11 }, color: '#6b7280',
+            callback: function(v) { if (opts.unit === '%') return v + '%'; return Number(v).toLocaleString('ko-KR', { maximumFractionDigits: 0 }); }
+          }
+        },
+        ...(opts.y2 ? {
+          y1: {
+            type: 'linear', position: 'right',
+            grid: { drawOnChartArea: false },
+            ticks: {
+              font: { size: 11 }, color: '#6b7280',
+              callback: v => v.toFixed(1) + '%'
+            }
+          }
+        } : {})
+      }
+    }
+  });
+}
+
+// 막대 차트 생성
+function makeBarChart(canvasId, labels, datasets, opts={}) {
+  const ctx = document.getElementById(canvasId).getContext('2d');
+  return new Chart(ctx, {
+    type: 'bar',
+    data: { labels, datasets },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      interaction: { mode: 'index', intersect: false },
+      plugins: {
+        legend: { display: opts.showLegend || false, position: 'bottom', labels: { font: { size: 11 } } },
+        tooltip: {
+          backgroundColor: 'rgba(15,23,42,0.92)',
+          titleColor: '#94a3b8', bodyColor: '#f1f5f9',
+          callbacks: {
+            label: ctx => ctx.dataset.label + ': ' + Number(ctx.raw).toLocaleString('ko-KR') + (opts.unit || '')
+          }
+        }
+      },
+      scales: {
+        x: {
+          stacked: opts.stacked || false,
+          grid: { display: false },
+          ticks: { font: { size: 11 }, color: '#6b7280', maxRotation: 45 }
+        },
+        y: {
+          stacked: opts.stacked || false,
+          title: { display: !!opts.unit && opts.unit !== '%', text: (opts.unit && opts.unit !== '%') ? opts.unit : '', font: { size: 11 }, color: '#94a3b8' },
+          grid: { color: 'rgba(0,0,0,0.05)' },
+          ticks: {
+            font: { size: 11 }, color: '#6b7280',
+            callback: function(v) { if (opts.unit === '%') return v + '%'; return Number(v).toLocaleString('ko-KR', { maximumFractionDigits: 0 }); }
+          }
+        }
+      }
+    }
+  });
+}
+
+// 도넛 차트 생성
+function makeDonutChart(canvasId, labels, data, colors) {
+  const ctx = document.getElementById(canvasId).getContext('2d');
+  return new Chart(ctx, {
+    type: 'doughnut',
+    data: {
+      labels,
+      datasets: [{ data, backgroundColor: colors, borderWidth: 2, borderColor: '#fff' }]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      plugins: {
+        legend: { position: 'bottom', labels: { font: { size: 11 }, padding: 12 } },
+        tooltip: {
+          callbacks: {
+            label: ctx => ctx.label + ': ' + ctx.raw.toFixed(1) + '%'
+          }
+        }
+      },
+      cutout: '60%'
+    }
+  });
+}
+
+// 범례 칩 렌더링
+function renderLegend(containerId, datasets, chart) {
+  const el = document.getElementById(containerId);
+  if (!el) return;
+  el.innerHTML = '';
+  datasets.forEach((ds, i) => {
+    const chip = document.createElement('span');
+    chip.className = 'legend-chip';
+    chip.style.borderColor = ds.borderColor || COLORS[i];
+    chip.style.color = ds.borderColor || COLORS[i];
+    chip.innerHTML = '<span class="dot" style="background:' + (ds.borderColor||COLORS[i]) + '"></span>' + ds.label;
+    chip.addEventListener('click', () => {
+      const meta = chart.getDatasetMeta(i);
+      meta.hidden = !meta.hidden;
+      chip.classList.toggle('hidden', meta.hidden);
+      chart.update();
+    });
+    el.appendChild(chip);
+  });
+}
+
+// 사이드바 모바일 토글
+function initSidebar() {
+  const menuBtn = document.getElementById('menuBtn');
+  const sidebar = document.getElementById('sidebar');
+  const overlay = document.getElementById('sidebarOverlay');
+  const closeBtn = document.getElementById('sidebarClose');
+  if (menuBtn) menuBtn.addEventListener('click', () => {
+    sidebar.classList.add('open');
+    overlay.classList.add('active');
+  });
+  if (overlay) overlay.addEventListener('click', () => {
+    sidebar.classList.remove('open');
+    overlay.classList.remove('active');
+  });
+  if (closeBtn) closeBtn.addEventListener('click', () => {
+    sidebar.classList.remove('open');
+    overlay.classList.remove('active');
+  });
+}
+
+// 엑셀 다운로드 (CSV 방식)
+function downloadCsv(filename, headers, rows) {
+  const BOM = '\uFEFF';
+  const csv = BOM + [headers.join(','), ...rows.map(r => r.map(v => '"' + String(v).replace(/"/g,'""') + '"').join(','))].join('\r\n');
+  const blob = new Blob([csv], {type: 'text/csv;charset=utf-8'});
+  const a = document.createElement('a'); a.href = URL.createObjectURL(blob);
+  a.download = filename; a.click(); URL.revokeObjectURL(a.href);
+}
+
+
+const FINANCE_SAMPLE = {
+  meta: { title: '국내 주요 금융사 실적 Dashboard', unit: '억원', quarters: ['2022Q1','2022Q2','2022Q3','2022Q4','2023Q1','2023Q2','2023Q3','2023Q4','2024Q1','2024Q2','2024Q3','2024Q4','2025Q1','2025Q2','2025Q3','2025Q4'] },
+  companies: [
+    { name: '삼성생명', type: 'life',
+      revenue:   [34200,35100,33800,42300,35600,36200,34900,44800,37200,38100,36500,46200,39000,40100,38300,48500],
+      opProfit:  [4820,5100,4650,6200,5200,5400,5050,6800,5600,5750,5300,7100,5900,6100,5700,7500],
+      netProfit: [3850,4100,3700,5100,4200,4350,4050,5600,4500,4650,4350,5900,4800,5000,4600,6200],
+      kics: [null,null,null,null,null,null,null,null,218,220,215,222,225,228,223,230],
+      apeNew: [12500,13200,11800,14500,13000,13800,12500,15200,13800,14500,13200,16000,14500,15200,14000,16800],
+      lossRatio: [null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null],
+      combined: [null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null] },
+    { name: '한화생명', type: 'life',
+      revenue:   [22100,22800,21500,27400,23200,23900,22600,28900,24500,25200,23900,30200,25800,26600,25200,31800],
+      opProfit:  [2900,3100,2800,3800,3100,3300,3050,4100,3350,3550,3250,4400,3550,3750,3450,4650],
+      netProfit: [2300,2500,2200,3100,2500,2700,2450,3350,2700,2900,2650,3600,2900,3100,2850,3800],
+      kics: [null,null,null,null,null,null,null,null,198,202,195,205,208,212,206,215],
+      apeNew: [7200,7800,7000,8900,7600,8100,7400,9500,8100,8600,7900,10100,8500,9100,8300,10700],
+      lossRatio: [null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null],
+      combined: [null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null] },
+    { name: '교보생명', type: 'life',
+      revenue:   [19800,20400,19200,24600,20800,21500,20300,26200,22000,22800,21500,27500,23200,24000,22700,29000],
+      opProfit:  [2600,2800,2500,3400,2800,2950,2700,3650,3000,3150,2900,3850,3200,3350,3100,4050],
+      netProfit: [2050,2250,2000,2750,2250,2400,2200,2950,2450,2580,2350,3150,2600,2750,2550,3350],
+      kics: [null,null,null,null,null,null,null,null,205,208,200,212,215,218,212,220],
+      apeNew: [6500,7000,6200,8000,6800,7300,6600,8700,7200,7700,7100,9200,7700,8200,7500,9800],
+      lossRatio: [null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null],
+      combined: [null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null] },
+    { name: '삼성화재', type: 'nonlife',
+      revenue:   [41200,43100,42500,48200,44500,46800,45900,52100,48200,50500,49600,56300,52000,54500,53500,60800],
+      opProfit:  [6800,7200,6900,8500,7400,7800,7500,9200,8100,8500,8200,10000,8800,9200,8900,10800],
+      netProfit: [5500,5900,5600,7000,6000,6400,6100,7600,6600,7000,6700,8200,7200,7600,7300,8900],
+      kics: [null,null,null,null,null,null,null,null,245,248,242,250,255,258,252,262],
+      apeNew: [null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null],
+      lossRatio: [78.2,77.8,78.5,76.9,77.5,77.1,78.0,76.5,77.2,76.8,77.5,75.9,76.8,76.4,77.1,75.5],
+      combined: [94.5,94.1,94.8,93.2,93.8,93.4,94.3,92.8,93.5,93.1,93.8,92.2,93.1,92.7,93.4,91.8] },
+    { name: 'KB손해보험', type: 'nonlife',
+      revenue:   [28500,29800,29200,33400,30800,32200,31700,36200,33500,35100,34300,39200,36200,37900,37100,42500],
+      opProfit:  [4200,4500,4300,5200,4600,4850,4650,5700,5000,5250,5050,6200,5400,5700,5450,6700],
+      netProfit: [3400,3650,3500,4200,3750,3950,3800,4650,4100,4300,4150,5100,4450,4700,4500,5500],
+      kics: [null,null,null,null,null,null,null,null,228,232,225,235,240,244,238,248],
+      apeNew: [null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null],
+      lossRatio: [79.5,79.1,79.8,78.2,78.8,78.4,79.3,77.8,78.5,78.1,78.8,77.2,78.1,77.7,78.4,76.8],
+      combined: [95.8,95.4,96.1,94.5,95.1,94.7,95.6,94.1,94.8,94.4,95.1,93.5,94.4,94.0,94.7,93.1] },
+    { name: '현대해상', type: 'nonlife',
+      revenue:   [25200,26400,25800,29600,27200,28500,27900,32100,29500,30900,30200,34700,31900,33400,32700,37600],
+      opProfit:  [3500,3750,3600,4400,3800,4000,3850,4800,4150,4350,4200,5150,4500,4700,4550,5600],
+      netProfit: [2850,3050,2950,3600,3100,3300,3150,3950,3400,3580,3450,4250,3700,3880,3750,4600],
+      kics: [null,null,null,null,null,null,null,null,218,222,215,225,228,232,225,235],
+      apeNew: [null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null],
+      lossRatio: [80.2,79.8,80.5,79.0,79.5,79.2,80.0,78.5,79.2,78.8,79.5,78.0,78.8,78.4,79.1,77.5],
+      combined: [96.5,96.1,96.8,95.3,95.8,95.5,96.3,94.8,95.5,95.1,95.8,94.3,95.1,94.7,95.4,93.8] },
+    { name: 'DB손해보험', type: 'nonlife',
+      revenue:   [24100,25200,24700,28300,26100,27300,26800,30800,28300,29700,29000,33300,30600,32100,31400,36000],
+      opProfit:  [3350,3580,3430,4200,3650,3840,3690,4600,3980,4170,4020,4950,4320,4520,4370,5350],
+      netProfit: [2720,2920,2800,3430,2980,3130,3010,3770,3250,3410,3290,4060,3540,3710,3580,4390],
+      kics: [null,null,null,null,null,null,null,null,222,226,219,229,232,236,229,239],
+      apeNew: [null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null],
+      lossRatio: [79.8,79.4,80.1,78.5,79.1,78.7,79.6,78.1,78.8,78.4,79.1,77.5,78.4,78.0,78.7,77.1],
+      combined: [96.1,95.7,96.4,94.8,95.4,95.0,95.9,94.4,95.1,94.7,95.4,93.8,94.7,94.3,95.0,93.4] },
+    { name: '카카오뱅크', type: 'bank',
+      revenue:   [5800,6200,6500,6900,7200,7600,7900,8400,8800,9200,9600,10100,10500,11000,11400,11900],
+      opProfit:  [1500,1620,1730,1850,1980,2100,2220,2380,2520,2650,2780,2950,3100,3280,3420,3600],
+      netProfit: [1200,1300,1380,1480,1580,1680,1780,1900,2020,2120,2240,2360,2490,2630,2750,2890],
+      kics: [null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null],
+      apeNew: [null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null],
+      lossRatio: [null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null],
+      combined: [null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null] },
+    { name: '미래에셋생명', type: 'life',
+      revenue:   [11200,11600,11100,14000,11800,12200,11700,14800,12500,12900,12400,15600,13100,13600,13100,16400],
+      opProfit:  [1350,1450,1320,1700,1450,1550,1420,1830,1550,1650,1520,1950,1650,1760,1630,2080],
+      netProfit: [1080,1160,1060,1380,1160,1240,1140,1470,1250,1330,1230,1580,1340,1430,1320,1690],
+      kics: [null,null,null,null,null,null,null,null,188,192,185,196,200,204,198,208],
+      apeNew: [4200,4600,4100,5300,4500,4900,4400,5800,4800,5200,4700,6200,5100,5500,5000,6600],
+      lossRatio: [null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null],
+      combined: [null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null] },
+  ]
+};
+
+// ── 데이터 소스 연결: DART 실데이터(window.INDUSTRY_DATA_FINANCE) 우선, 없으면 샘플 ──
+let IS_SAMPLE = true;
+function buildLiveData(records) {
+  const quarters = [...new Set(records.map(r => r.quarter))].sort();
+  const names = [...new Set(records.map(r => r.company))];
+  const get = (name, q, f) => {
+    const r = records.find(x => x.company === name && x.quarter === q);
+    const v = r ? r[f] : null;
+    return (v === null || v === undefined) ? 0 : v;
+  };
+  const TYP = { '보험':'life','생보':'life','손보':'nonlife','손해보험':'nonlife','증권':'bank','은행':'bank' };
+  const typeOf = name => {
+    const s = FINANCE_SAMPLE.companies.find(c => c.name === name);
+    if (s && s.type) return s.type;
+    const r = records.find(x => x.company === name);
+    return TYP[r && r.category] || 'life';
+  };
+  const companies = names.map(name => ({
+    name, type: typeOf(name),
+    revenue: quarters.map(q => get(name, q, 'revenue')),
+    opProfit: quarters.map(q => get(name, q, 'op_income')),
+    netProfit: quarters.map(q => get(name, q, 'net_income')),
+    netMargin: quarters.map(q => get(name, q, 'net_margin')),
+    opCashflow: quarters.map(q => get(name, q, 'op_cashflow')),
+    eps: quarters.map(q => get(name, q, 'eps')),
+    roe: quarters.map(q => get(name, q, 'roe')),
+    kics: quarters.map(q => get(name, q, 'kics')),
+    apeNew: quarters.map(q => get(name, q, 'new_ape')),
+    lossRatio: quarters.map(q => get(name, q, 'loss_ratio')),
+    combined: quarters.map(q => get(name, q, 'combined_ratio'))
+  }));
+  return { meta: { ...FINANCE_SAMPLE.meta, quarters }, companies };
+}
+const __live = window.INDUSTRY_DATA_FINANCE;
+const FINANCE_DATA = (Array.isArray(__live) && __live.length)
+  ? (IS_SAMPLE = false, buildLiveData(__live))
+  : FINANCE_SAMPLE;
+
+(function () {
+  const nav = document.getElementById('companyNav');
+  if (nav) nav.innerHTML = FINANCE_DATA.companies
+    .map(c => '<button data-company="' + c.name + '">' + c.name + '</button>').join('');
+})();
+
+(function () {
+  const sub = document.querySelector('header .sub');
+  if (!sub) return;
+  const badge = document.createElement('span');
+  badge.style.cssText = 'margin-left:10px;padding:2px 8px;border-radius:10px;font-size:11px;font-weight:700;'
+    + (IS_SAMPLE ? 'background:#7c2d12;color:#fdba74;' : 'background:#14532d;color:#86efac;');
+  badge.textContent = IS_SAMPLE ? 'SAMPLE' : 'LIVE';
+  sub.appendChild(badge);
+  const meta = (window.INDUSTRY_DATA_FINANCE && window.INDUSTRY_DATA_FINANCE._meta) || null;
+  if (!IS_SAMPLE && meta) {
+    const info = document.createElement('span');
+    info.style.cssText = 'margin-left:8px;color:#667085;font-size:11px;';
+    info.textContent = 'DART · ' + meta.updated + ' · ' + FINANCE_DATA.companies.length + '개사 · ' + FINANCE_DATA.meta.quarters.length + '분기';
+    sub.appendChild(info);
+  }
+})();
+
+
+// ── 상태 ──
+let currentView = 'summary';
+let currentMetric = 'revenue';
+let currentFilter = 'all';
+let periodStart = 0;
+let periodEnd = FINANCE_DATA.meta.quarters.length - 1;
+const charts = {};
+
+// ── 사이드바 네비게이션 ──
+document.querySelectorAll('#summaryNav button').forEach(btn => {
+  btn.addEventListener('click', () => {
+    currentView = btn.dataset.view;
+    document.querySelectorAll('#summaryNav button').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    document.querySelectorAll('#companyNav button').forEach(b => b.classList.remove('active'));
+    renderView();
+  });
+});
+document.querySelectorAll('#companyNav button').forEach(btn => {
+  btn.addEventListener('click', () => {
+    currentView = 'company';
+    currentCompany = btn.dataset.company;
+    document.querySelectorAll('#companyNav button, #summaryNav button').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    renderView();
+  });
+});
+
+// ── 필터 버튼 ──
+document.querySelectorAll('[data-type]').forEach(btn => {
+  btn.addEventListener('click', () => {
+    currentFilter = btn.dataset.type;
+    document.querySelectorAll('[data-type]').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    renderView();
+  });
+});
+document.querySelectorAll('[data-metric]').forEach(btn => {
+  btn.addEventListener('click', () => {
+    currentMetric = btn.dataset.metric;
+    document.querySelectorAll('[data-metric]').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    renderView();
+  });
+});
+
+// ── 기간 선택 ──
+const qs = FINANCE_DATA.meta.quarters;
+const psEl = document.getElementById('periodStart');
+const peEl = document.getElementById('periodEnd');
+qs.forEach((q,i) => {
+  const o1 = new Option(q,i); const o2 = new Option(q,i);
+  psEl.appendChild(o1); peEl.appendChild(o2);
+});
+peEl.value = qs.length - 1;
+psEl.addEventListener('change', () => { periodStart = +psEl.value; renderView(); });
+peEl.addEventListener('change', () => { periodEnd = +peEl.value; renderView(); });
+
+// ── 필터된 기업 목록 ──
+function filteredCompanies() {
+  return FINANCE_DATA.companies.filter(c => currentFilter === 'all' || c.type === currentFilter);
+}
+
+// ── 지표 이름 ──
+const METRIC_LABELS = {
+  revenue: { label: '영업수익', unit: '억원' },
+  opProfit: { label: '영업이익', unit: '억원' },
+  netProfit: { label: '당기순이익', unit: '억원' },
+  netMargin: { label: '순이익률', unit: '%' },
+  opCashflow: { label: '영업현금흐름', unit: '억원' },
+  eps: { label: 'EPS', unit: '원' },
+  roe: { label: 'ROE', unit: '%' },
+  kics: { label: 'K-ICS 비율', unit: '%' },
+  lossRatio: { label: '손해율', unit: '%' },
+  combined: { label: '합산비율', unit: '%' },
+};
+
+// SAMPLE 등에서 누락된 지표(순이익률/영업현금흐름/EPS/ROE 등)는 null 배열로 채워 렌더 크래시 방지
+FINANCE_DATA.companies.forEach(c => {
+  Object.keys(METRIC_LABELS).forEach(k => {
+    if (!Array.isArray(c[k])) c[k] = FINANCE_DATA.meta.quarters.map(() => null);
+  });
+});
+
+// 표시 단위 통일: 금액 지표(십억원) → 십억원(÷10). %/원(EPS) 지표는 변환하지 않음.
+Object.keys(METRIC_LABELS).forEach(k => {
+  if (METRIC_LABELS[k].unit === '억원') {
+    METRIC_LABELS[k].unit = '십억원';
+    FINANCE_DATA.companies.forEach(c => {
+      if (Array.isArray(c[k])) c[k] = c[k].map(v => (v == null ? null : Math.round(v / 10)));
+    });
+  }
+});
+
+let currentCompany = FINANCE_DATA.companies[0].name;
+
+function destroyAll() {
+  Object.values(charts).forEach(c => { if(c) c.destroy(); });
+  Object.keys(charts).forEach(k => delete charts[k]);
+}
+
+function renderView() {
+  const main = document.getElementById('mainContent');
+  destroyAll();
+  const ql = qs.slice(periodStart, periodEnd + 1);
+
+  if (currentView === 'summary') {
+    renderSummaryView(main, ql);
+  } else if (currentView === 'kpi') {
+    renderKpiView(main, ql);
+  } else if (currentView === 'company') {
+    renderCompanyView(main, ql);
+  }
+}
+
+function renderSummaryView(main, ql) {
+  const companies = filteredCompanies();
+  const ml = METRIC_LABELS[currentMetric] || METRIC_LABELS.revenue;
+  const datasets = companies.map((c, i) => ({
+    label: c.name,
+    data: c[currentMetric].slice(periodStart, periodEnd + 1),
+    borderColor: COLORS[i % COLORS.length],
+    backgroundColor: COLORS[i % COLORS.length] + '18',
+    tension: 0.35, borderWidth: 2, pointRadius: 3,
+    spanGaps: true
+  }));
+
+  main.innerHTML = `
+    <div class="panel">
+      <div class="panel-title">
+        ${ml.label} 분기별 추이
+        <span class="panel-hint">클릭: 범례 토글</span>
+      </div>
+      <div class="chart-scroll"><canvas id="mainChart" height="320"></canvas></div>
+      <div class="legend-area" id="mainLegend"></div>
+    </div>
+    <div class="panel" style="margin-top:20px">
+      <div class="panel-title">분기별 상세 데이터
+        <button class="excel-btn" onclick="exportSummary()">⬇ CSV 다운로드</button>
+      </div>
+      <div style="overflow-x:auto">
+        <table>
+          <thead><tr>
+            <th>분기</th>
+            ${companies.map(c => '<th>' + c.name + '</th>').join('')}
+          </tr></thead>
+          <tbody id="summaryTbody"></tbody>
+        </table>
+      </div>
+    </div>
+  `;
+
+  charts.main = makeLineChart('mainChart', ql, datasets, { unit: ml.unit });
+  renderLegend('mainLegend', datasets, charts.main);
+
+  const tbody = document.getElementById('summaryTbody');
+  ql.forEach((q, qi) => {
+    const actualIdx = periodStart + qi;
+    const tr = document.createElement('tr');
+    tr.innerHTML = '<td>' + q + '</td>' + companies.map(c => {
+      const v = c[currentMetric][actualIdx];
+      return '<td>' + (v !== null && v !== undefined ? (ml.unit === '%' ? v.toFixed(1) + '%' : Number(v).toLocaleString('ko-KR')) : '-') + '</td>';
+    }).join('');
+    tbody.appendChild(tr);
+  });
+}
+
+function renderKpiView(main, ql) {
+  // KPI 카드 + 손해율/합산비율 차트 (손보사만)
+  const latest = FINANCE_DATA.meta.quarters.length - 1;
+  const nonlife = FINANCE_DATA.companies.filter(c => c.type === 'nonlife');
+  const life = FINANCE_DATA.companies.filter(c => c.type === 'life');
+
+  const kpiHTML = `
+    <div class="kpi-grid" id="kpiCards"></div>
+    <div class="two-col">
+      <div class="panel">
+        <div class="panel-title">손보사 손해율 추이 <span class="panel-hint">(손보 4사)</span></div>
+        <div class="chart-scroll"><canvas id="lossChart" height="260"></canvas></div>
+        <div class="legend-area" id="lossLegend"></div>
+      </div>
+      <div class="panel">
+        <div class="panel-title">손보사 합산비율 추이 <span class="panel-hint">(낮을수록 우수)</span></div>
+        <div class="chart-scroll"><canvas id="combinedChart" height="260"></canvas></div>
+        <div class="legend-area" id="combinedLegend"></div>
+      </div>
+    </div>
+    <div class="panel" style="margin-top:20px">
+      <div class="panel-title">생보사 K-ICS 비율 <span class="panel-hint">(2024Q1~, 기준선 150%)</span></div>
+      <div class="chart-scroll"><canvas id="kicsChart" height="260"></canvas></div>
+      <div class="legend-area" id="kicsLegend"></div>
+    </div>
+  `;
+  main.innerHTML = kpiHTML;
+
+  // KPI 카드
+  const kpiContainer = document.getElementById('kpiCards');
+  FINANCE_DATA.companies.forEach(c => {
+    const rev = c.revenue[latest]; const op = c.opProfit[latest];
+    const margin = op && rev ? (op/rev*100).toFixed(1) : '-';
+    const kics = c.kics[latest] ? c.kics[latest] + '%' : '-';
+    kpiContainer.innerHTML += `
+      <div class="kpi-card">
+        <div class="kpi-label">${c.name} <span style="font-size:10px;color:#94a3b8">[${c.type === 'life' ? '생보' : c.type === 'nonlife' ? '손보' : '은행'}]</span></div>
+        <div class="kpi-value">${Number(rev).toLocaleString('ko-KR')}<span style="font-size:12px;font-weight:400;color:#6b7280">억</span></div>
+        <div class="kpi-sub">영업이익률 ${margin}% · K-ICS ${kics}</div>
+      </div>
+    `;
+  });
+
+  // 손해율
+  const lossDs = nonlife.map((c,i) => ({
+    label: c.name, data: c.lossRatio.slice(periodStart, periodEnd+1),
+    borderColor: COLORS[i], backgroundColor: COLORS[i]+'18',
+    tension: 0.35, borderWidth: 2, pointRadius: 3, spanGaps: true
+  }));
+  charts.loss = makeLineChart('lossChart', ql, lossDs, {unit: '%'});
+  renderLegend('lossLegend', lossDs, charts.loss);
+
+  // 합산비율
+  const combDs = nonlife.map((c,i) => ({
+    label: c.name, data: c.combined.slice(periodStart, periodEnd+1),
+    borderColor: COLORS[i+4], backgroundColor: COLORS[i+4]+'18',
+    tension: 0.35, borderWidth: 2, pointRadius: 3, spanGaps: true
+  }));
+  charts.combined = makeLineChart('combinedChart', ql, combDs, {unit: '%'});
+  renderLegend('combinedLegend', combDs, charts.combined);
+
+  // K-ICS
+  const kicsDs = life.filter(c => c.kics.some(v=>v)).map((c,i) => ({
+    label: c.name, data: c.kics.slice(periodStart, periodEnd+1),
+    borderColor: COLORS[i+2], backgroundColor: COLORS[i+2]+'18',
+    tension: 0.35, borderWidth: 2, pointRadius: 3, spanGaps: true
+  }));
+  charts.kics = makeLineChart('kicsChart', ql, kicsDs, {unit: '%'});
+  renderLegend('kicsLegend', kicsDs, charts.kics);
+}
+
+function renderCompanyView(main, ql) {
+  const c = FINANCE_DATA.companies.find(co => co.name === currentCompany);
+  if (!c) return;
+  const latest = periodEnd;
+
+  main.innerHTML = `
+    <div class="kpi-grid">
+      <div class="kpi-card"><div class="kpi-label">영업수익 (최근분기)</div><div class="kpi-value">${Number(c.revenue[latest]).toLocaleString('ko-KR')}<span style="font-size:13px;color:#6b7280">억</span></div></div>
+      <div class="kpi-card"><div class="kpi-label">영업이익</div><div class="kpi-value">${Number(c.opProfit[latest]).toLocaleString('ko-KR')}<span style="font-size:13px;color:#6b7280">억</span></div><div class="kpi-sub">이익률 ${(c.opProfit[latest]/c.revenue[latest]*100).toFixed(1)}%</div></div>
+      <div class="kpi-card"><div class="kpi-label">당기순이익</div><div class="kpi-value">${Number(c.netProfit[latest]).toLocaleString('ko-KR')}<span style="font-size:13px;color:#6b7280">억</span></div></div>
+      ${c.kics[latest] ? '<div class="kpi-card"><div class="kpi-label">K-ICS 비율</div><div class="kpi-value">' + c.kics[latest] + '<span style="font-size:13px;color:#6b7280">%</span></div><div class="kpi-sub">기준 150%</div></div>' : ''}
+      ${c.lossRatio[latest] ? '<div class="kpi-card"><div class="kpi-label">손해율</div><div class="kpi-value">' + c.lossRatio[latest].toFixed(1) + '<span style="font-size:13px;color:#6b7280">%</span></div></div>' : ''}
+      ${c.combined[latest] ? '<div class="kpi-card"><div class="kpi-label">합산비율</div><div class="kpi-value">' + c.combined[latest].toFixed(1) + '<span style="font-size:13px;color:#6b7280">%</span></div></div>' : ''}
+    </div>
+    <div class="two-col">
+      <div class="panel">
+        <div class="panel-title">영업수익 / 영업이익</div>
+        <div class="chart-scroll"><canvas id="revChart" height="260"></canvas></div>
+      </div>
+      <div class="panel">
+        <div class="panel-title">순이익 추이</div>
+        <div class="chart-scroll"><canvas id="netChart" height="260"></canvas></div>
+      </div>
+    </div>
+    ${c.lossRatio.some(v=>v) ? `<div class="panel" style="margin-top:20px">
+      <div class="panel-title">손해율 / 합산비율</div>
+      <div class="chart-scroll"><canvas id="ratioChart" height="240"></canvas></div>
+    </div>` : ''}
+    ${c.kics.some(v=>v) ? `<div class="panel" style="margin-top:20px">
+      <div class="panel-title">K-ICS 비율 추이</div>
+      <div class="chart-scroll"><canvas id="kicsChartC" height="240"></canvas></div>
+    </div>` : ''}
+  `;
+
+  charts.rev = makeBarChart('revChart', ql, [
+    { label: '영업수익', data: c.revenue.slice(periodStart, periodEnd+1), backgroundColor: '#2563eb88' },
+    { label: '영업이익', data: c.opProfit.slice(periodStart, periodEnd+1), backgroundColor: '#16a34a88' }
+  ], { showLegend: true });
+
+  charts.net = makeLineChart('netChart', ql, [{
+    label: '당기순이익', data: c.netProfit.slice(periodStart, periodEnd+1),
+    borderColor: '#7c3aed', backgroundColor: '#7c3aed22',
+    tension: 0.35, borderWidth: 2.5, fill: true, pointRadius: 4
+  }]);
+
+  if (c.lossRatio.some(v=>v)) {
+    charts.ratio = makeLineChart('ratioChart', ql, [
+      { label: '손해율', data: c.lossRatio.slice(periodStart, periodEnd+1), borderColor: '#dc2626', backgroundColor: '#dc262622', tension: 0.35, borderWidth: 2, pointRadius: 3, spanGaps: true },
+      { label: '합산비율', data: c.combined.slice(periodStart, periodEnd+1), borderColor: '#d97706', backgroundColor: '#d9770622', tension: 0.35, borderWidth: 2, pointRadius: 3, spanGaps: true }
+    ], { unit: '%' });
+  }
+  if (c.kics.some(v=>v)) {
+    charts.kicsC = makeLineChart('kicsChartC', ql, [{
+      label: 'K-ICS 비율', data: c.kics.slice(periodStart, periodEnd+1),
+      borderColor: '#0891b2', backgroundColor: '#0891b222',
+      tension: 0.35, borderWidth: 2.5, pointRadius: 4, spanGaps: true
+    }], { unit: '%' });
+  }
+}
+
+function exportSummary() {
+  const companies = filteredCompanies();
+  const ql = FINANCE_DATA.meta.quarters.slice(periodStart, periodEnd+1);
+  const ml = METRIC_LABELS[currentMetric];
+  const headers = ['분기', ...companies.map(c => c.name)];
+  const rows = ql.map((q,qi) => {
+    const actualIdx = periodStart + qi;
+    return [q, ...companies.map(c => c[currentMetric][actualIdx] ?? '')];
+  });
+  downloadCsv('금융사_' + ml.label + '.csv', headers, rows);
+}
+
+initSidebar();
+document.querySelector('[data-type="all"]').classList.add('active');
+document.querySelector('[data-metric="revenue"]').classList.add('active');
+document.querySelector('[data-view="summary"]').classList.add('active');
+renderView();
+
+  </script>
+</body>
+</html>

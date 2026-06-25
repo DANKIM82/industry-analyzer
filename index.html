@@ -1,0 +1,184 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>산업별 실적 Dashboard Hub</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box;}
+body{font-family:'Pretendard','Noto Sans KR',sans-serif;background:#0d1117;color:#e6edf3;min-height:100vh;}
+.header{padding:40px 48px 32px;border-bottom:1px solid #30363d;background:#161b22;}
+.header h1{font-size:28px;font-weight:800;margin-bottom:8px;}
+.header p{color:#8b949e;font-size:15px;max-width:600px;}
+.badge-row{display:flex;gap:10px;margin-top:16px;flex-wrap:wrap;}
+.badge{padding:4px 12px;border-radius:12px;font-size:12px;font-weight:700;}
+
+.workflow{background:#0d1117;padding:32px 48px;border-bottom:1px solid #21262d;}
+.workflow h2{font-size:16px;font-weight:700;color:#8b949e;margin-bottom:20px;letter-spacing:1px;text-transform:uppercase;}
+.steps{display:flex;gap:0;align-items:stretch;flex-wrap:wrap;}
+.step{flex:1;min-width:180px;background:#161b22;border:1px solid #30363d;padding:20px;position:relative;}
+.step:not(:last-child)::after{content:'→';position:absolute;right:-14px;top:50%;transform:translateY(-50%);color:#58a6ff;font-size:20px;z-index:1;background:#0d1117;padding:0 2px;}
+.step .num{font-size:11px;font-weight:700;color:#58a6ff;letter-spacing:1px;margin-bottom:8px;}
+.step h3{font-size:14px;font-weight:700;margin-bottom:6px;}
+.step p{font-size:12px;color:#8b949e;line-height:1.5;}
+.step code{background:#21262d;padding:2px 6px;border-radius:4px;font-size:11px;color:#f59e0b;font-family:monospace;}
+
+.content{padding:32px 48px;}
+.section-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:20px;}
+.section-header h2{font-size:18px;font-weight:700;}
+.ga-link{display:inline-flex;align-items:center;gap:6px;padding:8px 16px;background:#21262d;border:1px solid #30363d;border-radius:8px;color:#58a6ff;text-decoration:none;font-size:13px;font-weight:600;transition:all .15s;}
+.ga-link:hover{background:#30363d;}
+
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(320px,1fr));gap:16px;margin-bottom:32px;}
+.card{background:#161b22;border:1px solid #30363d;border-radius:12px;padding:24px;text-decoration:none;color:inherit;display:block;transition:all .2s;position:relative;overflow:hidden;}
+.card::before{content:'';position:absolute;top:0;left:0;right:0;height:3px;background:var(--clr);}
+.card:hover{border-color:var(--clr);transform:translateY(-2px);box-shadow:0 8px 24px rgba(0,0,0,.4);}
+.card .icon{font-size:32px;margin-bottom:12px;}
+.card h3{font-size:17px;font-weight:700;margin-bottom:6px;}
+.card .desc{font-size:13px;color:#8b949e;line-height:1.5;margin-bottom:14px;}
+.card .companies{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:14px;}
+.card .co-tag{padding:2px 8px;border-radius:4px;font-size:11px;font-weight:600;background:#21262d;color:#8b949e;}
+.card .meta{display:flex;align-items:center;justify-content:space-between;font-size:12px;color:#8b949e;border-top:1px solid #21262d;padding-top:12px;margin-top:4px;}
+.card .status-dot{width:7px;height:7px;border-radius:50%;background:#3fb950;display:inline-block;margin-right:5px;}
+.card .goto{font-size:13px;font-weight:600;color:var(--clr);}
+
+.footer{padding:24px 48px;border-top:1px solid #30363d;display:flex;align-items:center;justify-content:space-between;font-size:12px;color:#8b949e;}
+.footer a{color:#58a6ff;text-decoration:none;}
+
+@media(max-width:768px){.header,.workflow,.content,.footer{padding-left:20px;padding-right:20px;}.steps{flex-direction:column;}.step::after{display:none;}.grid{grid-template-columns:1fr;}}
+</style>
+</head>
+<body>
+
+<div class="header">
+  <h1>🏭 산업별 실적 Dashboard Hub</h1>
+  <p>DART OpenAPI 기반 자동 수집 | 7개 산업 | 분기별 실적 자동 업데이트</p>
+  <div class="badge-row">
+    <span class="badge" style="background:#0d2818;color:#3fb950;border:1px solid #1a4731;">✅ DART OpenAPI</span>
+    <span class="badge" style="background:#1f3a5f;color:#58a6ff;border:1px solid #1f6feb;">📊 Chart.js</span>
+    <span class="badge" style="background:#2d1b00;color:#f59e0b;border:1px solid #92400e;">⚡ 완전 자동화</span>
+    <span class="badge" style="background:#21262d;color:#8b949e;border:1px solid #30363d;">🔒 독립 HTML</span>
+  </div>
+</div>
+
+<div class="workflow">
+  <h2>⚙️ 자동화 워크플로우</h2>
+  <div class="steps">
+    <div class="step">
+      <div class="num">STEP 1</div>
+      <h3>초기 설정</h3>
+      <p><code>config.py</code>에 DART API 키 입력 후<br><code>pip install -r requirements.txt</code></p>
+    </div>
+    <div class="step">
+      <div class="num">STEP 2</div>
+      <h3>데이터 수집</h3>
+      <p><code>run_update.bat</code> 실행 또는<br><code>python collect_data.py</code></p>
+    </div>
+    <div class="step">
+      <div class="num">STEP 3</div>
+      <h3>JS 파일 생성</h3>
+      <p><code>data/</code> 폴더에 7개 JS 파일 자동 생성.<br>HTML이 자동으로 최신 데이터 표시</p>
+    </div>
+    <div class="step">
+      <div class="num">STEP 4</div>
+      <h3>자동 스케줄링</h3>
+      <p>Task Scheduler에 등록.<br>분기별 (1/4/7/10월 25일) 자동 실행</p>
+    </div>
+  </div>
+</div>
+
+<div class="content">
+  <div class="section-header">
+    <h2>📊 산업별 대시보드</h2>
+    <a href="http://192.168.171.100:3000/ga-earnings-static/GA_earnings_dashboard.html" class="ga-link" target="_blank">
+      🔗 GA 실적 Dashboard (팀 공용)
+    </a>
+  </div>
+  <div class="grid">
+    <a href="finance.html" class="card" style="--clr:#1f6feb;">
+      <div class="icon">🏦</div>
+      <h3>금융사 실적</h3>
+      <p class="desc">보험사·증권사 분기별 실적. K-ICS비율·손해율·합산비율 포함.</p>
+      <div class="companies">
+        <span class="co-tag">삼성생명</span><span class="co-tag">DB손보</span><span class="co-tag">메리츠화재</span><span class="co-tag">미래에셋증권</span><span class="co-tag">+4</span>
+      </div>
+      <div class="meta"><span><span class="status-dot"></span>DART 자동수집</span><span class="goto">열기 →</span></div>
+    </a>
+    <a href="shipbuilding.html" class="card" style="--clr:#0ea5e9;">
+      <div class="icon">🚢</div>
+      <h3>조선사 실적</h3>
+      <p class="desc">HD한국조선해양·삼성중공업·한화오션. 신규수주·수주잔고·선종별 분석.</p>
+      <div class="companies">
+        <span class="co-tag">HD한국조선해양</span><span class="co-tag">삼성중공업</span><span class="co-tag">한화오션</span><span class="co-tag">+2</span>
+      </div>
+      <div class="meta"><span><span class="status-dot"></span>DART 자동수집</span><span class="goto">열기 →</span></div>
+    </a>
+    <a href="defense.html" class="card" style="--clr:#6b7280;">
+      <div class="icon">🛡️</div>
+      <h3>방산 실적</h3>
+      <p class="desc">K-방산 빅3+. 국내·수출수주 분리 분석, 수출비중·수주잔고 추이.</p>
+      <div class="companies">
+        <span class="co-tag">한화에어로스페이스</span><span class="co-tag">LIG넥스원</span><span class="co-tag">현대로템</span><span class="co-tag">+2</span>
+      </div>
+      <div class="meta"><span><span class="status-dot"></span>DART 자동수집</span><span class="goto">열기 →</span></div>
+    </a>
+    <a href="semiconductor.html" class="card" style="--clr:#7c3aed;">
+      <div class="icon">💾</div>
+      <h3>반도체 실적</h3>
+      <p class="desc">삼성전자·SK하이닉스·한미반도체. HBM 매출·CAPEX·재고자산 분석.</p>
+      <div class="companies">
+        <span class="co-tag">삼성전자</span><span class="co-tag">SK하이닉스</span><span class="co-tag">한미반도체</span><span class="co-tag">+2</span>
+      </div>
+      <div class="meta"><span><span class="status-dot"></span>DART 자동수집</span><span class="goto">열기 →</span></div>
+    </a>
+    <a href="gaming.html" class="card" style="--clr:#f59e0b;">
+      <div class="icon">🎮</div>
+      <h3>게임사 실적</h3>
+      <p class="desc">크래프톤·넷마블·엔씨·펄어비스. 해외비중·MAU·플랫폼별 분석.</p>
+      <div class="companies">
+        <span class="co-tag">크래프톤</span><span class="co-tag">넷마블</span><span class="co-tag">엔씨소프트</span><span class="co-tag">펄어비스</span>
+      </div>
+      <div class="meta"><span><span class="status-dot"></span>DART 자동수집</span><span class="goto">열기 →</span></div>
+    </a>
+    <a href="kfood.html" class="card" style="--clr:#f97316;">
+      <div class="icon">🍜</div>
+      <h3>K-푸드 실적</h3>
+      <p class="desc">삼양식품·오리온·농심·CJ제일제당. 수출비중·북미/아시아/유럽 지역 분석.</p>
+      <div class="companies">
+        <span class="co-tag">삼양식품</span><span class="co-tag">오리온</span><span class="co-tag">농심</span><span class="co-tag">CJ제일제당</span>
+      </div>
+      <div class="meta"><span><span class="status-dot"></span>DART 자동수집</span><span class="goto">열기 →</span></div>
+    </a>
+    <a href="kbeauty.html" class="card" style="--clr:#ec4899;">
+      <div class="icon">💄</div>
+      <h3>K-뷰티 실적</h3>
+      <p class="desc">아모레퍼시픽·코스맥스·실리콘투·클리오. 해외비중·북미/중국·브랜드vs ODM.</p>
+      <div class="companies">
+        <span class="co-tag">아모레퍼시픽</span><span class="co-tag">코스맥스</span><span class="co-tag">실리콘투</span><span class="co-tag">클리오</span>
+      </div>
+      <div class="meta"><span><span class="status-dot"></span>DART 자동수집</span><span class="goto">열기 →</span></div>
+    </a>
+  </div>
+
+  <div class="section-header" style="margin-top:8px;">
+    <h2>🌐 글로벌 매크로 인텔리전스</h2>
+  </div>
+  <div class="grid">
+    <a href="geopolitics.html" class="card" style="--clr:#6366f1;">
+      <div class="icon">🧭</div>
+      <h3>지정학 매크로 리포트</h3>
+      <p class="desc">Buy-side L/S 데스크용. 미중·동북아·중동·유럽 4개 축의 미스프라이싱과 컨벡시티 헤지를 거래 단위로 제시.</p>
+      <div class="companies">
+        <span class="co-tag">미중 Tech/Fin</span><span class="co-tag">동북아 공급망</span><span class="co-tag">중동 에너지</span><span class="co-tag">유럽 재정/방위</span>
+      </div>
+      <div class="meta"><span><span class="status-dot" style="background:#f59e0b;"></span>라이브 조회 기반 · 수동 갱신</span><span class="goto">열기 →</span></div>
+    </a>
+  </div>
+</div>
+
+<div class="footer">
+  <span>데이터 소스: <a href="https://opendart.fss.or.kr" target="_blank">DART OpenAPI</a> | Chart.js CDN</span>
+  <span>collect_data.py 실행 후 data/*.js 갱신 → 각 대시보드 자동 업데이트</span>
+</div>
+
+</body>
+</html>
