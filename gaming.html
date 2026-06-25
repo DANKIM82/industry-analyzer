@@ -264,11 +264,14 @@
       <button data-metric="revenue" class="active">매출액</button>
       <button data-metric="opProfit">영업이익</button>
       <button data-metric="opMargin">이익률</button>
+<<<<<<< HEAD
       <button data-metric="netProfit">순이익</button>
       <button data-metric="netMargin">순이익률</button>
       <button data-metric="opCashflow">영업현금흐름</button>
       <button data-metric="eps">EPS</button>
       <button data-metric="roe">ROE</button>
+=======
+>>>>>>> ee484fafef39d9e18ac7963d5eb924d4c25e1fc4
       <button data-metric="globalRatio">해외비중</button>
       <button data-metric="mau">MAU</button>
       <span class="sep">|</span>
@@ -281,7 +284,10 @@
   
     </main>
   </div>
+<<<<<<< HEAD
   <script src="data/gaming_data.js" onerror="console.log('gaming_data.js 없음 — 샘플 데이터 사용')"></script>
+=======
+>>>>>>> ee484fafef39d9e18ac7963d5eb924d4c25e1fc4
   <script>
 
 const COLORS = [
@@ -340,10 +346,22 @@ function makeLineChart(canvasId, labels, datasets, opts={}) {
           ticks: { font: { size: 11 }, color: '#6b7280', maxRotation: 45 }
         },
         y: {
+<<<<<<< HEAD
           title: { display: !!opts.unit && opts.unit !== '%', text: (opts.unit && opts.unit !== '%') ? opts.unit : '', font: { size: 11 }, color: '#94a3b8' },
           grid: { color: 'rgba(0,0,0,0.05)' },
           ticks: { font: { size: 11 }, color: '#6b7280',
             callback: function(v) { if (opts.unit === '%') return v + '%'; return Number(v).toLocaleString('ko-KR', { maximumFractionDigits: 0 }); } }
+=======
+          grid: { color: 'rgba(0,0,0,0.05)' },
+          ticks: {
+            font: { size: 11 }, color: '#6b7280',
+            callback: function(v) {
+              if (Math.abs(v) >= 10000) return (v/10000).toFixed(1) + '만';
+              if (Math.abs(v) >= 1000) return (v/1000).toFixed(0) + 'K';
+              return v + (opts.unit || '');
+            }
+          }
+>>>>>>> ee484fafef39d9e18ac7963d5eb924d4c25e1fc4
         },
         ...(opts.y2 ? {
           y1: {
@@ -388,10 +406,22 @@ function makeBarChart(canvasId, labels, datasets, opts={}) {
         },
         y: {
           stacked: opts.stacked || false,
+<<<<<<< HEAD
           title: { display: !!opts.unit && opts.unit !== '%', text: (opts.unit && opts.unit !== '%') ? opts.unit : '', font: { size: 11 }, color: '#94a3b8' },
           grid: { color: 'rgba(0,0,0,0.05)' },
           ticks: { font: { size: 11 }, color: '#6b7280',
             callback: function(v) { if (opts.unit === '%') return v + '%'; return Number(v).toLocaleString('ko-KR', { maximumFractionDigits: 0 }); } }
+=======
+          grid: { color: 'rgba(0,0,0,0.05)' },
+          ticks: {
+            font: { size: 11 }, color: '#6b7280',
+            callback: function(v) {
+              if (Math.abs(v) >= 10000) return (v/10000).toFixed(0) + '만';
+              if (Math.abs(v) >= 1000) return (v/1000).toFixed(0) + 'K';
+              return v + (opts.unit || '');
+            }
+          }
+>>>>>>> ee484fafef39d9e18ac7963d5eb924d4c25e1fc4
         }
       }
     }
@@ -474,7 +504,11 @@ function downloadCsv(filename, headers, rows) {
 }
 
 
+<<<<<<< HEAD
 const GAME_SAMPLE = {
+=======
+const GAME_DATA = {
+>>>>>>> ee484fafef39d9e18ac7963d5eb924d4c25e1fc4
   meta: {
     title: '국내 주요 게임기업 실적 Dashboard',
     quarters: ['2022Q1','2022Q2','2022Q3','2022Q4','2023Q1','2023Q2','2023Q3','2023Q4','2024Q1','2024Q2','2024Q3','2024Q4','2025Q1','2025Q2','2025Q3','2025Q4']
@@ -555,6 +589,7 @@ const GAME_SAMPLE = {
   ]
 };
 
+<<<<<<< HEAD
 // ── 데이터 소스 연결: DART 실데이터(window.INDUSTRY_DATA_GAMING) 우선, 없으면 샘플 ──
 let IS_SAMPLE = true;
 function buildLiveData(records) {
@@ -613,6 +648,8 @@ const GAME_DATA = (Array.isArray(__live) && __live.length)
   }
 })();
 
+=======
+>>>>>>> ee484fafef39d9e18ac7963d5eb924d4c25e1fc4
 
 let currentView = 'summary';
 let currentMetric = 'revenue';
@@ -625,15 +662,19 @@ const METRIC_LABELS = {
   revenue: { label: '매출액', unit: '억원' },
   opProfit: { label: '영업이익', unit: '억원' },
   opMargin: { label: '영업이익률', unit: '%' },
+<<<<<<< HEAD
   netProfit: { label: '순이익', unit: '억원' },
   netMargin: { label: '순이익률', unit: '%' },
   opCashflow: { label: '영업현금흐름', unit: '억원' },
   eps: { label: 'EPS', unit: '원' },
   roe: { label: 'ROE', unit: '%' },
+=======
+>>>>>>> ee484fafef39d9e18ac7963d5eb924d4c25e1fc4
   globalRatio: { label: '해외매출비중', unit: '%' },
   mau: { label: 'MAU', unit: '만명' }
 };
 
+<<<<<<< HEAD
 // SAMPLE 등에서 누락된 지표(순이익/EPS/ROE 등)는 null 배열로 채워 렌더 크래시 방지
 GAME_DATA.companies.forEach(c => {
   Object.keys(METRIC_LABELS).forEach(k => {
@@ -651,6 +692,8 @@ Object.keys(METRIC_LABELS).forEach(k => {
   }
 });
 
+=======
+>>>>>>> ee484fafef39d9e18ac7963d5eb924d4c25e1fc4
 document.querySelectorAll('#summaryNav button').forEach(btn => {
   btn.addEventListener('click', () => {
     currentView = btn.dataset.view;
@@ -719,7 +762,11 @@ function renderSummaryView(main, ql) {
       </tr></thead><tbody id="summaryTbody"></tbody></table></div>
     </div>
   `;
+<<<<<<< HEAD
   charts.main = makeLineChart('mainChart', ql, datasets, { unit: ml.unit });
+=======
+  charts.main = makeLineChart('mainChart', ql, datasets, { unit: ml.unit === '%' ? '%' : '' });
+>>>>>>> ee484fafef39d9e18ac7963d5eb924d4c25e1fc4
   renderLegend('mainLegend', datasets, charts.main);
   const tbody = document.getElementById('summaryTbody');
   ql.forEach((q,qi) => {
@@ -809,10 +856,17 @@ function renderCompanyView(main, ql) {
     <div class="kpi-grid">
       <div class="kpi-card">
         <div class="kpi-label">매출액 (최근분기)</div>
+<<<<<<< HEAD
         <div class="kpi-value">${c.revenue[latest] ? Number(c.revenue[latest]).toLocaleString('ko-KR') : '-'}<span style="font-size:12px;color:#6b7280">십억원</span></div>
         ${revYoY ? '<div class="kpi-sub ' + (revYoY>=0?'kpi-up':'kpi-dn') + '">' + (revYoY>=0?'▲':'▼') + Math.abs(revYoY) + '% YoY</div>' : ''}
       </div>
       <div class="kpi-card"><div class="kpi-label">영업이익</div><div class="kpi-value">${c.opProfit[latest] ? Number(c.opProfit[latest]).toLocaleString('ko-KR') : '-'}<span style="font-size:12px;color:#6b7280">십억원</span></div><div class="kpi-sub">이익률 ${c.opMargin[latest] ? c.opMargin[latest].toFixed(1) : '-'}%</div></div>
+=======
+        <div class="kpi-value">${c.revenue[latest] ? Number(c.revenue[latest]).toLocaleString('ko-KR') : '-'}<span style="font-size:12px;color:#6b7280">억원</span></div>
+        ${revYoY ? '<div class="kpi-sub ' + (revYoY>=0?'kpi-up':'kpi-dn') + '">' + (revYoY>=0?'▲':'▼') + Math.abs(revYoY) + '% YoY</div>' : ''}
+      </div>
+      <div class="kpi-card"><div class="kpi-label">영업이익</div><div class="kpi-value">${c.opProfit[latest] ? Number(c.opProfit[latest]).toLocaleString('ko-KR') : '-'}<span style="font-size:12px;color:#6b7280">억원</span></div><div class="kpi-sub">이익률 ${c.opMargin[latest] ? c.opMargin[latest].toFixed(1) : '-'}%</div></div>
+>>>>>>> ee484fafef39d9e18ac7963d5eb924d4c25e1fc4
       <div class="kpi-card"><div class="kpi-label">해외매출 비중</div><div class="kpi-value">${c.globalRatio[latest] ? c.globalRatio[latest] : '-'}<span style="font-size:12px;color:#6b7280">%</span></div></div>
       <div class="kpi-card"><div class="kpi-label">MAU</div><div class="kpi-value">${c.mau[latest] ? Number(c.mau[latest]).toLocaleString('ko-KR') : '-'}<span style="font-size:12px;color:#6b7280">만명</span></div></div>
       <div class="kpi-card"><div class="kpi-label">모바일 비중</div><div class="kpi-value">${c.mobileRatio[latest] ? c.mobileRatio[latest] : '-'}<span style="font-size:12px;color:#6b7280">%</span></div></div>

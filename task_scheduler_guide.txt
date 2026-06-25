@@ -37,13 +37,3 @@ Register-ScheduledTask -TaskName "산업실적_자동수집" `
   -Action $action -Trigger $triggers -RunLevel Highest
 ------------------------------------------
 
-## 초기 설정:
-# run_update.bat 가 .venv 를 자동으로 만들고 requirements 도 설치하므로
-# 보통은 그냥 run_update.bat 한 번 실행하면 됩니다.
-# 수동으로 venv 를 다루려면:
-.venv\Scripts\python.exe -m pip install -r requirements.txt
-.venv\Scripts\python.exe collect_data.py --sector all
-
-## 특정 섹터만 업데이트 (venv 파이썬 사용):
-.venv\Scripts\python.exe collect_data.py --sector finance
-.venv\Scripts\python.exe collect_data.py --sector semiconductor
