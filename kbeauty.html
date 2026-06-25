@@ -132,23 +132,16 @@ body { font-family:'Pretendard','Noto Sans KR',sans-serif; background:#0d1117; c
         <button class="filter-btn active" onclick="setMetric('revenue',this)">매출액</button>
         <button class="filter-btn" onclick="setMetric('op_income',this)">영업이익</button>
         <button class="filter-btn" onclick="setMetric('op_margin',this)">영업이익률(%)</button>
-<<<<<<< HEAD
         <button class="filter-btn" onclick="setMetric('net_income',this)">순이익</button>
         <button class="filter-btn" onclick="setMetric('net_margin',this)">순이익률(%)</button>
         <button class="filter-btn" onclick="setMetric('op_cashflow',this)">영업현금흐름</button>
         <button class="filter-btn" onclick="setMetric('eps',this)">EPS(원)</button>
         <button class="filter-btn" onclick="setMetric('roe',this)">ROE(%)</button>
-=======
->>>>>>> ee484fafef39d9e18ac7963d5eb924d4c25e1fc4
         <button class="filter-btn" onclick="setMetric('overseas_ratio',this)">해외비중(%)</button>
         <button class="filter-btn" onclick="setMetric('online_ratio',this)">온라인비중(%)</button>
       </div>
       <div class="chart-grid">
-<<<<<<< HEAD
         <div class="chart-card" style="grid-column:1/-1"><h3 id="mainTitle">기업별 매출액 추이 (십억원)</h3><canvas id="mainChart"></canvas></div>
-=======
-        <div class="chart-card" style="grid-column:1/-1"><h3 id="mainTitle">기업별 매출액 추이 (억원)</h3><canvas id="mainChart"></canvas></div>
->>>>>>> ee484fafef39d9e18ac7963d5eb924d4c25e1fc4
         <div class="chart-card"><h3>최근 분기 영업이익률 (%)</h3><canvas id="marginChart"></canvas></div>
         <div class="chart-card"><h3>구분별 매출 비중 (브랜드/ODM/유통)</h3><canvas id="typeChart"></canvas></div>
       </div>
@@ -157,26 +150,16 @@ body { font-family:'Pretendard','Noto Sans KR',sans-serif; background:#0d1117; c
       <div class="section-title">해외·지역별 분석</div>
       <div class="chart-grid">
         <div class="chart-card" style="grid-column:1/-1"><h3>해외매출 비중 추이 (%)</h3><canvas id="overseasTrendChart"></canvas></div>
-<<<<<<< HEAD
         <div class="chart-card"><h3>지역별 해외매출 구성 (최근분기, 십억원)</h3><canvas id="regionChart"></canvas></div>
         <div class="chart-card"><h3>북미 매출 추이 vs 중국 매출 (십억원)</h3><canvas id="naVsCnChart"></canvas></div>
-=======
-        <div class="chart-card"><h3>지역별 해외매출 구성 (최근분기, 억원)</h3><canvas id="regionChart"></canvas></div>
-        <div class="chart-card"><h3>북미 매출 추이 vs 중국 매출 (억원)</h3><canvas id="naVsCnChart"></canvas></div>
->>>>>>> ee484fafef39d9e18ac7963d5eb924d4c25e1fc4
       </div>
     </div>
     <div class="view" id="view-company">
       <div class="filter-bar" id="companyFilter"></div>
       <div class="kpi-grid" id="companyKPI"></div>
       <div class="chart-grid">
-<<<<<<< HEAD
         <div class="chart-card"><h3>매출액·영업이익 (십억원)</h3><canvas id="companyBarChart"></canvas></div>
         <div class="chart-card"><h3>북미·중국 매출 추이 (십억원)</h3><canvas id="companyRegionChart"></canvas></div>
-=======
-        <div class="chart-card"><h3>매출액·영업이익 (억원)</h3><canvas id="companyBarChart"></canvas></div>
-        <div class="chart-card"><h3>북미·중국 매출 추이 (억원)</h3><canvas id="companyRegionChart"></canvas></div>
->>>>>>> ee484fafef39d9e18ac7963d5eb924d4c25e1fc4
       </div>
     </div>
     <div class="view" id="view-table">
@@ -188,10 +171,7 @@ body { font-family:'Pretendard','Noto Sans KR',sans-serif; background:#0d1117; c
     </div>
   </div>
 </div>
-<<<<<<< HEAD
 <script src="data/kbeauty_data.js" onerror="console.log('kbeauty_data.js 없음')"></script>
-=======
->>>>>>> ee484fafef39d9e18ac7963d5eb924d4c25e1fc4
 <script>
 const SAMPLE=[
   {quarter:'2023Q1',company:'아모레퍼시픽',category:'브랜드',revenue:10580,op_income:580,op_margin:5.5,overseas_revenue:4820,overseas_ratio:45.6,north_america:680,china:2850,online_ratio:38},
@@ -233,12 +213,8 @@ const SAMPLE=[
 
 let DATA=[],currentMetric='revenue',currentCompany=null,charts={},isSample=true;
 const COLORS=['#f472b6','#3fb950','#f59e0b','#38bdf8','#a78bfa','#f85149','#fb923c','#bc8cff'];
-<<<<<<< HEAD
 const ML={revenue:'매출액(십억원)',op_income:'영업이익(십억원)',op_margin:'영업이익률(%)',net_income:'순이익(십억원)',net_margin:'순이익률(%)',op_cashflow:'영업현금흐름(십억원)',eps:'EPS(원)',roe:'ROE(%)',overseas_ratio:'해외비중(%)',online_ratio:'온라인비중(%)'};
 function unitOf(metric){const m=(ML[metric]||'').match(/\(([^)]+)\)/);return m?m[1]:'';}
-=======
-const ML={revenue:'매출액(억원)',op_income:'영업이익(억원)',op_margin:'영업이익률(%)',overseas_ratio:'해외비중(%)',online_ratio:'온라인비중(%)'};
->>>>>>> ee484fafef39d9e18ac7963d5eb924d4c25e1fc4
 
 function getCompanies(){return[...new Set(DATA.map(d=>d.company))];}
 function getQuarters(){return[...new Set(DATA.map(d=>d.quarter))].sort();}
@@ -251,11 +227,7 @@ function renderSummary(){
   const companies=getCompanies(),quarters=getQuarters();
   destroyChart('main');destroyChart('margin');destroyChart('type');
   document.getElementById('mainTitle').textContent='기업별 '+ML[currentMetric]+' 추이';
-<<<<<<< HEAD
   charts['main']=new Chart(document.getElementById('mainChart'),{type:'line',data:{labels:quarters,datasets:companies.map((c,i)=>({label:c,data:quarters.map(q=>{const r=DATA.find(d=>d.company===c&&d.quarter===q);return (r&&r[currentMetric]!=null)?r[currentMetric]:null;}),borderColor:COLORS[i],backgroundColor:COLORS[i]+'33',tension:.3,fill:false,pointRadius:4}))},options:{responsive:true,plugins:{legend:{position:'bottom',labels:{color:'#8b949e',font:{size:11}}}},scales:{x:{ticks:{color:'#8b949e'},grid:{color:'#21262d'}},y:{title:{display:true,text:unitOf(currentMetric),color:'#8b949e'},ticks:{color:'#8b949e'},grid:{color:'#21262d'}}}}});
-=======
-  charts['main']=new Chart(document.getElementById('mainChart'),{type:'line',data:{labels:quarters,datasets:companies.map((c,i)=>({label:c,data:quarters.map(q=>{const r=DATA.find(d=>d.company===c&&d.quarter===q);return r?r[currentMetric]:null;}),borderColor:COLORS[i],backgroundColor:COLORS[i]+'33',tension:.3,fill:false,pointRadius:4}))},options:{responsive:true,plugins:{legend:{position:'bottom',labels:{color:'#8b949e',font:{size:11}}}},scales:{x:{ticks:{color:'#8b949e'},grid:{color:'#21262d'}},y:{ticks:{color:'#8b949e'},grid:{color:'#21262d'}}}}});
->>>>>>> ee484fafef39d9e18ac7963d5eb924d4c25e1fc4
   const lastQ=quarters[quarters.length-1];
   charts['margin']=new Chart(document.getElementById('marginChart'),{type:'bar',data:{labels:companies,datasets:[{label:'영업이익률(%)',data:companies.map(c=>{const r=DATA.find(d=>d.company===c&&d.quarter===lastQ);return r?r.op_margin:0;}),backgroundColor:COLORS.map(c=>c+'cc')}]},options:{responsive:true,plugins:{legend:{display:false}},scales:{x:{ticks:{color:'#8b949e'},grid:{color:'#21262d'}},y:{ticks:{color:'#8b949e'},grid:{color:'#21262d'}}}}});
   const cats=[...new Set(DATA.map(d=>d.category))];
@@ -288,13 +260,8 @@ function updateCompanyView(){
   const last=cData[cData.length-1],prev=cData[cData.length-2];
   function delta(k){if(!prev)return'';const d=last[k]-prev[k];return `<span class="delta ${d>=0?'up':'down'}">${d>=0?'▲':'▼'}${Math.abs(d).toLocaleString()}</span>`;}
   document.getElementById('companyKPI').innerHTML=`
-<<<<<<< HEAD
     <div class="kpi-card"><div class="label">매출액</div><div class="value">${last.revenue.toLocaleString()}<span class="unit">십억원</span></div>${delta('revenue')}</div>
     <div class="kpi-card"><div class="label">영업이익</div><div class="value">${last.op_income.toLocaleString()}<span class="unit">십억원</span></div>${delta('op_income')}</div>
-=======
-    <div class="kpi-card"><div class="label">매출액</div><div class="value">${last.revenue.toLocaleString()}<span class="unit">억원</span></div>${delta('revenue')}</div>
-    <div class="kpi-card"><div class="label">영업이익</div><div class="value">${last.op_income.toLocaleString()}<span class="unit">억원</span></div>${delta('op_income')}</div>
->>>>>>> ee484fafef39d9e18ac7963d5eb924d4c25e1fc4
     <div class="kpi-card"><div class="label">영업이익률</div><div class="value">${last.op_margin}<span class="unit">%</span></div>${delta('op_margin')}</div>
     <div class="kpi-card"><div class="label">해외비중</div><div class="value">${last.overseas_ratio}<span class="unit">%</span></div>${delta('overseas_ratio')}</div>
     <div class="kpi-card"><div class="label">온라인비중</div><div class="value">${last.online_ratio}<span class="unit">%</span></div>${delta('online_ratio')}</div>
@@ -306,7 +273,6 @@ function updateCompanyView(){
 }
 function renderTable(){document.getElementById('dataTable').innerHTML=DATA.map(d=>`<tr><td>${d.quarter}</td><td>${d.company}</td><td><span class="tag" style="background:#500724;color:#f472b6;">${d.category}</span></td><td>${d.revenue.toLocaleString()}</td><td>${d.op_income.toLocaleString()}</td><td>${d.op_margin}%</td><td>${d.overseas_revenue.toLocaleString()}</td><td>${d.overseas_ratio}%</td><td>${d.north_america.toLocaleString()}</td><td>${d.china.toLocaleString()}</td><td>${d.online_ratio}%</td></tr>`).join('');}
 function exportCSV(){const h=['분기','기업명','구분','매출액','영업이익','영업이익률','해외매출','해외비중','북미','중국','온라인비중'];const rows=DATA.map(d=>[d.quarter,d.company,d.category,d.revenue,d.op_income,d.op_margin,d.overseas_revenue,d.overseas_ratio,d.north_america,d.china,d.online_ratio]);const csv=[h,...rows].map(r=>r.join(',')).join('\n');const blob=new Blob(['\uFEFF'+csv],{type:'text/csv;charset=utf-8'});const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download='kbeauty_data.csv';a.click();}
-<<<<<<< HEAD
 function resetToSample(){DATA=SAMPLE.map(r=>({...r}));isSample=true;DATA.forEach(r=>MONEY_FIELDS.forEach(f=>{if(typeof r[f]==='number')r[f]=Math.round(r[f]/10);}));updateSourceBar();populateFilters();renderSummary();}
 function updateSourceBar(){document.getElementById('dsBadge').className='ds-badge '+(isSample?'sample':'live');document.getElementById('dsBadge').textContent=isSample?'SAMPLE':'LIVE';document.getElementById('dsInfo').textContent=isSample?'샘플 데이터 | collect_data.py 실행 후 data/kbeauty_data.js 필요':`DART 데이터 | ${DATA.length}건`;}
 function populateFilters(){const qs=getQuarters();document.getElementById('quarterFilter').innerHTML='<option value="all">전체 분기</option>'+qs.map(q=>`<option value="${q}">${q}</option>`).join('');}
@@ -314,13 +280,4 @@ const MONEY_FIELDS=['revenue','op_income','net_income','op_cashflow','overseas_r
 function loadExternalData(){if(window.INDUSTRY_DATA_KBEAUTY&&Array.isArray(window.INDUSTRY_DATA_KBEAUTY)){DATA=window.INDUSTRY_DATA_KBEAUTY;isSample=false;}else{DATA=[...SAMPLE];isSample=true;}DATA.forEach(r=>MONEY_FIELDS.forEach(f=>{if(typeof r[f]==='number')r[f]=Math.round(r[f]/10);}));}
 loadExternalData();updateSourceBar();populateFilters();renderSummary();
 </script>
-=======
-function resetToSample(){DATA=[...SAMPLE];isSample=true;updateSourceBar();populateFilters();renderSummary();}
-function updateSourceBar(){document.getElementById('dsBadge').className='ds-badge '+(isSample?'sample':'live');document.getElementById('dsBadge').textContent=isSample?'SAMPLE':'LIVE';document.getElementById('dsInfo').textContent=isSample?'샘플 데이터 | collect_data.py 실행 후 data/kbeauty_data.js 필요':`DART 데이터 | ${DATA.length}건`;}
-function populateFilters(){const qs=getQuarters();document.getElementById('quarterFilter').innerHTML='<option value="all">전체 분기</option>'+qs.map(q=>`<option value="${q}">${q}</option>`).join('');}
-function loadExternalData(){if(window.INDUSTRY_DATA_KBEAUTY&&Array.isArray(window.INDUSTRY_DATA_KBEAUTY)){DATA=window.INDUSTRY_DATA_KBEAUTY;isSample=false;}else{DATA=[...SAMPLE];isSample=true;}}
-loadExternalData();updateSourceBar();populateFilters();renderSummary();
-</script>
-<script src="data/kbeauty_data.js" onerror="console.log('kbeauty_data.js 없음')"></script>
->>>>>>> ee484fafef39d9e18ac7963d5eb924d4c25e1fc4
 </body></html>

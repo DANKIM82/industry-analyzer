@@ -220,7 +220,6 @@
   aside .nav button.active { background: #7c3aed22; color: #7c3aed; }
   aside .nav button:hover { background: rgba(255,255,255,0.06); }
   .controls button.active { background: #7c3aed; border-color: #7c3aed; }
-<<<<<<< HEAD
 
 
   /* ============================================================
@@ -386,9 +385,6 @@
   .gsw .era-tag { font-size:9.5px; font-weight:800; padding:2px 7px; border-radius:9px; text-align:center; height:fit-content; white-space:nowrap; }
   .gsw .era-text { color:var(--g-lo); line-height:1.55; }
   @media(max-width:760px){ .gsw .era-row{ grid-template-columns:1fr; gap:3px; } .gsw .era-tag{ justify-self:start; } }
-=======
-  
->>>>>>> ee484fafef39d9e18ac7963d5eb924d4c25e1fc4
 
   </style>
 </head>
@@ -415,15 +411,12 @@
     </div>
   </div>
   <div class="company-list">
-<<<<<<< HEAD
     <div class="label">글로벌 분석</div>
     <div class="nav" id="gswNav">
       <button data-view="gsw">🌐 Global Semi Watch</button>
     </div>
   </div>
   <div class="company-list">
-=======
->>>>>>> ee484fafef39d9e18ac7963d5eb924d4c25e1fc4
     <div class="label">기업별</div>
     <div class="nav" id="companyNav">
       <button data-company="삼성전자(DS)">삼성전자(DS)</button><button data-company="SK하이닉스">SK하이닉스</button><button data-company="DB하이텍">DB하이텍</button><button data-company="한미반도체">한미반도체</button><button data-company="리노공업">리노공업</button><button data-company="HPSP">HPSP</button><button data-company="원익IPS">원익IPS</button><button data-company="주성엔지니어링">주성엔지니어링</button>
@@ -446,14 +439,11 @@
       <button data-metric="revenue" class="active">매출액</button>
       <button data-metric="opProfit">영업이익</button>
       <button data-metric="opMargin">이익률</button>
-<<<<<<< HEAD
       <button data-metric="netProfit">순이익</button>
       <button data-metric="netMargin">순이익률</button>
       <button data-metric="opCashflow">영업CF</button>
       <button data-metric="eps">EPS</button>
       <button data-metric="roe">ROE</button>
-=======
->>>>>>> ee484fafef39d9e18ac7963d5eb924d4c25e1fc4
       <button data-metric="capex">CAPEX</button>
       <button data-metric="hbmRevenue">HBM</button>
       <span class="sep">|</span>
@@ -466,10 +456,7 @@
   
     </main>
   </div>
-<<<<<<< HEAD
   <script src="data/semiconductor_data.js" onerror="console.log('semiconductor_data.js 없음 — 샘플 데이터 사용')"></script>
-=======
->>>>>>> ee484fafef39d9e18ac7963d5eb924d4c25e1fc4
   <script>
 
 const COLORS = [
@@ -528,22 +515,13 @@ function makeLineChart(canvasId, labels, datasets, opts={}) {
           ticks: { font: { size: 11 }, color: '#6b7280', maxRotation: 45 }
         },
         y: {
-<<<<<<< HEAD
           title: { display: !!opts.unit && opts.unit !== '%', text: (opts.unit && opts.unit !== '%') ? opts.unit : '', font: { size: 11 }, color: '#94a3b8' },
-=======
->>>>>>> ee484fafef39d9e18ac7963d5eb924d4c25e1fc4
           grid: { color: 'rgba(0,0,0,0.05)' },
           ticks: {
             font: { size: 11 }, color: '#6b7280',
             callback: function(v) {
-<<<<<<< HEAD
               if (opts.unit === '%') return v + '%';
               return Number(v).toLocaleString('ko-KR', { maximumFractionDigits: 0 });
-=======
-              if (Math.abs(v) >= 10000) return (v/10000).toFixed(1) + '만';
-              if (Math.abs(v) >= 1000) return (v/1000).toFixed(0) + 'K';
-              return v + (opts.unit || '');
->>>>>>> ee484fafef39d9e18ac7963d5eb924d4c25e1fc4
             }
           }
         },
@@ -590,22 +568,13 @@ function makeBarChart(canvasId, labels, datasets, opts={}) {
         },
         y: {
           stacked: opts.stacked || false,
-<<<<<<< HEAD
           title: { display: !!opts.unit && opts.unit !== '%', text: (opts.unit && opts.unit !== '%') ? opts.unit : '', font: { size: 11 }, color: '#94a3b8' },
-=======
->>>>>>> ee484fafef39d9e18ac7963d5eb924d4c25e1fc4
           grid: { color: 'rgba(0,0,0,0.05)' },
           ticks: {
             font: { size: 11 }, color: '#6b7280',
             callback: function(v) {
-<<<<<<< HEAD
               if (opts.unit === '%') return v + '%';
               return Number(v).toLocaleString('ko-KR', { maximumFractionDigits: 0 });
-=======
-              if (Math.abs(v) >= 10000) return (v/10000).toFixed(0) + '만';
-              if (Math.abs(v) >= 1000) return (v/1000).toFixed(0) + 'K';
-              return v + (opts.unit || '');
->>>>>>> ee484fafef39d9e18ac7963d5eb924d4c25e1fc4
             }
           }
         }
@@ -690,11 +659,7 @@ function downloadCsv(filename, headers, rows) {
 }
 
 
-<<<<<<< HEAD
 const SEMI_SAMPLE = {
-=======
-const SEMI_DATA = {
->>>>>>> ee484fafef39d9e18ac7963d5eb924d4c25e1fc4
   meta: {
     title: '국내 주요 반도체기업 실적 Dashboard',
     quarters: ['2022Q1','2022Q2','2022Q3','2022Q4','2023Q1','2023Q2','2023Q3','2023Q4','2024Q1','2024Q2','2024Q3','2024Q4','2025Q1','2025Q2','2025Q3','2025Q4']
@@ -767,7 +732,6 @@ const SEMI_DATA = {
   ]
 };
 
-<<<<<<< HEAD
 // ── 데이터 소스 연결: DART 실데이터(window.INDUSTRY_DATA_SEMICONDUCTOR) 우선, 없으면 샘플 ──
 let IS_SAMPLE = true;
 function buildLiveData(records) {
@@ -829,8 +793,6 @@ const SEMI_DATA = (Array.isArray(__live) && __live.length)
   }
 })();
 
-=======
->>>>>>> ee484fafef39d9e18ac7963d5eb924d4c25e1fc4
 
 let currentView = 'summary';
 let currentMetric = 'revenue';
@@ -844,20 +806,16 @@ const METRIC_LABELS = {
   revenue: { label: '매출액', unit: '억원' },
   opProfit: { label: '영업이익', unit: '억원' },
   opMargin: { label: '영업이익률', unit: '%' },
-<<<<<<< HEAD
   netProfit: { label: '순이익', unit: '억원' },
   netMargin: { label: '순이익률', unit: '%' },
   opCashflow: { label: '영업현금흐름', unit: '억원' },
   eps: { label: 'EPS', unit: '원' },
   roe: { label: 'ROE', unit: '%' },
-=======
->>>>>>> ee484fafef39d9e18ac7963d5eb924d4c25e1fc4
   capex: { label: '설비투자(CAPEX)', unit: '억원' },
   hbmRevenue: { label: 'HBM 매출', unit: '억원' },
   inventory: { label: '재고자산', unit: '억원' }
 };
 
-<<<<<<< HEAD
 // SAMPLE 등에서 누락된 지표(순이익/EPS/ROE 등)는 null 배열로 채워 렌더 크래시 방지
 SEMI_DATA.companies.forEach(c => {
   Object.keys(METRIC_LABELS).forEach(k => {
@@ -875,18 +833,12 @@ Object.keys(METRIC_LABELS).forEach(k => {
   }
 });
 
-=======
->>>>>>> ee484fafef39d9e18ac7963d5eb924d4c25e1fc4
 const SEG_LABELS = { memory: '메모리', foundry: '파운드리', equipment: '장비/소재' };
 
 document.querySelectorAll('#summaryNav button').forEach(btn => {
   btn.addEventListener('click', () => {
     currentView = btn.dataset.view;
-<<<<<<< HEAD
     document.querySelectorAll('#summaryNav button, #companyNav button, #gswNav button').forEach(b => b.classList.remove('active'));
-=======
-    document.querySelectorAll('#summaryNav button, #companyNav button').forEach(b => b.classList.remove('active'));
->>>>>>> ee484fafef39d9e18ac7963d5eb924d4c25e1fc4
     btn.classList.add('active');
     renderView();
   });
@@ -895,11 +847,7 @@ document.querySelectorAll('#companyNav button').forEach(btn => {
   btn.addEventListener('click', () => {
     currentView = 'company';
     currentCompany = btn.dataset.company;
-<<<<<<< HEAD
     document.querySelectorAll('#summaryNav button, #companyNav button, #gswNav button').forEach(b => b.classList.remove('active'));
-=======
-    document.querySelectorAll('#summaryNav button, #companyNav button').forEach(b => b.classList.remove('active'));
->>>>>>> ee484fafef39d9e18ac7963d5eb924d4c25e1fc4
     btn.classList.add('active');
     renderView();
   });
@@ -938,7 +886,6 @@ function destroyAll() {
   Object.keys(charts).forEach(k => delete charts[k]);
 }
 
-<<<<<<< HEAD
 let __gswHeader = null;
 function setGswChrome(on) {
   const h1 = document.querySelector('header h1');
@@ -962,11 +909,6 @@ function renderView() {
   destroyAll();
   setGswChrome(currentView === 'gsw');
   if (currentView === 'gsw') { renderGswView(main); return; }
-=======
-function renderView() {
-  const main = document.getElementById('mainContent');
-  destroyAll();
->>>>>>> ee484fafef39d9e18ac7963d5eb924d4c25e1fc4
   const ql = qs.slice(periodStart, periodEnd + 1);
   if (currentView === 'summary') renderSummaryView(main, ql);
   else if (currentView === 'hbm') renderHbmView(main, ql);
@@ -994,11 +936,7 @@ function renderSummaryView(main, ql) {
       </tr></thead><tbody id="summaryTbody"></tbody></table></div>
     </div>
   `;
-<<<<<<< HEAD
   charts.main = makeLineChart('mainChart', ql, datasets, { unit: ml.unit });
-=======
-  charts.main = makeLineChart('mainChart', ql, datasets, { unit: ml.unit === '%' ? '%' : '' });
->>>>>>> ee484fafef39d9e18ac7963d5eb924d4c25e1fc4
   renderLegend('mainLegend', datasets, charts.main);
   const tbody = document.getElementById('summaryTbody');
   ql.forEach((q,qi) => {
@@ -1008,11 +946,7 @@ function renderSummaryView(main, ql) {
       const v = c[currentMetric][ai];
       if(v == null) return '<td>-</td>';
       const isPct = ml.unit === '%';
-<<<<<<< HEAD
       const isNeg = (currentMetric === 'opProfit' || currentMetric === 'netProfit') && v < 0;
-=======
-      const isNeg = currentMetric === 'opProfit' && v < 0;
->>>>>>> ee484fafef39d9e18ac7963d5eb924d4c25e1fc4
       return '<td class="' + (isNeg ? 'neg' : '') + '">' + (isPct ? v.toFixed(1)+'%' : Number(v).toLocaleString('ko-KR')) + '</td>';
     }).join('');
     tbody.appendChild(tr);
@@ -1104,20 +1038,12 @@ function renderCompanyView(main, ql) {
       </div>
       <div class="kpi-card">
         <div class="kpi-label">CAPEX</div>
-<<<<<<< HEAD
         <div class="kpi-value">${Number(c.capex[latest]).toLocaleString('ko-KR')}<span style="font-size:12px;color:#6b7280">십억원</span></div>
-=======
-        <div class="kpi-value">${Number(c.capex[latest]).toLocaleString('ko-KR')}<span style="font-size:12px;color:#6b7280">억원</span></div>
->>>>>>> ee484fafef39d9e18ac7963d5eb924d4c25e1fc4
       </div>
       ${hbmLatest ? '<div class="kpi-card"><div class="kpi-label">HBM 매출</div><div class="kpi-value">' + (hbmLatest/10000).toFixed(2) + '<span style="font-size:12px;color:#6b7280">조원</span></div><div class="kpi-sub">전체의 ' + (hbmLatest/c.revenue[latest]*100).toFixed(1) + '%</div></div>' : ''}
       <div class="kpi-card">
         <div class="kpi-label">재고자산</div>
-<<<<<<< HEAD
         <div class="kpi-value">${Number(c.inventory[latest]).toLocaleString('ko-KR')}<span style="font-size:12px;color:#6b7280">십억원</span></div>
-=======
-        <div class="kpi-value">${Number(c.inventory[latest]).toLocaleString('ko-KR')}<span style="font-size:12px;color:#6b7280">억원</span></div>
->>>>>>> ee484fafef39d9e18ac7963d5eb924d4c25e1fc4
       </div>
     </div>
     <div class="two-col">
@@ -1181,7 +1107,6 @@ function exportSummary() {
   downloadCsv('반도체_' + ml.label + '.csv', headers, rows);
 }
 
-<<<<<<< HEAD
 
 // ===== Global Semi Watch data (canonical spec, embedded) =====
 const SEMICONDUCTOR_MASTER = {"quarters":["2024Q1","2024Q2","2024Q3","2024Q4","2025Q1","2025Q2","2025Q3","2025Q4"],"companies":[{"company_id":"samsung","ticker":"005930","name_en":"Samsung Electronics (DS)","name_ko":"삼성전자 DS부문","segment":["DRAM","NAND"],"listing_status":"subsidiary","data_reliability":"audited","confidence_level":5,"tech_node_leading":"DRAM 1b (12nm급), V8 NAND","yield_maturity":"mass_production","market_share_pct":40.5,"market_share_delta_yoy":-2.5,"estimation_methodology":null,"series":{"revenue_usd_mn":[16200,18500,20800,21500,19800,21000,24500,27000],"op_margin_pct":[1,8,15,18,10,7,16,22],"gross_margin_pct":[28,33,38,40,35,32,40,45],"inventory_days":[185,170,150,135,130,140,120,108],"asp_qoq_pct":[4,11,7,2,-3,5,9,7],"utilization_rate_pct":[78,85,90,92,88,85,93,96],"capex_usd_mn":[9500,10500,11000,12500,11000,13000,15000,14500],"hbm_related_revenue_share_pct":[3,5,8,11,10,9,14,18],"hbm_capex_share_pct":[12,18,24,30,28,30,38,42],"book_to_bill":[null,null,null,null,null,null,null,null],"order_backlog_usd_mn":[null,null,null,null,null,null,null,null],"euv_shipment_units":[null,null,null,null,null,null,null,null]}},{"company_id":"skhynix","ticker":"000660","name_en":"SK hynix","name_ko":"SK하이닉스","segment":["DRAM","NAND"],"listing_status":"listed","data_reliability":"audited","confidence_level":5,"tech_node_leading":"DRAM 1b/1c, HBM3E 12Hi 선두","yield_maturity":"mass_production","market_share_pct":36,"market_share_delta_yoy":3.5,"estimation_methodology":null,"series":{"revenue_usd_mn":[9100,12300,13800,14600,13900,16200,19500,22000],"op_margin_pct":[12,28,40,42,38,42,45,47],"gross_margin_pct":[35,48,58,60,56,60,63,65],"inventory_days":[145,120,100,90,88,85,80,78],"asp_qoq_pct":[6,14,9,4,-1,7,11,9],"utilization_rate_pct":[82,90,95,97,94,95,98,99],"capex_usd_mn":[3200,4000,4500,5500,4800,6000,7000,6500],"hbm_related_revenue_share_pct":[18,28,38,45,48,52,58,62],"hbm_capex_share_pct":[25,35,45,52,55,58,62,65],"book_to_bill":[null,null,null,null,null,null,null,null],"order_backlog_usd_mn":[null,null,null,null,null,null,null,null],"euv_shipment_units":[null,null,null,null,null,null,null,null]}},{"company_id":"micron","ticker":"MU","name_en":"Micron Technology","name_ko":"마이크론","segment":["DRAM","NAND"],"listing_status":"listed","data_reliability":"audited","confidence_level":5,"tech_node_leading":"DRAM 1b/1γ, HBM3E 8Hi/12Hi","yield_maturity":"mass_production","market_share_pct":23,"market_share_delta_yoy":-0.5,"estimation_methodology":null,"series":{"revenue_usd_mn":[5820,6810,7750,8710,8050,9300,11200,12500],"op_margin_pct":[3,14,23,28,25,30,36,40],"gross_margin_pct":[20,28,36,40,38,42,46,49],"inventory_days":[160,140,118,105,100,95,88,85],"asp_qoq_pct":[5,12,8,3,-2,6,10,8],"utilization_rate_pct":[80,87,92,94,90,92,96,98],"capex_usd_mn":[2100,2800,3000,3500,3200,4000,5000,4800],"hbm_related_revenue_share_pct":[2,5,9,13,15,18,24,28],"hbm_capex_share_pct":[15,22,30,38,40,45,50,55],"book_to_bill":[null,null,null,null,null,null,null,null],"order_backlog_usd_mn":[null,null,null,null,null,null,null,null],"euv_shipment_units":[null,null,null,null,null,null,null,null]}},{"company_id":"cxmt","ticker":"unlisted","name_en":"ChangXin Memory (CXMT)","name_ko":"창신메모리(CXMT)","segment":["DRAM"],"listing_status":"unlisted","data_reliability":"estimated","confidence_level":2,"tech_node_leading":"DRAM 17nm/G4 (DDR4/DDR5 초기), EUV 미보유","yield_maturity":"ramping","market_share_pct":9,"market_share_delta_yoy":6,"estimation_methodology":{"basis":"비상장. 웨이퍼 capa(추정 200k→320k wpm) × 추정 수율 × 블렌디드 ASP로 매출 역산. 점유율은 글로벌 DRAM bit 공급 대비 비중 추정. 영업이익률은 레거시 DDR4 덤핑가격+낮은 수율 가정 음수/저마진. 기술격차 선두 대비 4-5년(EUV 부재, 1z세대 수준).","sources":["https://www.trendforce.com/","https://www.techinsights.com/","https://www.bloomberg.com/","https://www.scmp.com/tech"],"error_band_pct":35},"series":{"revenue_usd_mn":[450,650,900,1200,1450,1750,2100,2500],"op_margin_pct":[-25,-18,-10,-5,-8,-3,2,5],"gross_margin_pct":[-5,2,8,12,10,14,18,20],"inventory_days":[200,190,180,170,175,165,160,155],"asp_qoq_pct":[-8,-5,-3,-2,-6,-4,-2,-1],"utilization_rate_pct":[60,68,75,80,78,82,85,88],"capex_usd_mn":[1800,2200,2500,3000,3200,3500,4000,4500],"hbm_related_revenue_share_pct":[0,0,0,0,0,0,1,2],"hbm_capex_share_pct":[0,0,0,0,2,3,5,8],"book_to_bill":[null,null,null,null,null,null,null,null],"order_backlog_usd_mn":[null,null,null,null,null,null,null,null],"euv_shipment_units":[null,null,null,null,null,null,null,null]}},{"company_id":"wdc","ticker":"WDC","name_en":"Western Digital / SanDisk","name_ko":"웨스턴디지털/샌디스크","segment":["NAND"],"listing_status":"listed","data_reliability":"audited","confidence_level":5,"tech_node_leading":"BiCS8 218L NAND","yield_maturity":"mass_production","market_share_pct":13,"market_share_delta_yoy":-0.5,"estimation_methodology":null,"series":{"revenue_usd_mn":[3460,3760,4100,4290,3900,4200,4600,4900],"op_margin_pct":[-5,5,12,16,10,8,15,18],"gross_margin_pct":[15,24,31,35,30,28,34,37],"inventory_days":[150,135,120,110,108,115,100,95],"asp_qoq_pct":[8,15,10,4,-3,4,8,6],"utilization_rate_pct":[75,82,88,90,86,84,90,92],"capex_usd_mn":[400,450,500,550,500,600,700,650],"hbm_related_revenue_share_pct":[null,null,null,null,null,null,null,null],"hbm_capex_share_pct":[null,null,null,null,null,null,null,null],"book_to_bill":[null,null,null,null,null,null,null,null],"order_backlog_usd_mn":[null,null,null,null,null,null,null,null],"euv_shipment_units":[null,null,null,null,null,null,null,null]}},{"company_id":"ymtc","ticker":"unlisted","name_en":"Yangtze Memory (YMTC)","name_ko":"양쯔메모리(YMTC)","segment":["NAND"],"listing_status":"unlisted","data_reliability":"estimated","confidence_level":2,"tech_node_leading":"Xtacking 3.0 232L NAND, 미국 제재 대상","yield_maturity":"ramping","market_share_pct":6,"market_share_delta_yoy":2,"estimation_methodology":{"basis":"비상장+제재로 가시성 낮음. 추정 NAND capa(130k→180k wpm) × 232L bit density × 추정 수율로 bit 공급 산출, 글로벌 NAND 비중 추정. ASP는 내수+가격공세 가정. 장비 수입제한으로 capex 변동성 큼.","sources":["https://www.trendforce.com/","https://www.techinsights.com/","https://www.reuters.com/technology/"],"error_band_pct":40},"series":{"revenue_usd_mn":[600,750,900,1050,1100,1250,1450,1650],"op_margin_pct":[-20,-12,-5,0,-3,2,5,8],"gross_margin_pct":[0,6,12,16,14,18,22,25],"inventory_days":[180,170,160,155,160,150,145,140],"asp_qoq_pct":[-6,-3,-2,-1,-5,-3,-1,0],"utilization_rate_pct":[65,70,76,80,78,82,85,87],"capex_usd_mn":[1200,1400,1500,1700,1600,1800,2000,2200],"hbm_related_revenue_share_pct":[null,null,null,null,null,null,null,null],"hbm_capex_share_pct":[null,null,null,null,null,null,null,null],"book_to_bill":[null,null,null,null,null,null,null,null],"order_backlog_usd_mn":[null,null,null,null,null,null,null,null],"euv_shipment_units":[null,null,null,null,null,null,null,null]}},{"company_id":"tsmc","ticker":"TSM","name_en":"TSMC","name_ko":"TSMC","segment":["Foundry"],"listing_status":"listed","data_reliability":"audited","confidence_level":5,"tech_node_leading":"N3/N2 양산, CoWoS AI 패키징","yield_maturity":"mass_production","market_share_pct":62,"market_share_delta_yoy":3,"estimation_methodology":null,"series":{"revenue_usd_mn":[18870,20820,23500,26880,25500,30000,32500,34500],"op_margin_pct":[42,42.5,47.5,49,48,49.5,50.5,51],"gross_margin_pct":[53,53.2,57.8,59,58.8,59.5,60.2,61],"inventory_days":[null,null,null,null,null,null,null,null],"asp_qoq_pct":[null,null,null,null,null,null,null,null],"utilization_rate_pct":[80,85,92,95,90,93,97,99],"capex_usd_mn":[5770,6360,6400,11200,10000,11000,12000,13000],"hbm_related_revenue_share_pct":[null,null,null,null,null,null,null,null],"hbm_capex_share_pct":[null,null,null,null,null,null,null,null],"book_to_bill":[null,null,null,null,null,null,null,null],"order_backlog_usd_mn":[null,null,null,null,null,null,null,null],"euv_shipment_units":[null,null,null,null,null,null,null,null]}},{"company_id":"intel","ticker":"INTC","name_en":"Intel","name_ko":"인텔","segment":["Logic","Foundry"],"listing_status":"listed","data_reliability":"audited","confidence_level":5,"tech_node_leading":"Intel 4/3, 18A 개발","yield_maturity":"ramping","market_share_pct":null,"market_share_delta_yoy":null,"estimation_methodology":null,"series":{"revenue_usd_mn":[12720,12830,13280,14260,12700,12900,13300,13800],"op_margin_pct":[5,0,-8,-12,-10,-5,2,5],"gross_margin_pct":[41,38,18,39.2,36,37,40,42],"inventory_days":[null,null,null,null,null,null,null,null],"asp_qoq_pct":[null,null,null,null,null,null,null,null],"utilization_rate_pct":[70,72,74,76,74,75,78,80],"capex_usd_mn":[5980,6400,6500,6300,6000,5800,5500,5200],"hbm_related_revenue_share_pct":[null,null,null,null,null,null,null,null],"hbm_capex_share_pct":[null,null,null,null,null,null,null,null],"book_to_bill":[null,null,null,null,null,null,null,null],"order_backlog_usd_mn":[null,null,null,null,null,null,null,null],"euv_shipment_units":[null,null,null,null,null,null,null,null]}},{"company_id":"asml","ticker":"ASML","name_en":"ASML","name_ko":"ASML","segment":["Equipment"],"listing_status":"listed","data_reliability":"audited","confidence_level":5,"tech_node_leading":"EUV NXE/High-NA EXE","yield_maturity":"mass_production","market_share_pct":null,"market_share_delta_yoy":null,"estimation_methodology":null,"series":{"revenue_usd_mn":[6010,6740,8260,10350,8800,9500,10500,11200],"op_margin_pct":[27,26,32,35,30,32,34,36],"gross_margin_pct":[51,51.5,50.8,51.7,51,52,53,54],"inventory_days":[null,null,null,null,null,null,null,null],"asp_qoq_pct":[null,null,null,null,null,null,null,null],"utilization_rate_pct":[null,null,null,null,null,null,null,null],"capex_usd_mn":[null,null,null,null,null,null,null,null],"hbm_related_revenue_share_pct":[null,null,null,null,null,null,null,null],"hbm_capex_share_pct":[null,null,null,null,null,null,null,null],"book_to_bill":[0.85,0.95,1.05,1.2,0.95,1.1,1.25,1.3],"order_backlog_usd_mn":[42000,41000,39000,40000,38000,42000,48000,52000],"euv_shipment_units":[8,10,12,13,9,11,13,14]}},{"company_id":"amat","ticker":"AMAT","name_en":"Applied Materials","name_ko":"어플라이드머티어리얼즈","segment":["Equipment"],"listing_status":"listed","data_reliability":"audited","confidence_level":5,"tech_node_leading":"증착/식각/이온주입 종합","yield_maturity":"mass_production","market_share_pct":null,"market_share_delta_yoy":null,"estimation_methodology":null,"series":{"revenue_usd_mn":[6650,6780,7050,7170,7000,7200,7600,7900],"op_margin_pct":[28.5,29,30,30.5,29,30,31,32],"gross_margin_pct":[47.5,47.5,47.3,47.5,47.4,47.8,48.2,48.5],"inventory_days":[null,null,null,null,null,null,null,null],"asp_qoq_pct":[null,null,null,null,null,null,null,null],"utilization_rate_pct":[null,null,null,null,null,null,null,null],"capex_usd_mn":[null,null,null,null,null,null,null,null],"hbm_related_revenue_share_pct":[null,null,null,null,null,null,null,null],"hbm_capex_share_pct":[null,null,null,null,null,null,null,null],"book_to_bill":[0.9,0.96,1,1.04,0.98,1.04,1.1,1.14],"order_backlog_usd_mn":[19000,19500,20000,20500,20000,20800,21800,22500],"euv_shipment_units":[null,null,null,null,null,null,null,null]}},{"company_id":"lrcx","ticker":"LRCX","name_en":"Lam Research","name_ko":"램리서치","segment":["Equipment"],"listing_status":"listed","data_reliability":"audited","confidence_level":5,"tech_node_leading":"식각/증착, NAND 고단/HBM TSV","yield_maturity":"mass_production","market_share_pct":null,"market_share_delta_yoy":null,"estimation_methodology":null,"series":{"revenue_usd_mn":[3790,3870,4170,4380,4200,4500,4900,5200],"op_margin_pct":[29,29.5,30,31,30,31,32.5,33.5],"gross_margin_pct":[48.7,48.5,47.5,48,47.8,48.5,49.5,50],"inventory_days":[null,null,null,null,null,null,null,null],"asp_qoq_pct":[null,null,null,null,null,null,null,null],"utilization_rate_pct":[null,null,null,null,null,null,null,null],"capex_usd_mn":[null,null,null,null,null,null,null,null],"hbm_related_revenue_share_pct":[null,null,null,null,null,null,null,null],"hbm_capex_share_pct":[null,null,null,null,null,null,null,null],"book_to_bill":[0.94,1,1.04,1.07,1.02,1.07,1.15,1.18],"order_backlog_usd_mn":[9000,9300,9600,9900,9700,10200,11000,11500],"euv_shipment_units":[null,null,null,null,null,null,null,null]}},{"company_id":"klac","ticker":"KLAC","name_en":"KLA Corporation","name_ko":"KLA","segment":["Equipment"],"listing_status":"listed","data_reliability":"audited","confidence_level":5,"tech_node_leading":"공정제어/검사 (메트롤로지 독점적)","yield_maturity":"mass_production","market_share_pct":null,"market_share_delta_yoy":null,"estimation_methodology":null,"series":{"revenue_usd_mn":[2360,2570,2840,3080,2950,3100,3400,3650],"op_margin_pct":[38,39,40,40.5,39.5,40.5,42,43],"gross_margin_pct":[59.8,60.5,61,61.3,60.8,61.5,62.2,63],"inventory_days":[null,null,null,null,null,null,null,null],"asp_qoq_pct":[null,null,null,null,null,null,null,null],"utilization_rate_pct":[null,null,null,null,null,null,null,null],"capex_usd_mn":[null,null,null,null,null,null,null,null],"hbm_related_revenue_share_pct":[null,null,null,null,null,null,null,null],"hbm_capex_share_pct":[null,null,null,null,null,null,null,null],"book_to_bill":[0.96,1.02,1.06,1.08,1.03,1.08,1.14,1.16],"order_backlog_usd_mn":[null,null,null,null,null,null,null,null],"euv_shipment_units":[null,null,null,null,null,null,null,null]}},{"company_id":"entegris","ticker":"ENTG","name_en":"Entegris (incl. CMC Materials)","name_ko":"엔테그리스(+구 CMC)","segment":["Materials"],"listing_status":"listed","data_reliability":"audited","confidence_level":5,"tech_node_leading":"CMP슬러리/필터/특수가스 소재","yield_maturity":"mass_production","market_share_pct":null,"market_share_delta_yoy":null,"estimation_methodology":null,"series":{"revenue_usd_mn":[771,807,808,850,820,870,930,980],"op_margin_pct":[18,19,20,21,20,21,22.5,23.5],"gross_margin_pct":[44.5,45,45.5,46,45.5,46.2,47,47.5],"inventory_days":[null,null,null,null,null,null,null,null],"asp_qoq_pct":[null,null,null,null,null,null,null,null],"utilization_rate_pct":[null,null,null,null,null,null,null,null],"capex_usd_mn":[null,null,null,null,null,null,null,null],"hbm_related_revenue_share_pct":[null,null,null,null,null,null,null,null],"hbm_capex_share_pct":[null,null,null,null,null,null,null,null],"book_to_bill":[0.95,1,1.02,1.05,1,1.05,1.1,1.12],"order_backlog_usd_mn":[null,null,null,null,null,null,null,null],"euv_shipment_units":[null,null,null,null,null,null,null,null]}}],"cycle":{"indicators":[{"key":"mem_inventory_days","label":"메모리3사 평균 재고일수","weight":0.25,"direction":"inverse","norm_rule":"raw=삼성/하이닉스/마이크론 재고일수 단순평균. norm=(130-raw)/20, [-2,2] 클램프. 임계치: 160일이상→-1.5이하(과잉재고), 130일=0(중립), 90일이하→+2(타이트).","raw_series":[163.3,143.3,122.7,110,106,106.7,96,90.3],"norm_series":[-1.67,-0.67,0.37,1,1.2,1.17,1.7,1.98]},{"key":"mem_op_margin","label":"메모리3사 평균 영업이익률","weight":0.3,"direction":"normal","norm_rule":"raw=삼성DS/하이닉스/마이크론 영업이익률 평균(%). norm=(raw-5)/17.5, [-2,2] 클램프. 임계치: -30%→-2(딥트로프), 5%=0(BEP부근), 40%이상→+2(슈퍼사이클피크).","raw_series":[5.3,16.7,26,29.3,24.3,26.3,32.3,36.3],"norm_series":[0.02,0.67,1.2,1.39,1.1,1.22,1.56,1.79]},{"key":"contract_price_qoq","label":"DRAM/NAND 고정가격 QoQ(TrendForce 추정)","weight":0.2,"direction":"normal","norm_rule":"raw=DRAM·NAND 블렌디드 고정거래가 QoQ변화율(%). norm=raw/5, [-2,2] 클램프. 임계치: +10%이상→+2(강세), 0%=0, -10%이하→-2(급락).","raw_series":[5,12,8,3,-2,6,10,8],"norm_series":[1,2,1.6,0.6,-0.4,1.2,2,1.6]},{"key":"equip_b2b","label":"장비3사(AMAT/LRCX/KLA) 합산 book-to-bill","weight":0.15,"direction":"normal","norm_rule":"raw=3사 신규수주/매출 가중 b2b. norm=(raw-1.0)/0.075, [-2,2] 클램프. 임계치: 1.15이상→+2(오더북확장), 1.0=0(균형), 0.85이하→-2(수주둔화).","raw_series":[0.93,0.99,1.03,1.06,1.01,1.06,1.13,1.16],"norm_series":[-0.93,-0.13,0.4,0.8,0.13,0.8,1.73,2]},{"key":"dram_big3_capex_qoq","label":"DRAM 빅3 합산 CAPEX QoQ","weight":0.1,"direction":"normal","norm_rule":"raw=삼성/하이닉스/마이크론 합산 CAPEX QoQ변화율(%). norm=raw/7.5, [-2,2] 클램프. 임계치: +15%이상→+2(증설가속), 0%=0, -15%이하→-2(투자축소).","raw_series":[6,8,4,10,-5,12,15,8],"norm_series":[0.8,1.07,0.53,1.33,-0.67,1.6,2,1.07]}],"composite_series":[-0.27,0.39,0.64,0.87,0.53,1.39,1.88,1.8],"phase_series":["Recovery","Recovery","Boom","Boom","Correction","Boom","Boom","Boom"],"phase_thresholds":{"Trough":"composite < -1.0","Recovery":"-1.0 <= composite < 0.5","Boom":"composite >= 0.5","Correction":"전분기 대비 composite -0.10 이상 하락 시 (절대수준 무관하게 우선 적용); 단 여전히 Boom구간 유지하며 둔화 시 'Boom(둔화)'로 해석","rule_priority":"1)방향체크(QoQ -0.10↓ 그리고 절대수준<0.7 → Correction) 2)절대수준 구간 매핑"},"signal_map":[{"range":"composite < -1.0","phase":"Trough","signal":"Long","note":"바닥 매집 구간. 메모리 롱(하이닉스/마이크론) 비중확대 시작, 밸류에이션 P/B 1배 부근. 장비 b2b<1 확인하며 분할매수."},{"range":"-1.0 ~ 0.5","phase":"Recovery","signal":"Long","note":"가격반등+재고정상화 초입. 메모리 롱 유지/확대. HBM 익스포저 큰 하이닉스 우선. CXMT숏은 아직 이름."},{"range":">= 0.5 (상승방향)","phase":"Boom","signal":"Long/Neutral","note":"이익 모멘텀 정점 추적. 롱 유지하되 composite 1.8+ 도달 시 차익 트림 검토. 장비 오더북·HBM capex비중으로 지속성 확인."},{"range":"QoQ 하락전환 & <0.7","phase":"Correction","signal":"Short/Neutral","note":"가격QoQ 음전환·capex축소 동반 시 사이클 피크아웃 신호. 메모리 롱 트림, CXMT 밸류체인 노출 숏 진입 타이밍. 2025Q1 미니조정 사례."}]},"aiMomentum":{"indicators":[{"key":"asml_euv_shipments","label":"ASML EUV 분기 출하대수","lead":"T-2","weight":0.2},{"key":"equip_b2b","label":"장비3사 합산 book-to-bill","lead":"T-2","weight":0.15},{"key":"tsmc_ai_revenue","label":"TSMC AI/HPC 매출 프록시","lead":"T-1","weight":0.2},{"key":"nvda_dc_revenue_proxy","label":"엔비디아 데이터센터 매출 프록시","lead":"T-1","weight":0.2},{"key":"hbm_capex_share","label":"메모리3사 HBM CAPEX 비중","lead":"coincident","weight":0.15},{"key":"micron_hbm_rev_share","label":"마이크론 HBM 매출비중","lead":"coincident","weight":0.1}],"index_series":[28,40,52,62,58,68,80,88],"formula_desc":"각 지표를 0-100으로 min-max 정규화 후 가중합. EUV출하: (units-6)/(16-6)×100. b2b: (raw-0.85)/(1.30-0.85)×100. TSMC AI매출·NVDA DC프록시: 사이클 저점대비 매출 인덱싱(저점=0, 추정피크=100). HBM capex비중: raw%를 65%피크 기준 ×(100/65). 마이크론 HBM매출비중: raw%×(100/30). index=Σ(weight×지표점수). T-2/T-1 선행지표는 해당 분기에 lead만큼 시프트하여 선행성 반영. 50=중립, 70+=AI수요 강세확장, 80+=피크국면."},"threat":{"categories":["공정노드갭","수율성숙도","제품포트폴리오","고객침투"],"heatmap":[{"company_id":"skhynix","scores":{"공정노드갭":98,"수율성숙도":97,"제품포트폴리오":95,"고객침투":98}},{"company_id":"micron","scores":{"공정노드갭":90,"수율성숙도":92,"제품포트폴리오":88,"고객침투":85}},{"company_id":"samsung","scores":{"공정노드갭":88,"수율성숙도":90,"제품포트폴리오":92,"고객침투":90}},{"company_id":"cxmt","scores":{"공정노드갭":35,"수율성숙도":40,"제품포트폴리오":30,"고객침투":25}},{"company_id":"ymtc","scores":{"공정노드갭":42,"수율성숙도":45,"제품포트폴리오":38,"고객침투":20}}],"bubble":[{"company_id":"skhynix","x_share":36,"y_delta":3.5,"size_capex":24300},{"company_id":"samsung","x_share":40.5,"y_delta":-2.5,"size_capex":53500},{"company_id":"micron","x_share":23,"y_delta":-0.5,"size_capex":17000},{"company_id":"cxmt","x_share":9,"y_delta":6,"size_capex":15200}],"asp_sensitivity":[{"cxmt_share_pct":5,"dram_asp_delta_pct":-2,"hynix_opmargin_delta_pp":-1,"micron_opmargin_delta_pp":-1.2},{"cxmt_share_pct":8,"dram_asp_delta_pct":-5,"hynix_opmargin_delta_pp":-2.5,"micron_opmargin_delta_pp":-3},{"cxmt_share_pct":10,"dram_asp_delta_pct":-8,"hynix_opmargin_delta_pp":-4,"micron_opmargin_delta_pp":-4.8},{"cxmt_share_pct":13,"dram_asp_delta_pct":-13,"hynix_opmargin_delta_pp":-6.5,"micron_opmargin_delta_pp":-7.8},{"cxmt_share_pct":16,"dram_asp_delta_pct":-19,"hynix_opmargin_delta_pp":-9.5,"micron_opmargin_delta_pp":-11.4}]},"backtest":{"periods":["2016H1","2016H2","2017H1","2017H2","2018H1","2018H2","2019H1","2019H2","2020H1","2020H2","2021H1","2021H2","2022H1","2022H2","2023H1","2023H2","2024H1","2024H2","2025H1","2025H2"],"composite":[-0.3,0.4,1.3,1.7,1.8,1,-0.8,-1.4,-0.5,0.6,1.2,1.6,0.3,-1.2,-1.7,-1.5,0.3,0.9,1,1.85],"actual_phase":["Recovery","Recovery","Boom","Boom","Boom","Correction","Trough","Trough","Recovery","Recovery","Boom","Boom","Correction","Correction","Trough","Trough","Recovery","Boom","Boom","Boom"],"predicted_phase":["Recovery","Recovery","Boom","Boom","Boom","Boom","Correction","Correction","Recovery","Boom","Boom","Boom","Correction","Correction","Trough","Trough","Recovery","Boom","Boom","Boom"],"accuracy_pct":80}};
@@ -1772,8 +1697,6 @@ const SEMICONDUCTOR_MASTER = {"quarters":["2024Q1","2024Q2","2024Q3","2024Q4","2
 })();
 
 
-=======
->>>>>>> ee484fafef39d9e18ac7963d5eb924d4c25e1fc4
 initSidebar();
 document.querySelector('[data-seg="all"]').classList.add('active');
 document.querySelector('[data-metric="revenue"]').classList.add('active');

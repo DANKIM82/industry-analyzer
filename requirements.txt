@@ -1,7 +1,4 @@
 requests>=2.31.0
-<<<<<<< HEAD
 opendartreader>=0.3.2
 pandas>=2.2.0
 python-dotenv>=1.0.0
-=======
->>>>>>> ee484fafef39d9e18ac7963d5eb924d4c25e1fc4

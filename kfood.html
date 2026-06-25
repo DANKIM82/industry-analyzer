@@ -133,7 +133,6 @@ body { font-family:'Pretendard','Noto Sans KR',sans-serif; background:#0d1117; c
         <button class="filter-btn" onclick="setMetric('op_margin',this)">영업이익률(%)</button>
         <button class="filter-btn" onclick="setMetric('export_revenue',this)">수출매출</button>
         <button class="filter-btn" onclick="setMetric('export_ratio',this)">수출비중(%)</button>
-<<<<<<< HEAD
         <button class="filter-btn" onclick="setMetric('net_income',this)">순이익</button>
         <button class="filter-btn" onclick="setMetric('net_margin',this)">순이익률(%)</button>
         <button class="filter-btn" onclick="setMetric('op_cashflow',this)">영업현금흐름</button>
@@ -142,11 +141,6 @@ body { font-family:'Pretendard','Noto Sans KR',sans-serif; background:#0d1117; c
       </div>
       <div class="chart-grid">
         <div class="chart-card" style="grid-column:1/-1"><h3 id="mainTitle">기업별 매출액 추이 (십억원)</h3><canvas id="mainChart"></canvas></div>
-=======
-      </div>
-      <div class="chart-grid">
-        <div class="chart-card" style="grid-column:1/-1"><h3 id="mainTitle">기업별 매출액 추이 (억원)</h3><canvas id="mainChart"></canvas></div>
->>>>>>> ee484fafef39d9e18ac7963d5eb924d4c25e1fc4
         <div class="chart-card"><h3>최근 분기 영업이익률 (%)</h3><canvas id="marginChart"></canvas></div>
         <div class="chart-card"><h3>최근 분기 수출비중 (%)</h3><canvas id="exportChart"></canvas></div>
       </div>
@@ -154,13 +148,8 @@ body { font-family:'Pretendard','Noto Sans KR',sans-serif; background:#0d1117; c
     <div class="view" id="view-export">
       <div class="section-title">수출·지역별 분석</div>
       <div class="chart-grid">
-<<<<<<< HEAD
         <div class="chart-card" style="grid-column:1/-1"><h3>기업별 수출매출 추이 (십억원)</h3><canvas id="exportTrendChart"></canvas></div>
         <div class="chart-card"><h3>지역별 수출 구성 (최근분기, 십억원)</h3><canvas id="regionChart"></canvas></div>
-=======
-        <div class="chart-card" style="grid-column:1/-1"><h3>기업별 수출매출 추이 (억원)</h3><canvas id="exportTrendChart"></canvas></div>
-        <div class="chart-card"><h3>지역별 수출 구성 (최근분기, 억원)</h3><canvas id="regionChart"></canvas></div>
->>>>>>> ee484fafef39d9e18ac7963d5eb924d4c25e1fc4
         <div class="chart-card"><h3>삼양식품 수출비중 추이 (%)</h3><canvas id="samyangChart"></canvas></div>
       </div>
     </div>
@@ -168,32 +157,20 @@ body { font-family:'Pretendard','Noto Sans KR',sans-serif; background:#0d1117; c
       <div class="filter-bar" id="companyFilter"></div>
       <div class="kpi-grid" id="companyKPI"></div>
       <div class="chart-grid">
-<<<<<<< HEAD
         <div class="chart-card"><h3>매출액·영업이익 (십억원)</h3><canvas id="companyBarChart"></canvas></div>
         <div class="chart-card"><h3>수출 지역별 구성 추이 (십억원)</h3><canvas id="companyRegionChart"></canvas></div>
-=======
-        <div class="chart-card"><h3>매출액·영업이익 (억원)</h3><canvas id="companyBarChart"></canvas></div>
-        <div class="chart-card"><h3>수출 지역별 구성 추이 (억원)</h3><canvas id="companyRegionChart"></canvas></div>
->>>>>>> ee484fafef39d9e18ac7963d5eb924d4c25e1fc4
       </div>
     </div>
     <div class="view" id="view-table">
       <div class="section-title">전체 데이터</div>
       <div class="table-wrap"><table>
-<<<<<<< HEAD
         <thead><tr><th>분기</th><th>기업명</th><th>매출액(십억)</th><th>영업이익(십억)</th><th>영업이익률(%)</th><th>수출매출(십억)</th><th>수출비중(%)</th><th>북미(십억)</th><th>아시아(십억)</th><th>유럽(십억)</th></tr></thead>
-=======
-        <thead><tr><th>분기</th><th>기업명</th><th>매출액(억)</th><th>영업이익(억)</th><th>영업이익률(%)</th><th>수출매출(억)</th><th>수출비중(%)</th><th>북미(억)</th><th>아시아(억)</th><th>유럽(억)</th></tr></thead>
->>>>>>> ee484fafef39d9e18ac7963d5eb924d4c25e1fc4
         <tbody id="dataTable"></tbody>
       </table></div>
     </div>
   </div>
 </div>
-<<<<<<< HEAD
 <script src="data/kfood_data.js" onerror="console.log('kfood_data.js 없음')"></script>
-=======
->>>>>>> ee484fafef39d9e18ac7963d5eb924d4c25e1fc4
 <script>
 const SAMPLE=[
   {quarter:'2023Q1',company:'삼양식품',revenue:3120,op_income:520,op_margin:16.7,export_revenue:2180,export_ratio:69.9,north_america:620,asia:1180,europe:380},
@@ -235,12 +212,8 @@ const SAMPLE=[
 
 let DATA=[],currentMetric='revenue',currentCompany=null,charts={},isSample=true;
 const COLORS=['#fb923c','#3fb950','#f59e0b','#38bdf8','#bc8cff','#f85149','#a78bfa','#39d353'];
-<<<<<<< HEAD
 const ML={revenue:'매출액(십억원)',op_income:'영업이익(십억원)',op_margin:'영업이익률(%)',export_revenue:'수출매출(십억원)',export_ratio:'수출비중(%)',net_income:'순이익(십억원)',net_margin:'순이익률(%)',op_cashflow:'영업현금흐름(십억원)',eps:'EPS(원)',roe:'ROE(%)'};
 const MUNIT={revenue:'십억원',op_income:'십억원',op_margin:'%',export_revenue:'십억원',export_ratio:'%',net_income:'십억원',net_margin:'%',op_cashflow:'십억원',eps:'원',roe:'%'};
-=======
-const ML={revenue:'매출액(억원)',op_income:'영업이익(억원)',op_margin:'영업이익률(%)',export_revenue:'수출매출(억원)',export_ratio:'수출비중(%)'};
->>>>>>> ee484fafef39d9e18ac7963d5eb924d4c25e1fc4
 
 function getCompanies(){return[...new Set(DATA.map(d=>d.company))];}
 function getQuarters(){return[...new Set(DATA.map(d=>d.quarter))].sort();}
@@ -253,11 +226,7 @@ function renderSummary(){
   const companies=getCompanies(),quarters=getQuarters();
   destroyChart('main');destroyChart('margin');destroyChart('export');
   document.getElementById('mainTitle').textContent='기업별 '+ML[currentMetric]+' 추이';
-<<<<<<< HEAD
   charts['main']=new Chart(document.getElementById('mainChart'),{type:'line',data:{labels:quarters,datasets:companies.map((c,i)=>({label:c,data:quarters.map(q=>{const r=DATA.find(d=>d.company===c&&d.quarter===q);return r&&r[currentMetric]!=null?r[currentMetric]:null;}),borderColor:COLORS[i],backgroundColor:COLORS[i]+'33',tension:.3,fill:false,pointRadius:4}))},options:{responsive:true,plugins:{legend:{position:'bottom',labels:{color:'#8b949e',font:{size:11}}}},scales:{x:{ticks:{color:'#8b949e'},grid:{color:'#21262d'}},y:{title:{display:true,text:MUNIT[currentMetric],color:'#8b949e'},ticks:{color:'#8b949e'},grid:{color:'#21262d'}}}}});
-=======
-  charts['main']=new Chart(document.getElementById('mainChart'),{type:'line',data:{labels:quarters,datasets:companies.map((c,i)=>({label:c,data:quarters.map(q=>{const r=DATA.find(d=>d.company===c&&d.quarter===q);return r?r[currentMetric]:null;}),borderColor:COLORS[i],backgroundColor:COLORS[i]+'33',tension:.3,fill:false,pointRadius:4}))},options:{responsive:true,plugins:{legend:{position:'bottom',labels:{color:'#8b949e',font:{size:11}}}},scales:{x:{ticks:{color:'#8b949e'},grid:{color:'#21262d'}},y:{ticks:{color:'#8b949e'},grid:{color:'#21262d'}}}}});
->>>>>>> ee484fafef39d9e18ac7963d5eb924d4c25e1fc4
   const lastQ=quarters[quarters.length-1];
   charts['margin']=new Chart(document.getElementById('marginChart'),{type:'bar',data:{labels:companies,datasets:[{label:'영업이익률(%)',data:companies.map(c=>{const r=DATA.find(d=>d.company===c&&d.quarter===lastQ);return r?r.op_margin:0;}),backgroundColor:COLORS.map(c=>c+'cc')}]},options:{responsive:true,plugins:{legend:{display:false}},scales:{x:{ticks:{color:'#8b949e'},grid:{color:'#21262d'}},y:{ticks:{color:'#8b949e'},grid:{color:'#21262d'}}}}});
   charts['export']=new Chart(document.getElementById('exportChart'),{type:'bar',data:{labels:companies,datasets:[{label:'수출비중(%)',data:companies.map(c=>{const r=DATA.find(d=>d.company===c&&d.quarter===lastQ);return r?r.export_ratio:0;}),backgroundColor:'#f9731688'}]},options:{responsive:true,plugins:{legend:{display:false}},scales:{x:{ticks:{color:'#8b949e'},grid:{color:'#21262d'}},y:{max:100,ticks:{color:'#8b949e'},grid:{color:'#21262d'}}}}});
@@ -287,17 +256,10 @@ function updateCompanyView(){
   const last=cData[cData.length-1],prev=cData[cData.length-2];
   function delta(k){if(!prev)return'';const d=last[k]-prev[k];return `<span class="delta ${d>=0?'up':'down'}">${d>=0?'▲':'▼'}${Math.abs(d).toLocaleString()}</span>`;}
   document.getElementById('companyKPI').innerHTML=`
-<<<<<<< HEAD
     <div class="kpi-card"><div class="label">매출액</div><div class="value">${last.revenue.toLocaleString()}<span class="unit">십억원</span></div>${delta('revenue')}</div>
     <div class="kpi-card"><div class="label">영업이익</div><div class="value">${last.op_income.toLocaleString()}<span class="unit">십억원</span></div>${delta('op_income')}</div>
     <div class="kpi-card"><div class="label">영업이익률</div><div class="value">${last.op_margin}<span class="unit">%</span></div>${delta('op_margin')}</div>
     <div class="kpi-card"><div class="label">수출매출</div><div class="value">${last.export_revenue.toLocaleString()}<span class="unit">십억원</span></div>${delta('export_revenue')}</div>
-=======
-    <div class="kpi-card"><div class="label">매출액</div><div class="value">${last.revenue.toLocaleString()}<span class="unit">억원</span></div>${delta('revenue')}</div>
-    <div class="kpi-card"><div class="label">영업이익</div><div class="value">${last.op_income.toLocaleString()}<span class="unit">억원</span></div>${delta('op_income')}</div>
-    <div class="kpi-card"><div class="label">영업이익률</div><div class="value">${last.op_margin}<span class="unit">%</span></div>${delta('op_margin')}</div>
-    <div class="kpi-card"><div class="label">수출매출</div><div class="value">${last.export_revenue.toLocaleString()}<span class="unit">억원</span></div>${delta('export_revenue')}</div>
->>>>>>> ee484fafef39d9e18ac7963d5eb924d4c25e1fc4
     <div class="kpi-card"><div class="label">수출비중</div><div class="value">${last.export_ratio}<span class="unit">%</span></div>${delta('export_ratio')}</div>
   `;
   const qs=cData.map(d=>d.quarter);
@@ -307,7 +269,6 @@ function updateCompanyView(){
 }
 function renderTable(){document.getElementById('dataTable').innerHTML=DATA.map(d=>`<tr><td>${d.quarter}</td><td>${d.company}</td><td>${d.revenue.toLocaleString()}</td><td>${d.op_income.toLocaleString()}</td><td>${d.op_margin}%</td><td>${d.export_revenue.toLocaleString()}</td><td>${d.export_ratio}%</td><td>${d.north_america.toLocaleString()}</td><td>${d.asia.toLocaleString()}</td><td>${d.europe.toLocaleString()}</td></tr>`).join('');}
 function exportCSV(){const h=['분기','기업명','매출액','영업이익','영업이익률','수출매출','수출비중','북미','아시아','유럽'];const rows=DATA.map(d=>[d.quarter,d.company,d.revenue,d.op_income,d.op_margin,d.export_revenue,d.export_ratio,d.north_america,d.asia,d.europe]);const csv=[h,...rows].map(r=>r.join(',')).join('\n');const blob=new Blob(['\uFEFF'+csv],{type:'text/csv;charset=utf-8'});const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download='kfood_data.csv';a.click();}
-<<<<<<< HEAD
 function resetToSample(){DATA=SAMPLE.map(r=>({...r}));MONEY_FIELDS.forEach(f=>DATA.forEach(r=>{if(typeof r[f]==='number')r[f]=Math.round(r[f]/10);}));isSample=true;updateSourceBar();populateFilters();renderSummary();}
 function updateSourceBar(){document.getElementById('dsBadge').className='ds-badge '+(isSample?'sample':'live');document.getElementById('dsBadge').textContent=isSample?'SAMPLE':'LIVE';document.getElementById('dsInfo').textContent=isSample?'샘플 데이터 | collect_data.py 실행 후 data/kfood_data.js 필요':`DART 데이터 | ${DATA.length}건`;}
 function populateFilters(){const qs=getQuarters();document.getElementById('quarterFilter').innerHTML='<option value="all">전체 분기</option>'+qs.map(q=>`<option value="${q}">${q}</option>`).join('');}
@@ -315,13 +276,4 @@ const MONEY_FIELDS=['revenue','op_income','export_revenue','net_income','op_cash
 function loadExternalData(){if(window.INDUSTRY_DATA_KFOOD&&Array.isArray(window.INDUSTRY_DATA_KFOOD)){DATA=window.INDUSTRY_DATA_KFOOD;isSample=false;}else{DATA=SAMPLE.map(r=>({...r}));isSample=true;}DATA.forEach(r=>MONEY_FIELDS.forEach(f=>{if(typeof r[f]==='number')r[f]=Math.round(r[f]/10);}));}
 loadExternalData();updateSourceBar();populateFilters();renderSummary();
 </script>
-=======
-function resetToSample(){DATA=[...SAMPLE];isSample=true;updateSourceBar();populateFilters();renderSummary();}
-function updateSourceBar(){document.getElementById('dsBadge').className='ds-badge '+(isSample?'sample':'live');document.getElementById('dsBadge').textContent=isSample?'SAMPLE':'LIVE';document.getElementById('dsInfo').textContent=isSample?'샘플 데이터 | collect_data.py 실행 후 data/kfood_data.js 필요':`DART 데이터 | ${DATA.length}건`;}
-function populateFilters(){const qs=getQuarters();document.getElementById('quarterFilter').innerHTML='<option value="all">전체 분기</option>'+qs.map(q=>`<option value="${q}">${q}</option>`).join('');}
-function loadExternalData(){if(window.INDUSTRY_DATA_KFOOD&&Array.isArray(window.INDUSTRY_DATA_KFOOD)){DATA=window.INDUSTRY_DATA_KFOOD;isSample=false;}else{DATA=[...SAMPLE];isSample=true;}}
-loadExternalData();updateSourceBar();populateFilters();renderSummary();
-</script>
-<script src="data/kfood_data.js" onerror="console.log('kfood_data.js 없음')"></script>
->>>>>>> ee484fafef39d9e18ac7963d5eb924d4c25e1fc4
 </body></html>

@@ -270,13 +270,10 @@
     <button data-metric="revenue" class="active">영업수익</button>
     <button data-metric="opProfit">영업이익</button>
     <button data-metric="netProfit">순이익</button>
-<<<<<<< HEAD
     <button data-metric="netMargin">순이익률</button>
     <button data-metric="opCashflow">영업현금흐름</button>
     <button data-metric="eps">EPS</button>
     <button data-metric="roe">ROE</button>
-=======
->>>>>>> ee484fafef39d9e18ac7963d5eb924d4c25e1fc4
     <span class="sep">|</span>
     <span style="color:#667085;font-size:13px">기간</span>
     <select id="periodStart"></select>
@@ -288,10 +285,7 @@
 
     </main>
   </div>
-<<<<<<< HEAD
   <script src="data/finance_data.js" onerror="console.log('finance_data.js 없음 — 샘플 데이터 사용')"></script>
-=======
->>>>>>> ee484fafef39d9e18ac7963d5eb924d4c25e1fc4
   <script>
 
 const COLORS = [
@@ -350,22 +344,11 @@ function makeLineChart(canvasId, labels, datasets, opts={}) {
           ticks: { font: { size: 11 }, color: '#6b7280', maxRotation: 45 }
         },
         y: {
-<<<<<<< HEAD
           title: { display: !!opts.unit && opts.unit !== '%', text: (opts.unit && opts.unit !== '%') ? opts.unit : '', font: { size: 11 }, color: '#94a3b8' },
           grid: { color: 'rgba(0,0,0,0.05)' },
           ticks: {
             font: { size: 11 }, color: '#6b7280',
             callback: function(v) { if (opts.unit === '%') return v + '%'; return Number(v).toLocaleString('ko-KR', { maximumFractionDigits: 0 }); }
-=======
-          grid: { color: 'rgba(0,0,0,0.05)' },
-          ticks: {
-            font: { size: 11 }, color: '#6b7280',
-            callback: function(v) {
-              if (Math.abs(v) >= 10000) return (v/10000).toFixed(1) + '만';
-              if (Math.abs(v) >= 1000) return (v/1000).toFixed(0) + 'K';
-              return v + (opts.unit || '');
-            }
->>>>>>> ee484fafef39d9e18ac7963d5eb924d4c25e1fc4
           }
         },
         ...(opts.y2 ? {
@@ -411,22 +394,11 @@ function makeBarChart(canvasId, labels, datasets, opts={}) {
         },
         y: {
           stacked: opts.stacked || false,
-<<<<<<< HEAD
           title: { display: !!opts.unit && opts.unit !== '%', text: (opts.unit && opts.unit !== '%') ? opts.unit : '', font: { size: 11 }, color: '#94a3b8' },
           grid: { color: 'rgba(0,0,0,0.05)' },
           ticks: {
             font: { size: 11 }, color: '#6b7280',
             callback: function(v) { if (opts.unit === '%') return v + '%'; return Number(v).toLocaleString('ko-KR', { maximumFractionDigits: 0 }); }
-=======
-          grid: { color: 'rgba(0,0,0,0.05)' },
-          ticks: {
-            font: { size: 11 }, color: '#6b7280',
-            callback: function(v) {
-              if (Math.abs(v) >= 10000) return (v/10000).toFixed(0) + '만';
-              if (Math.abs(v) >= 1000) return (v/1000).toFixed(0) + 'K';
-              return v + (opts.unit || '');
-            }
->>>>>>> ee484fafef39d9e18ac7963d5eb924d4c25e1fc4
           }
         }
       }
@@ -510,11 +482,7 @@ function downloadCsv(filename, headers, rows) {
 }
 
 
-<<<<<<< HEAD
 const FINANCE_SAMPLE = {
-=======
-const FINANCE_DATA = {
->>>>>>> ee484fafef39d9e18ac7963d5eb924d4c25e1fc4
   meta: { title: '국내 주요 금융사 실적 Dashboard', unit: '억원', quarters: ['2022Q1','2022Q2','2022Q3','2022Q4','2023Q1','2023Q2','2023Q3','2023Q4','2024Q1','2024Q2','2024Q3','2024Q4','2025Q1','2025Q2','2025Q3','2025Q4'] },
   companies: [
     { name: '삼성생명', type: 'life',
@@ -592,7 +560,6 @@ const FINANCE_DATA = {
   ]
 };
 
-<<<<<<< HEAD
 // ── 데이터 소스 연결: DART 실데이터(window.INDUSTRY_DATA_FINANCE) 우선, 없으면 샘플 ──
 let IS_SAMPLE = true;
 function buildLiveData(records) {
@@ -654,8 +621,6 @@ const FINANCE_DATA = (Array.isArray(__live) && __live.length)
   }
 })();
 
-=======
->>>>>>> ee484fafef39d9e18ac7963d5eb924d4c25e1fc4
 
 // ── 상태 ──
 let currentView = 'summary';
@@ -725,19 +690,15 @@ const METRIC_LABELS = {
   revenue: { label: '영업수익', unit: '억원' },
   opProfit: { label: '영업이익', unit: '억원' },
   netProfit: { label: '당기순이익', unit: '억원' },
-<<<<<<< HEAD
   netMargin: { label: '순이익률', unit: '%' },
   opCashflow: { label: '영업현금흐름', unit: '억원' },
   eps: { label: 'EPS', unit: '원' },
   roe: { label: 'ROE', unit: '%' },
-=======
->>>>>>> ee484fafef39d9e18ac7963d5eb924d4c25e1fc4
   kics: { label: 'K-ICS 비율', unit: '%' },
   lossRatio: { label: '손해율', unit: '%' },
   combined: { label: '합산비율', unit: '%' },
 };
 
-<<<<<<< HEAD
 // SAMPLE 등에서 누락된 지표(순이익률/영업현금흐름/EPS/ROE 등)는 null 배열로 채워 렌더 크래시 방지
 FINANCE_DATA.companies.forEach(c => {
   Object.keys(METRIC_LABELS).forEach(k => {
@@ -755,8 +716,6 @@ Object.keys(METRIC_LABELS).forEach(k => {
   }
 });
 
-=======
->>>>>>> ee484fafef39d9e18ac7963d5eb924d4c25e1fc4
 let currentCompany = FINANCE_DATA.companies[0].name;
 
 function destroyAll() {
@@ -815,11 +774,7 @@ function renderSummaryView(main, ql) {
     </div>
   `;
 
-<<<<<<< HEAD
   charts.main = makeLineChart('mainChart', ql, datasets, { unit: ml.unit });
-=======
-  charts.main = makeLineChart('mainChart', ql, datasets, { unit: ml.unit === '%' ? '%' : '' });
->>>>>>> ee484fafef39d9e18ac7963d5eb924d4c25e1fc4
   renderLegend('mainLegend', datasets, charts.main);
 
   const tbody = document.getElementById('summaryTbody');

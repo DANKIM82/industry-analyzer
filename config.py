@@ -1,5 +1,4 @@
 # DART API 설정
-<<<<<<< HEAD
 # 보안: API 키는 소스코드에 두지 않고 환경변수(DART_API_KEY)에서 읽는다.
 #  - 로컬: 프로젝트 루트에 .env 파일을 만들고  DART_API_KEY=발급키  한 줄을 넣으면 자동 로드된다(.env.example 참고).
 #  - 스케줄러/CI: 환경변수로 주입.
@@ -20,9 +19,6 @@ if not DART_API_KEY:
         "  2) 환경변수 DART_API_KEY 를 설정하세요.  (키 발급: https://opendart.fss.or.kr)\n"
         "  템플릿은 .env.example 참고."
     )
-=======
-DART_API_KEY = "2a596bad2dff9d4ef99ab2d8fc9c94eef2ed9652"  # 여기에 발급받은 API 키 입력
->>>>>>> ee484fafef39d9e18ac7963d5eb924d4c25e1fc4
 
 # 수집 대상 기업 (DART 고유번호 - find_corp_codes.py로 검증 완료 2026-06-25)
 COMPANIES = {
@@ -41,7 +37,6 @@ COMPANIES = {
         {"name": "삼성중공업",    "corp_code": "00126478", "category": "조선"},
         {"name": "한화오션",      "corp_code": "00111704", "category": "조선"},
         {"name": "HD현대중공업",  "corp_code": "01390344", "category": "조선"},
-<<<<<<< HEAD
         {"name": "HD현대미포",    "corp_code": "00164609", "category": "조선"},  # FIXED 2026-06-25 (캐시 corp_code DB, stock 010620)
     ],
     "defense": [
@@ -50,16 +45,6 @@ COMPANIES = {
         {"name": "현대로템",          "corp_code": "00302926", "category": "방산"},
         {"name": "한국항공우주",      "corp_code": "00309503", "category": "방산"},
         {"name": "풍산",              "corp_code": "00684714", "category": "방산"},  # FIXED 2026-06-25 (구 01876659는 동명 비상장사, 정상 상장 풍산 stock 103140)
-=======
-        {"name": "HD현대미포",    "corp_code": "00164346", "category": "조선"},  # NOT FOUND - 기존 코드 유지
-    ],
-    "defense": [
-        {"name": "한화에어로스페이스", "corp_code": "00126566", "category": "방산"},
-        {"name": "LIG넥스원",        "corp_code": "00227832", "category": "방산"},  # NOT FOUND - 기존 코드 유지
-        {"name": "현대로템",          "corp_code": "00302926", "category": "방산"},
-        {"name": "한국항공우주",      "corp_code": "00309503", "category": "방산"},
-        {"name": "풍산",              "corp_code": "01876659", "category": "방산"},
->>>>>>> ee484fafef39d9e18ac7963d5eb924d4c25e1fc4
     ],
     "semiconductor": [
         {"name": "삼성전자",   "corp_code": "00126380", "category": "종합반도체"},
@@ -71,13 +56,8 @@ COMPANIES = {
     "gaming": [
         {"name": "크래프톤",   "corp_code": "00760971", "category": "PC/모바일"},
         {"name": "넷마블",     "corp_code": "00904672", "category": "모바일"},
-<<<<<<< HEAD
         {"name": "넥슨코리아", "corp_code": "00547033", "category": "PC/모바일"},  # 비상장 - 분기보고서 미제출로 DART 수집 불가
         {"name": "엔씨소프트", "corp_code": "00261443", "category": "PC/모바일"},  # FIXED 2026-06-25 (stock 036570)
-=======
-        {"name": "넥슨코리아", "corp_code": "00547033", "category": "PC/모바일"},
-        {"name": "엔씨소프트", "corp_code": "00261115", "category": "PC/모바일"},  # NOT FOUND - 기존 코드 유지
->>>>>>> ee484fafef39d9e18ac7963d5eb924d4c25e1fc4
         {"name": "카카오게임즈","corp_code": "01137383", "category": "모바일"},
         {"name": "펄어비스",   "corp_code": "01152470", "category": "PC/모바일"},
     ],
@@ -103,13 +83,8 @@ COMPANIES = {
     ],
 }
 
-<<<<<<< HEAD
 # 수집 기간 설정 (최근 N분기) — 대시보드에서 2년(8)/3년(12)/5년(20) 토글로 잘라 본다
 COLLECT_QUARTERS = 20  # 최근 20분기(5년)
-=======
-# 수집 기간 설정 (최근 N분기)
-COLLECT_QUARTERS = 8  # 최근 8분기
->>>>>>> ee484fafef39d9e18ac7963d5eb924d4c25e1fc4
 
 # 출력 디렉토리
 OUTPUT_DIR = "data"
