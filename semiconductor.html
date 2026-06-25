@@ -1,0 +1,839 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>국내 주요 반도체기업 실적 Dashboard</title>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.3/dist/chart.umd.min.js"></script>
+  <style>
+
+  :root {
+    --bg: #f6f7f9;
+    --panel: #ffffff;
+    --text: #18212f;
+    --muted: #667085;
+    --line: #d9dee7;
+    --accent: #1f6feb;
+    --sidebar: #111827;
+    --sidebar-w: 240px;
+    --topbar-h: 52px;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: "Segoe UI", "Noto Sans KR", Arial, sans-serif;
+    font-size: 14px;
+  }
+  .topbar {
+    display: none;
+    position: sticky; top: 0; z-index: 30;
+    height: var(--topbar-h);
+    background: var(--sidebar);
+    color: #e5e7eb;
+    padding: 0 16px;
+    align-items: center;
+    gap: 12px;
+  }
+  .topbar .brand { flex: 1; font-size: 15px; font-weight: 700; }
+  .hamburger {
+    background: none; border: none; cursor: pointer;
+    color: #e5e7eb; padding: 6px;
+    display: flex; flex-direction: column; gap: 5px;
+  }
+  .hamburger span {
+    display: block; width: 22px; height: 2px;
+    background: currentColor; border-radius: 2px;
+  }
+  .sidebar-overlay {
+    display: none; position: fixed; inset: 0;
+    background: rgba(0,0,0,0.5); z-index: 40;
+  }
+  .sidebar-overlay.active { display: block; }
+  .app { display: flex; min-height: 100vh; }
+  aside {
+    width: var(--sidebar-w);
+    background: var(--sidebar);
+    color: #e5e7eb;
+    flex-shrink: 0;
+    display: flex; flex-direction: column;
+    position: sticky; top: 0; height: 100vh;
+    overflow-y: auto;
+    scrollbar-width: thin;
+    scrollbar-color: rgba(255,255,255,0.2) transparent;
+  }
+  .sidebar-header {
+    padding: 20px 16px 12px;
+    border-bottom: 1px solid rgba(255,255,255,0.08);
+    display: flex; align-items: center; justify-content: space-between;
+  }
+  .sidebar-header .brand {
+    font-size: 13px; font-weight: 700; line-height: 1.4;
+    color: #f9fafb;
+  }
+  .sidebar-close { display: none; background: none; border: none; color: #9ca3af; cursor: pointer; font-size: 18px; }
+  .company-list { padding: 8px 0; }
+  .company-list .label {
+    padding: 8px 16px 4px;
+    font-size: 10px; font-weight: 600;
+    color: #6b7280; text-transform: uppercase; letter-spacing: 0.08em;
+  }
+  .nav button {
+    display: block; width: 100%;
+    padding: 8px 16px;
+    background: none; border: none; cursor: pointer;
+    color: #9ca3af; font-size: 13px; text-align: left;
+    transition: background 0.15s, color 0.15s;
+    border-radius: 0;
+  }
+  .nav button:hover { background: rgba(255,255,255,0.06); color: #e5e7eb; }
+  .nav button.active { background: rgba(255,255,255,0.1); color: #ffffff; font-weight: 600; }
+  main {
+    flex: 1; padding: 28px 32px;
+    min-width: 0; overflow-x: hidden;
+  }
+  header { margin-bottom: 20px; }
+  header h1 { font-size: 22px; font-weight: 700; color: var(--text); }
+  header .sub { font-size: 13px; color: var(--muted); margin-top: 4px; }
+  .controls {
+    display: flex; flex-wrap: wrap; gap: 8px;
+    margin-bottom: 24px; align-items: center;
+  }
+  .controls button {
+    padding: 6px 14px; border-radius: 6px;
+    border: 1px solid var(--line);
+    background: var(--panel); color: var(--muted);
+    cursor: pointer; font-size: 13px; font-weight: 500;
+    transition: all 0.15s;
+  }
+  .controls button:hover { border-color: var(--accent); color: var(--accent); }
+  .controls button.active {
+    background: var(--accent); color: #fff; border-color: var(--accent);
+  }
+  .controls select {
+    padding: 6px 10px; border-radius: 6px;
+    border: 1px solid var(--line); background: var(--panel);
+    color: var(--text); font-size: 13px; cursor: pointer;
+  }
+  .controls .sep { color: var(--muted); font-size: 13px; }
+  .grid { display: flex; flex-direction: column; gap: 20px; }
+  .panel {
+    background: var(--panel); border-radius: 10px;
+    border: 1px solid var(--line);
+    padding: 20px;
+    overflow: hidden;
+  }
+  .panel-title {
+    font-size: 15px; font-weight: 600; color: var(--text);
+    margin-bottom: 16px;
+    display: flex; justify-content: space-between; align-items: center;
+  }
+  .panel-hint { font-size: 11px; color: var(--muted); font-weight: 400; }
+  .chart-wrap { position: relative; width: 100%; overflow: hidden; }
+  .chart-scroll { overflow-x: auto; padding-bottom: 6px; }
+  .chart-scroll canvas { min-width: 600px; }
+  .legend-area {
+    margin-top: 14px; display: flex; flex-wrap: wrap; gap: 6px;
+  }
+  .legend-chip {
+    display: inline-flex; align-items: center; gap: 5px;
+    padding: 4px 10px; border-radius: 20px;
+    border: 1.5px solid; cursor: pointer;
+    font-size: 12px; font-weight: 500;
+    transition: opacity 0.15s;
+  }
+  .legend-chip.hidden { opacity: 0.35; }
+  .legend-chip .dot {
+    width: 8px; height: 8px; border-radius: 50%;
+  }
+  .btn-row { display: flex; gap: 8px; margin-bottom: 12px; }
+  .btn-sm {
+    padding: 5px 12px; border-radius: 5px;
+    border: 1px solid var(--line);
+    background: var(--panel); color: var(--muted);
+    cursor: pointer; font-size: 12px;
+  }
+  .btn-sm:hover { background: var(--bg); }
+  table {
+    width: 100%; border-collapse: collapse;
+    font-size: 13px;
+  }
+  thead th {
+    padding: 10px 8px; background: var(--bg);
+    font-weight: 600; color: var(--muted);
+    border-bottom: 1px solid var(--line);
+    text-align: right; white-space: nowrap;
+  }
+  thead th:first-child { text-align: left; }
+  thead th:nth-child(2) { text-align: left; }
+  tbody tr { border-bottom: 1px solid var(--line); }
+  tbody tr:hover { background: #f8fafc; }
+  tbody td {
+    padding: 9px 8px; text-align: right;
+    color: var(--text); white-space: nowrap;
+  }
+  tbody td:first-child { text-align: left; color: var(--muted); font-size: 12px; }
+  tbody td:nth-child(2) { text-align: left; font-weight: 600; }
+  .pos { color: #16a34a; }
+  .neg { color: #dc2626; }
+  .excel-btn {
+    padding: 7px 14px; border-radius: 6px;
+    background: #16a34a; color: #fff;
+    border: none; cursor: pointer; font-size: 13px; font-weight: 600;
+  }
+  .excel-btn:hover { background: #15803d; }
+  .kpi-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+    gap: 12px; margin-bottom: 20px;
+  }
+  .kpi-card {
+    background: var(--panel); border-radius: 8px;
+    border: 1px solid var(--line); padding: 14px 16px;
+  }
+  .kpi-label { font-size: 11px; color: var(--muted); margin-bottom: 4px; }
+  .kpi-value { font-size: 20px; font-weight: 700; color: var(--text); }
+  .kpi-sub { font-size: 11px; color: var(--muted); margin-top: 2px; }
+  .kpi-up { color: #16a34a; }
+  .kpi-dn { color: #dc2626; }
+  .two-col { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+  @media(max-width: 900px) { .two-col { grid-template-columns: 1fr; } }
+  @media(max-width: 768px) {
+    .topbar { display: flex; }
+    aside {
+      position: fixed; left: -280px; top: 0; height: 100%;
+      width: 260px; z-index: 50;
+      transition: left 0.28s ease;
+      box-shadow: 4px 0 20px rgba(0,0,0,0.4);
+    }
+    aside.open { left: 0; }
+    .sidebar-close { display: block; }
+    main { padding: 18px 16px; }
+    .kpi-grid { grid-template-columns: repeat(2, 1fr); }
+  }
+
+
+  :root {
+    --accent: #7c3aed;
+    --sidebar: #13002a;
+  }
+  aside .nav button.active { background: #7c3aed22; color: #7c3aed; }
+  aside .nav button:hover { background: rgba(255,255,255,0.06); }
+  .controls button.active { background: #7c3aed; border-color: #7c3aed; }
+  
+
+  </style>
+</head>
+<body>
+  <div class="topbar">
+    <button class="hamburger" id="menuBtn">
+      <span></span><span></span><span></span>
+    </button>
+    <span class="brand">국내 주요 반도체기업 실적 Dashboard</span>
+  </div>
+  <div class="sidebar-overlay" id="sidebarOverlay"></div>
+  <div class="app">
+    <aside id="sidebar">
+      <div class="sidebar-header">
+        <div class="brand">국내 주요 반도체기업 실적 Dashboard</div>
+        <button class="sidebar-close" id="sidebarClose">✕</button>
+      </div>
+      
+  <div class="company-list">
+    <div class="label">종합</div>
+    <div class="nav" id="summaryNav">
+      <button data-view="summary">분기별 실적 추이</button>
+      <button data-view="hbm">HBM·사이클 분석</button>
+    </div>
+  </div>
+  <div class="company-list">
+    <div class="label">기업별</div>
+    <div class="nav" id="companyNav">
+      <button data-company="삼성전자(DS)">삼성전자(DS)</button><button data-company="SK하이닉스">SK하이닉스</button><button data-company="DB하이텍">DB하이텍</button><button data-company="한미반도체">한미반도체</button><button data-company="리노공업">리노공업</button><button data-company="HPSP">HPSP</button><button data-company="원익IPS">원익IPS</button><button data-company="주성엔지니어링">주성엔지니어링</button>
+    </div>
+  </div>
+
+    </aside>
+    <main>
+      
+    <header>
+      <h1>국내 주요 반도체기업 실적 Dashboard</h1>
+      <div class="sub">메모리·파운드리·장비/소재 핵심기업 · HBM·사이클 분석 · 2022Q1~2025Q4</div>
+    </header>
+    <div class="controls">
+      <button data-seg="all" class="active">전체</button>
+      <button data-seg="memory">메모리</button>
+      <button data-seg="foundry">파운드리</button>
+      <button data-seg="equipment">장비/소재</button>
+      <span class="sep">|</span>
+      <button data-metric="revenue" class="active">매출액</button>
+      <button data-metric="opProfit">영업이익</button>
+      <button data-metric="opMargin">이익률</button>
+      <button data-metric="capex">CAPEX</button>
+      <button data-metric="hbmRevenue">HBM</button>
+      <span class="sep">|</span>
+      <span style="color:#667085;font-size:13px">기간</span>
+      <select id="periodStart"></select>
+      <span class="sep">~</span>
+      <select id="periodEnd"></select>
+    </div>
+    <div class="grid" id="mainContent"></div>
+  
+    </main>
+  </div>
+  <script>
+
+const COLORS = [
+  '#2563eb','#16a34a','#dc2626','#d97706','#7c3aed',
+  '#db2777','#0891b2','#65a30d','#ea580c','#9333ea',
+  '#0284c7','#059669','#b91c1c','#b45309','#6d28d9'
+];
+
+function fmt(n, digits=0) {
+  if (n === null || n === undefined || isNaN(n)) return '-';
+  return Number(n).toLocaleString('ko-KR', {minimumFractionDigits: digits, maximumFractionDigits: digits});
+}
+function fmtPct(n, digits=1) {
+  if (n === null || n === undefined || isNaN(n)) return '-';
+  return Number(n).toFixed(digits) + '%';
+}
+function fmtChange(n, unit='') {
+  if (n === null || n === undefined || isNaN(n)) return '-';
+  const sign = n > 0 ? '+' : '';
+  return sign + Number(n).toLocaleString('ko-KR') + unit;
+}
+function arrow(n) {
+  if (!n || isNaN(n)) return '';
+  return n > 0 ? '<span class="pos">▲</span>' : '<span class="neg">▼</span>';
+}
+
+// 범용 라인 차트 생성
+function makeLineChart(canvasId, labels, datasets, opts={}) {
+  const ctx = document.getElementById(canvasId).getContext('2d');
+  return new Chart(ctx, {
+    type: 'line',
+    data: { labels, datasets },
+    options: {
+      responsive: true,
+      maintainAspectRatio: opts.ratio || false,
+      interaction: { mode: 'index', intersect: false },
+      plugins: {
+        legend: { display: false },
+        tooltip: {
+          backgroundColor: 'rgba(15,23,42,0.92)',
+          titleColor: '#94a3b8', bodyColor: '#f1f5f9',
+          padding: 10, borderColor: '#334155', borderWidth: 1,
+          callbacks: {
+            label: function(ctx) {
+              const v = ctx.raw;
+              if (v === null || v === undefined) return ctx.dataset.label + ': -';
+              const unit = opts.unit || '';
+              return ctx.dataset.label + ': ' + Number(v).toLocaleString('ko-KR') + unit;
+            }
+          }
+        }
+      },
+      scales: {
+        x: {
+          grid: { color: 'rgba(0,0,0,0.05)' },
+          ticks: { font: { size: 11 }, color: '#6b7280', maxRotation: 45 }
+        },
+        y: {
+          grid: { color: 'rgba(0,0,0,0.05)' },
+          ticks: {
+            font: { size: 11 }, color: '#6b7280',
+            callback: function(v) {
+              if (Math.abs(v) >= 10000) return (v/10000).toFixed(1) + '만';
+              if (Math.abs(v) >= 1000) return (v/1000).toFixed(0) + 'K';
+              return v + (opts.unit || '');
+            }
+          }
+        },
+        ...(opts.y2 ? {
+          y1: {
+            type: 'linear', position: 'right',
+            grid: { drawOnChartArea: false },
+            ticks: {
+              font: { size: 11 }, color: '#6b7280',
+              callback: v => v.toFixed(1) + '%'
+            }
+          }
+        } : {})
+      }
+    }
+  });
+}
+
+// 막대 차트 생성
+function makeBarChart(canvasId, labels, datasets, opts={}) {
+  const ctx = document.getElementById(canvasId).getContext('2d');
+  return new Chart(ctx, {
+    type: 'bar',
+    data: { labels, datasets },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      interaction: { mode: 'index', intersect: false },
+      plugins: {
+        legend: { display: opts.showLegend || false, position: 'bottom', labels: { font: { size: 11 } } },
+        tooltip: {
+          backgroundColor: 'rgba(15,23,42,0.92)',
+          titleColor: '#94a3b8', bodyColor: '#f1f5f9',
+          callbacks: {
+            label: ctx => ctx.dataset.label + ': ' + Number(ctx.raw).toLocaleString('ko-KR') + (opts.unit || '')
+          }
+        }
+      },
+      scales: {
+        x: {
+          stacked: opts.stacked || false,
+          grid: { display: false },
+          ticks: { font: { size: 11 }, color: '#6b7280', maxRotation: 45 }
+        },
+        y: {
+          stacked: opts.stacked || false,
+          grid: { color: 'rgba(0,0,0,0.05)' },
+          ticks: {
+            font: { size: 11 }, color: '#6b7280',
+            callback: function(v) {
+              if (Math.abs(v) >= 10000) return (v/10000).toFixed(0) + '만';
+              if (Math.abs(v) >= 1000) return (v/1000).toFixed(0) + 'K';
+              return v + (opts.unit || '');
+            }
+          }
+        }
+      }
+    }
+  });
+}
+
+// 도넛 차트 생성
+function makeDonutChart(canvasId, labels, data, colors) {
+  const ctx = document.getElementById(canvasId).getContext('2d');
+  return new Chart(ctx, {
+    type: 'doughnut',
+    data: {
+      labels,
+      datasets: [{ data, backgroundColor: colors, borderWidth: 2, borderColor: '#fff' }]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      plugins: {
+        legend: { position: 'bottom', labels: { font: { size: 11 }, padding: 12 } },
+        tooltip: {
+          callbacks: {
+            label: ctx => ctx.label + ': ' + ctx.raw.toFixed(1) + '%'
+          }
+        }
+      },
+      cutout: '60%'
+    }
+  });
+}
+
+// 범례 칩 렌더링
+function renderLegend(containerId, datasets, chart) {
+  const el = document.getElementById(containerId);
+  if (!el) return;
+  el.innerHTML = '';
+  datasets.forEach((ds, i) => {
+    const chip = document.createElement('span');
+    chip.className = 'legend-chip';
+    chip.style.borderColor = ds.borderColor || COLORS[i];
+    chip.style.color = ds.borderColor || COLORS[i];
+    chip.innerHTML = '<span class="dot" style="background:' + (ds.borderColor||COLORS[i]) + '"></span>' + ds.label;
+    chip.addEventListener('click', () => {
+      const meta = chart.getDatasetMeta(i);
+      meta.hidden = !meta.hidden;
+      chip.classList.toggle('hidden', meta.hidden);
+      chart.update();
+    });
+    el.appendChild(chip);
+  });
+}
+
+// 사이드바 모바일 토글
+function initSidebar() {
+  const menuBtn = document.getElementById('menuBtn');
+  const sidebar = document.getElementById('sidebar');
+  const overlay = document.getElementById('sidebarOverlay');
+  const closeBtn = document.getElementById('sidebarClose');
+  if (menuBtn) menuBtn.addEventListener('click', () => {
+    sidebar.classList.add('open');
+    overlay.classList.add('active');
+  });
+  if (overlay) overlay.addEventListener('click', () => {
+    sidebar.classList.remove('open');
+    overlay.classList.remove('active');
+  });
+  if (closeBtn) closeBtn.addEventListener('click', () => {
+    sidebar.classList.remove('open');
+    overlay.classList.remove('active');
+  });
+}
+
+// 엑셀 다운로드 (CSV 방식)
+function downloadCsv(filename, headers, rows) {
+  const BOM = '\uFEFF';
+  const csv = BOM + [headers.join(','), ...rows.map(r => r.map(v => '"' + String(v).replace(/"/g,'""') + '"').join(','))].join('\r\n');
+  const blob = new Blob([csv], {type: 'text/csv;charset=utf-8'});
+  const a = document.createElement('a'); a.href = URL.createObjectURL(blob);
+  a.download = filename; a.click(); URL.revokeObjectURL(a.href);
+}
+
+
+const SEMI_DATA = {
+  meta: {
+    title: '국내 주요 반도체기업 실적 Dashboard',
+    quarters: ['2022Q1','2022Q2','2022Q3','2022Q4','2023Q1','2023Q2','2023Q3','2023Q4','2024Q1','2024Q2','2024Q3','2024Q4','2025Q1','2025Q2','2025Q3','2025Q4']
+  },
+  companies: [
+    { name: '삼성전자(DS)', ticker: '005930', segment: 'memory',
+      revenue:    [228000,240000,245000,218000,146000,156000,182000,218000,239000,268000,282000,298000,312000,325000,338000,355000],
+      opProfit:   [84000,92000,88000,68000,6400,4500,17000,42000,62000,88000,98000,108000,118000,128000,136000,148000],
+      opMargin:   [36.8,38.3,35.9,31.2,4.4,2.9,9.3,19.3,26.0,32.8,34.8,36.2,37.8,39.4,40.2,41.7],
+      capex:      [12500,13200,13800,14500,12000,11500,12500,13800,14200,15500,16200,17500,18200,19800,21000,22500],
+      hbmRevenue: [null,null,null,null,null,null,null,null,18000,28000,42000,58000,72000,88000,102000,118000],
+      inventory:  [38000,42000,48000,54000,56000,52000,45000,38000,34000,30000,27000,24000,22000,20000,19000,18000]
+    },
+    { name: 'SK하이닉스', ticker: '000660', segment: 'memory',
+      revenue:    [125000,135000,128000,106000,52000,72000,92000,115000,128000,165000,178000,192000,205000,218000,228000,242000],
+      opProfit:   [42000,48000,40000,24000,-3600,-2500,18500,35000,42000,68000,78000,88000,98000,108000,116000,128000],
+      opMargin:   [33.6,35.6,31.3,22.6,-6.9,-3.5,20.1,30.4,32.8,41.2,43.8,45.8,47.8,49.5,50.9,52.9],
+      capex:      [7200,7800,8200,8500,6500,6200,7000,7800,8200,9500,10200,11500,12200,13500,14500,15800],
+      hbmRevenue: [null,null,null,null,null,null,5000,12000,24000,42000,58000,72000,88000,102000,115000,128000],
+      inventory:  [22000,25000,28000,32000,35000,31000,27000,22000,19000,16000,14000,12000,11000,10000,9500,9000]
+    },
+    { name: 'DB하이텍', ticker: '000990', segment: 'foundry',
+      revenue:    [4200,4800,5100,5200,4600,4200,4000,4100,4200,4500,4700,5000,5200,5500,5700,6000],
+      opProfit:   [1400,1680,1800,1900,1550,1350,1260,1320,1360,1500,1600,1750,1850,2000,2100,2250],
+      opMargin:   [33.3,35.0,35.3,36.5,33.7,32.1,31.5,32.2,32.4,33.3,34.0,35.0,35.6,36.4,36.8,37.5],
+      capex:      [450,520,580,620,480,420,410,440,460,510,550,610,650,710,760,820],
+      hbmRevenue: [null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null],
+      inventory:  [850,920,1000,1050,980,920,880,850,840,860,890,920,950,980,1000,1020]
+    },
+    { name: '한미반도체', ticker: '042700', segment: 'equipment',
+      revenue:    [1800,2100,2300,2500,2200,2000,2200,2800,3500,4800,5800,6800,7500,8500,9200,10200],
+      opProfit:   [520,630,710,790,640,570,660,900,1200,1800,2300,2800,3200,3700,4100,4600],
+      opMargin:   [28.9,30.0,30.9,31.6,29.1,28.5,30.0,32.1,34.3,37.5,39.7,41.2,42.7,43.5,44.6,45.1],
+      capex:      [120,145,165,180,155,140,155,195,245,340,415,490,540,615,665,740],
+      hbmRevenue: [null,null,null,null,null,null,null,800,2200,3800,5200,6500,7200,8200,8900,9800],
+      inventory:  [380,420,460,500,480,440,420,400,380,360,340,320,300,280,265,250]
+    },
+    { name: '리노공업', ticker: '058470', segment: 'equipment',
+      revenue:    [980,1150,1250,1350,1180,1050,1100,1380,1550,1850,2100,2450,2650,3000,3250,3600],
+      opProfit:   [380,460,510,560,460,390,420,550,640,800,940,1120,1230,1420,1560,1750],
+      opMargin:   [38.8,40.0,40.8,41.5,39.0,37.1,38.2,39.9,41.3,43.2,44.8,45.7,46.4,47.3,48.0,48.6],
+      capex:      [85,100,110,120,105,95,100,125,145,175,200,235,255,290,315,350],
+      hbmRevenue: [null,null,null,null,null,null,null,200,500,900,1350,1850,2100,2500,2800,3100],
+      inventory:  [180,200,220,240,225,205,195,185,175,165,155,145,135,125,120,115]
+    },
+    { name: 'HPSP', ticker: '403870', segment: 'equipment',
+      revenue:    [580,680,760,840,750,680,720,900,1050,1350,1600,1900,2100,2450,2750,3100],
+      opProfit:   [215,265,310,350,295,258,282,368,440,588,712,872,980,1170,1330,1520],
+      opMargin:   [37.1,39.0,40.8,41.7,39.3,37.9,39.2,40.9,41.9,43.6,44.5,45.9,46.7,47.8,48.4,49.0],
+      capex:      [55,65,75,82,72,65,68,88,104,135,162,194,216,253,285,320],
+      hbmRevenue: [null,null,null,null,null,null,null,null,200,450,780,1200,1500,1900,2200,2600],
+      inventory:  [98,112,126,140,130,118,112,108,102,96,90,84,78,72,68,65]
+    },
+    { name: '원익IPS', ticker: '240810', segment: 'equipment',
+      revenue:    [2800,3200,3500,3800,3400,3000,3200,4000,4500,5500,6500,7600,8200,9500,10500,11800],
+      opProfit:   [420,500,570,640,510,435,480,620,720,930,1170,1440,1600,1900,2150,2480],
+      opMargin:   [15.0,15.6,16.3,16.8,15.0,14.5,15.0,15.5,16.0,16.9,18.0,18.9,19.5,20.0,20.5,21.0],
+      capex:      [200,235,260,285,255,225,240,300,340,415,490,575,620,720,795,895],
+      hbmRevenue: [null,null,null,null,null,null,null,null,500,1200,2200,3500,4500,5800,7000,8500],
+      inventory:  [680,760,840,920,860,780,740,700,660,620,580,540,500,460,430,400]
+    },
+    { name: '주성엔지니어링', ticker: '036930', segment: 'equipment',
+      revenue:    [1200,1400,1550,1700,1500,1350,1450,1800,2050,2550,3050,3650,4000,4700,5200,5900],
+      opProfit:   [168,204,232,261,210,182,203,270,328,434,549,693,780,940,1092,1270],
+      opMargin:   [14.0,14.6,15.0,15.4,14.0,13.5,14.0,15.0,16.0,17.0,18.0,19.0,19.5,20.0,21.0,21.5],
+      capex:      [96,112,124,136,120,108,116,144,164,204,244,292,320,376,416,472],
+      hbmRevenue: [null,null,null,null,null,null,null,null,300,700,1300,2100,2700,3500,4200,5000],
+      inventory:  [320,365,405,445,415,375,355,335,315,295,275,255,235,215,200,188]
+    },
+  ]
+};
+
+
+let currentView = 'summary';
+let currentMetric = 'revenue';
+let currentFilter = 'all';
+let periodStart = 0;
+let periodEnd = SEMI_DATA.meta.quarters.length - 1;
+let currentCompany = SEMI_DATA.companies[0].name;
+const charts = {};
+
+const METRIC_LABELS = {
+  revenue: { label: '매출액', unit: '억원' },
+  opProfit: { label: '영업이익', unit: '억원' },
+  opMargin: { label: '영업이익률', unit: '%' },
+  capex: { label: '설비투자(CAPEX)', unit: '억원' },
+  hbmRevenue: { label: 'HBM 매출', unit: '억원' },
+  inventory: { label: '재고자산', unit: '억원' }
+};
+
+const SEG_LABELS = { memory: '메모리', foundry: '파운드리', equipment: '장비/소재' };
+
+document.querySelectorAll('#summaryNav button').forEach(btn => {
+  btn.addEventListener('click', () => {
+    currentView = btn.dataset.view;
+    document.querySelectorAll('#summaryNav button, #companyNav button').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    renderView();
+  });
+});
+document.querySelectorAll('#companyNav button').forEach(btn => {
+  btn.addEventListener('click', () => {
+    currentView = 'company';
+    currentCompany = btn.dataset.company;
+    document.querySelectorAll('#summaryNav button, #companyNav button').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    renderView();
+  });
+});
+document.querySelectorAll('[data-metric]').forEach(btn => {
+  btn.addEventListener('click', () => {
+    currentMetric = btn.dataset.metric;
+    document.querySelectorAll('[data-metric]').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    renderView();
+  });
+});
+document.querySelectorAll('[data-seg]').forEach(btn => {
+  btn.addEventListener('click', () => {
+    currentFilter = btn.dataset.seg;
+    document.querySelectorAll('[data-seg]').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    renderView();
+  });
+});
+
+const qs = SEMI_DATA.meta.quarters;
+const psEl = document.getElementById('periodStart');
+const peEl = document.getElementById('periodEnd');
+qs.forEach((q,i) => { psEl.appendChild(new Option(q,i)); peEl.appendChild(new Option(q,i)); });
+peEl.value = qs.length - 1;
+psEl.addEventListener('change', () => { periodStart = +psEl.value; renderView(); });
+peEl.addEventListener('change', () => { periodEnd = +peEl.value; renderView(); });
+
+function filteredCompanies() {
+  return currentFilter === 'all' ? SEMI_DATA.companies : SEMI_DATA.companies.filter(c => c.segment === currentFilter);
+}
+
+function destroyAll() {
+  Object.values(charts).forEach(c => { if(c) c.destroy(); });
+  Object.keys(charts).forEach(k => delete charts[k]);
+}
+
+function renderView() {
+  const main = document.getElementById('mainContent');
+  destroyAll();
+  const ql = qs.slice(periodStart, periodEnd + 1);
+  if (currentView === 'summary') renderSummaryView(main, ql);
+  else if (currentView === 'hbm') renderHbmView(main, ql);
+  else if (currentView === 'company') renderCompanyView(main, ql);
+}
+
+function renderSummaryView(main, ql) {
+  const companies = filteredCompanies();
+  const ml = METRIC_LABELS[currentMetric];
+  const datasets = companies.map((c, i) => ({
+    label: c.name, data: c[currentMetric].slice(periodStart, periodEnd+1),
+    borderColor: COLORS[i], backgroundColor: COLORS[i]+'18',
+    tension: 0.35, borderWidth: 2.5, pointRadius: 3.5, spanGaps: true
+  }));
+  main.innerHTML = `
+    <div class="panel">
+      <div class="panel-title">${ml.label} 분기별 추이 <span class="panel-hint">(${ml.unit})</span></div>
+      <div class="chart-scroll"><canvas id="mainChart" height="320"></canvas></div>
+      <div class="legend-area" id="mainLegend"></div>
+    </div>
+    <div class="panel" style="margin-top:20px">
+      <div class="panel-title">분기별 비교 <button class="excel-btn" onclick="exportSummary()">⬇ CSV</button></div>
+      <div style="overflow-x:auto"><table><thead><tr>
+        <th>분기</th>${companies.map(c=>'<th>'+c.name+'<br><span style=\"font-size:10px;color:#94a3b8\">'+SEG_LABELS[c.segment]+'</span></th>').join('')}
+      </tr></thead><tbody id="summaryTbody"></tbody></table></div>
+    </div>
+  `;
+  charts.main = makeLineChart('mainChart', ql, datasets, { unit: ml.unit === '%' ? '%' : '' });
+  renderLegend('mainLegend', datasets, charts.main);
+  const tbody = document.getElementById('summaryTbody');
+  ql.forEach((q,qi) => {
+    const ai = periodStart+qi;
+    const tr = document.createElement('tr');
+    tr.innerHTML = '<td>' + q + '</td>' + companies.map(c => {
+      const v = c[currentMetric][ai];
+      if(v == null) return '<td>-</td>';
+      const isPct = ml.unit === '%';
+      const isNeg = currentMetric === 'opProfit' && v < 0;
+      return '<td class="' + (isNeg ? 'neg' : '') + '">' + (isPct ? v.toFixed(1)+'%' : Number(v).toLocaleString('ko-KR')) + '</td>';
+    }).join('');
+    tbody.appendChild(tr);
+  });
+}
+
+function renderHbmView(main, ql) {
+  const memCos = SEMI_DATA.companies.filter(c => c.segment === 'memory' || c.hbmRevenue.some(v=>v));
+  const equip = SEMI_DATA.companies.filter(c => c.segment === 'equipment');
+  main.innerHTML = `
+    <div class="panel">
+      <div class="panel-title">HBM 매출 추이 <span class="panel-hint">(AI 반도체 수요 핵심 지표)</span></div>
+      <div class="chart-scroll"><canvas id="hbmChart" height="300"></canvas></div>
+      <div class="legend-area" id="hbmLegend"></div>
+    </div>
+    <div class="two-col" style="margin-top:20px">
+      <div class="panel">
+        <div class="panel-title">메모리 영업이익률 사이클</div>
+        <div class="chart-scroll"><canvas id="memMarginChart" height="260"></canvas></div>
+        <div class="legend-area" id="memMarginLegend"></div>
+      </div>
+      <div class="panel">
+        <div class="panel-title">메모리 재고자산 추이</div>
+        <div class="chart-scroll"><canvas id="invChart" height="260"></canvas></div>
+        <div class="legend-area" id="invLegend"></div>
+      </div>
+    </div>
+    <div class="panel" style="margin-top:20px">
+      <div class="panel-title">반도체 장비사 영업이익률 비교</div>
+      <div class="chart-scroll"><canvas id="equipMarginChart" height="260"></canvas></div>
+      <div class="legend-area" id="equipMarginLegend"></div>
+    </div>
+  `;
+
+  const hbmCos = SEMI_DATA.companies.filter(c => c.hbmRevenue.some(v=>v));
+  const hbmDs = hbmCos.map((c,i) => ({
+    label: c.name, data: c.hbmRevenue.slice(periodStart, periodEnd+1),
+    borderColor: COLORS[i], backgroundColor: COLORS[i]+'18',
+    tension: 0.35, borderWidth: 2.5, pointRadius: 4, spanGaps: true
+  }));
+  charts.hbm = makeLineChart('hbmChart', ql, hbmDs);
+  renderLegend('hbmLegend', hbmDs, charts.hbm);
+
+  const memCosOnly = SEMI_DATA.companies.filter(c => c.segment === 'memory');
+  const memDs = memCosOnly.map((c,i) => ({
+    label: c.name, data: c.opMargin.slice(periodStart, periodEnd+1),
+    borderColor: COLORS[i], backgroundColor: COLORS[i]+'18',
+    tension: 0.35, borderWidth: 2, pointRadius: 3
+  }));
+  charts.memMargin = makeLineChart('memMarginChart', ql, memDs, { unit: '%' });
+  renderLegend('memMarginLegend', memDs, charts.memMargin);
+
+  const invDs = memCosOnly.map((c,i) => ({
+    label: c.name, data: c.inventory.slice(periodStart, periodEnd+1),
+    borderColor: COLORS[i], backgroundColor: COLORS[i]+'18',
+    tension: 0.35, borderWidth: 2, pointRadius: 3
+  }));
+  charts.inv = makeLineChart('invChart', ql, invDs);
+  renderLegend('invLegend', invDs, charts.inv);
+
+  const equipDs = equip.map((c,i) => ({
+    label: c.name, data: c.opMargin.slice(periodStart, periodEnd+1),
+    borderColor: COLORS[i+3], backgroundColor: COLORS[i+3]+'18',
+    tension: 0.35, borderWidth: 2, pointRadius: 3
+  }));
+  charts.equipMargin = makeLineChart('equipMarginChart', ql, equipDs, { unit: '%' });
+  renderLegend('equipMarginLegend', equipDs, charts.equipMargin);
+}
+
+function renderCompanyView(main, ql) {
+  const c = SEMI_DATA.companies.find(co => co.name === currentCompany);
+  if (!c) return;
+  const latest = periodEnd;
+  const yoyIdx = latest >= 4 ? latest-4 : null;
+  const revYoY = yoyIdx !== null ? ((c.revenue[latest]-c.revenue[yoyIdx])/c.revenue[yoyIdx]*100).toFixed(1) : null;
+  const hbmLatest = c.hbmRevenue[latest];
+
+  main.innerHTML = `
+    <div class="kpi-grid">
+      <div class="kpi-card">
+        <div class="kpi-label">매출액 <span style="font-size:10px;color:#94a3b8">[${SEG_LABELS[c.segment]}]</span></div>
+        <div class="kpi-value">${(c.revenue[latest]/10000).toFixed(1)}<span style="font-size:12px;color:#6b7280">조원</span></div>
+        ${revYoY ? '<div class="kpi-sub ' + (revYoY>=0?'kpi-up':'kpi-dn') + '">' + (revYoY>=0?'▲':'▼') + Math.abs(revYoY) + '% YoY</div>' : ''}
+      </div>
+      <div class="kpi-card">
+        <div class="kpi-label">영업이익</div>
+        <div class="kpi-value ${c.opProfit[latest]>=0?'':'neg'}">${(c.opProfit[latest]/10000).toFixed(2)}<span style="font-size:12px;color:#6b7280">조원</span></div>
+        <div class="kpi-sub">이익률 ${c.opMargin[latest].toFixed(1)}%</div>
+      </div>
+      <div class="kpi-card">
+        <div class="kpi-label">CAPEX</div>
+        <div class="kpi-value">${Number(c.capex[latest]).toLocaleString('ko-KR')}<span style="font-size:12px;color:#6b7280">억원</span></div>
+      </div>
+      ${hbmLatest ? '<div class="kpi-card"><div class="kpi-label">HBM 매출</div><div class="kpi-value">' + (hbmLatest/10000).toFixed(2) + '<span style="font-size:12px;color:#6b7280">조원</span></div><div class="kpi-sub">전체의 ' + (hbmLatest/c.revenue[latest]*100).toFixed(1) + '%</div></div>' : ''}
+      <div class="kpi-card">
+        <div class="kpi-label">재고자산</div>
+        <div class="kpi-value">${Number(c.inventory[latest]).toLocaleString('ko-KR')}<span style="font-size:12px;color:#6b7280">억원</span></div>
+      </div>
+    </div>
+    <div class="two-col">
+      <div class="panel">
+        <div class="panel-title">매출 / 영업이익</div>
+        <div class="chart-scroll"><canvas id="revChart" height="260"></canvas></div>
+      </div>
+      <div class="panel">
+        <div class="panel-title">영업이익률 추이</div>
+        <div class="chart-scroll"><canvas id="marginChart" height="260"></canvas></div>
+      </div>
+    </div>
+    ${c.hbmRevenue.some(v=>v) ? `
+    <div class="two-col" style="margin-top:20px">
+      <div class="panel">
+        <div class="panel-title">HBM 매출 추이</div>
+        <div class="chart-scroll"><canvas id="hbmChart" height="240"></canvas></div>
+      </div>
+      <div class="panel">
+        <div class="panel-title">CAPEX / 재고자산</div>
+        <div class="chart-scroll"><canvas id="capexChart" height="240"></canvas></div>
+      </div>
+    </div>` : `<div class="panel" style="margin-top:20px">
+      <div class="panel-title">CAPEX / 재고자산</div>
+      <div class="chart-scroll"><canvas id="capexChart" height="240"></canvas></div>
+    </div>`}
+  `;
+
+  charts.rev = makeBarChart('revChart', ql, [
+    { label: '매출액', data: c.revenue.slice(periodStart, periodEnd+1), backgroundColor: '#7c3aed88' },
+    { label: '영업이익', data: c.opProfit.slice(periodStart, periodEnd+1), backgroundColor: '#16a34a88' }
+  ], { showLegend: true });
+  charts.margin = makeLineChart('marginChart', ql, [{
+    label: '영업이익률', data: c.opMargin.slice(periodStart, periodEnd+1),
+    borderColor: '#7c3aed', backgroundColor: '#7c3aed22',
+    tension: 0.35, borderWidth: 2.5, fill: true, pointRadius: 4
+  }], { unit: '%' });
+
+  if (c.hbmRevenue.some(v=>v)) {
+    charts.hbm = makeLineChart('hbmChart', ql, [{
+      label: 'HBM 매출', data: c.hbmRevenue.slice(periodStart, periodEnd+1),
+      borderColor: '#ea580c', backgroundColor: '#ea580c22',
+      tension: 0.35, borderWidth: 2.5, fill: true, pointRadius: 4, spanGaps: true
+    }]);
+  }
+  charts.capex = makeLineChart('capexChart', ql, [
+    { label: 'CAPEX', data: c.capex.slice(periodStart, periodEnd+1), borderColor: '#0891b2', backgroundColor: '#0891b222', tension: 0.35, borderWidth: 2, pointRadius: 3 },
+    { label: '재고자산', data: c.inventory.slice(periodStart, periodEnd+1), borderColor: '#d97706', backgroundColor: '#d9770622', tension: 0.35, borderWidth: 2, pointRadius: 3 }
+  ]);
+}
+
+function exportSummary() {
+  const companies = filteredCompanies();
+  const ml = METRIC_LABELS[currentMetric];
+  const ql = qs.slice(periodStart, periodEnd+1);
+  const headers = ['분기', ...companies.map(c=>c.name)];
+  const rows = ql.map((q,qi) => {
+    const ai = periodStart+qi;
+    return [q, ...companies.map(c => c[currentMetric][ai] ?? '')];
+  });
+  downloadCsv('반도체_' + ml.label + '.csv', headers, rows);
+}
+
+initSidebar();
+document.querySelector('[data-seg="all"]').classList.add('active');
+document.querySelector('[data-metric="revenue"]').classList.add('active');
+document.querySelector('[data-view="summary"]').classList.add('active');
+renderView();
+
+  </script>
+</body>
+</html>

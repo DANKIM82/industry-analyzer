@@ -1,0 +1,272 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>K-푸드 실적 Dashboard</title>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+<style>:root{--theme:#f97316;}
+* { margin:0; padding:0; box-sizing:border-box; }
+body { font-family:'Pretendard','Noto Sans KR',sans-serif; background:#0d1117; color:#e6edf3; min-height:100vh; display:flex; }
+
+/* 사이드바 */
+.sidebar { width:220px; min-height:100vh; background:#161b22; border-right:1px solid #30363d; display:flex; flex-direction:column; position:fixed; top:0; left:0; z-index:100; }
+.sidebar-logo { padding:20px 16px 12px; border-bottom:1px solid #30363d; }
+.sidebar-logo .sector-badge { display:inline-block; padding:3px 8px; border-radius:4px; font-size:11px; font-weight:700; letter-spacing:1px; margin-bottom:6px; }
+.sidebar-logo h2 { font-size:15px; font-weight:700; line-height:1.3; }
+.sidebar-logo p { font-size:11px; color:#8b949e; margin-top:2px; }
+.sidebar-nav { padding:12px 0; flex:1; overflow-y:auto; }
+.sidebar-nav .nav-section { padding:6px 16px 4px; font-size:10px; font-weight:700; color:#8b949e; letter-spacing:1px; text-transform:uppercase; }
+.sidebar-nav a { display:flex; align-items:center; gap:8px; padding:8px 16px; font-size:13px; color:#8b949e; text-decoration:none; transition:all .15s; cursor:pointer; border-left:2px solid transparent; }
+.sidebar-nav a:hover { color:#e6edf3; background:#21262d; }
+.sidebar-nav a.active { color:#e6edf3; background:#21262d; border-left-color:var(--theme); }
+.sidebar-nav a .icon { font-size:15px; }
+.sidebar-footer { padding:12px 16px; border-top:1px solid #30363d; font-size:11px; color:#8b949e; }
+.sidebar-footer a { color:#58a6ff; text-decoration:none; }
+
+/* 메인 */
+.main { margin-left:220px; flex:1; display:flex; flex-direction:column; min-height:100vh; }
+.topbar { padding:14px 24px; border-bottom:1px solid #30363d; display:flex; align-items:center; justify-content:space-between; background:#0d1117; position:sticky; top:0; z-index:50; }
+.topbar h1 { font-size:18px; font-weight:700; }
+.topbar .controls { display:flex; gap:10px; align-items:center; flex-wrap:wrap; }
+.topbar select { background:#21262d; border:1px solid #30363d; color:#e6edf3; padding:6px 10px; border-radius:6px; font-size:13px; }
+.btn { padding:6px 14px; border-radius:6px; font-size:13px; font-weight:600; border:none; cursor:pointer; transition:all .15s; }
+.btn-primary { background:var(--theme); color:#fff; }
+.btn-primary:hover { opacity:.85; }
+.btn-outline { background:transparent; border:1px solid #30363d; color:#8b949e; }
+.btn-outline:hover { border-color:#58a6ff; color:#58a6ff; }
+.btn-sm { padding:4px 10px; font-size:12px; }
+
+/* 데이터 소스 바 */
+.data-source-bar { background:#161b22; border-bottom:1px solid #30363d; padding:8px 24px; display:flex; align-items:center; gap:12px; font-size:12px; }
+.ds-badge { padding:2px 8px; border-radius:10px; font-weight:700; font-size:11px; }
+.ds-badge.sample { background:#2d1b00; color:#f59e0b; border:1px solid #92400e; }
+.ds-badge.live { background:#0d2818; color:#3fb950; border:1px solid #1a4731; }
+.ds-info { color:#8b949e; }
+.ds-actions { margin-left:auto; display:flex; gap:8px; }
+
+/* 컨텐츠 */
+.content { padding:24px; flex:1; }
+.section-title { font-size:15px; font-weight:700; color:#e6edf3; margin-bottom:16px; display:flex; align-items:center; gap:8px; }
+.section-title::before { content:''; width:3px; height:16px; background:var(--theme); border-radius:2px; display:block; }
+
+/* KPI 카드 */
+.kpi-grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(180px,1fr)); gap:12px; margin-bottom:24px; }
+.kpi-card { background:#161b22; border:1px solid #30363d; border-radius:10px; padding:16px; }
+.kpi-card .label { font-size:11px; color:#8b949e; margin-bottom:6px; }
+.kpi-card .value { font-size:22px; font-weight:700; color:#e6edf3; }
+.kpi-card .unit { font-size:12px; color:#8b949e; margin-left:2px; }
+.kpi-card .delta { font-size:12px; margin-top:4px; }
+.delta.up { color:#3fb950; }
+.delta.down { color:#f85149; }
+
+/* 차트 그리드 */
+.chart-grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(460px,1fr)); gap:16px; margin-bottom:24px; }
+.chart-card { background:#161b22; border:1px solid #30363d; border-radius:10px; padding:20px; }
+.chart-card h3 { font-size:13px; font-weight:600; color:#8b949e; margin-bottom:14px; }
+.chart-card canvas { max-height:240px; }
+
+/* 테이블 */
+.table-wrap { background:#161b22; border:1px solid #30363d; border-radius:10px; overflow:hidden; margin-bottom:24px; }
+.table-wrap table { width:100%; border-collapse:collapse; font-size:13px; }
+.table-wrap th { padding:10px 14px; text-align:left; font-size:11px; font-weight:700; color:#8b949e; text-transform:uppercase; letter-spacing:.5px; border-bottom:1px solid #30363d; background:#0d1117; }
+.table-wrap td { padding:10px 14px; border-bottom:1px solid #21262d; color:#e6edf3; }
+.table-wrap tr:last-child td { border-bottom:none; }
+.table-wrap tr:hover td { background:#21262d; }
+.tag { display:inline-block; padding:2px 7px; border-radius:4px; font-size:11px; font-weight:600; }
+
+/* 필터 버튼 */
+.filter-bar { display:flex; gap:8px; flex-wrap:wrap; margin-bottom:16px; }
+.filter-btn { padding:5px 12px; border-radius:16px; font-size:12px; font-weight:600; border:1px solid #30363d; background:transparent; color:#8b949e; cursor:pointer; transition:all .15s; }
+.filter-btn.active, .filter-btn:hover { background:var(--theme); color:#fff; border-color:var(--theme); }
+
+/* 반응형 */
+@media(max-width:768px){
+  .sidebar { transform:translateX(-220px); }
+  .main { margin-left:0; }
+  .chart-grid { grid-template-columns:1fr; }
+  .kpi-grid { grid-template-columns:repeat(2,1fr); }
+}
+
+/* 뷰 전환 */
+.view { display:none; }
+.view.active { display:block; }
+
+/* 스켈레톤/로딩 */
+.loading-msg { text-align:center; padding:60px; color:#8b949e; font-size:14px; }
+</style>
+</head>
+<body>
+<nav class="sidebar">
+  <div class="sidebar-logo">
+    <span class="sector-badge" style="background:#431407;color:#fb923c;">K-FOOD</span>
+    <h2>K-푸드 실적</h2><p>글로벌 K-Food Dashboard</p>
+  </div>
+  <div class="sidebar-nav">
+    <div class="nav-section">Views</div>
+    <a class="active" onclick="switchView('summary',event)"><span class="icon">📊</span>종합 현황</a>
+    <a onclick="switchView('export',event)"><span class="icon">🌍</span>수출·지역 분석</a>
+    <a onclick="switchView('company',event)"><span class="icon">🏢</span>기업별 분석</a>
+    <a onclick="switchView('table',event)"><span class="icon">📋</span>데이터 테이블</a>
+    <div class="nav-section" style="margin-top:12px;">Hub</div>
+    <a href="index.html"><span class="icon">🏠</span>메인 허브</a>
+  </div>
+  <div class="sidebar-footer">데이터: DART OpenAPI<br>자동업데이트: 분기별</div>
+</nav>
+<div class="main">
+  <div class="topbar">
+    <h1>🍜 K-푸드 실적 Dashboard</h1>
+    <div class="controls">
+      <select id="quarterFilter" onchange="renderAll()"><option value="all">전체 분기</option></select>
+      <button class="btn btn-outline btn-sm" onclick="exportCSV()">⬇ CSV 내보내기</button>
+    </div>
+  </div>
+  <div class="data-source-bar">
+    <span class="ds-badge sample" id="dsBadge">SAMPLE</span>
+    <span class="ds-info" id="dsInfo">샘플 데이터 | data/kfood_data.js 로드 필요</span>
+    <div class="ds-actions"><button class="btn btn-outline btn-sm" onclick="resetToSample()">🔄 샘플로 초기화</button></div>
+  </div>
+  <div class="content">
+    <div class="view active" id="view-summary">
+      <div class="filter-bar" id="metricFilter">
+        <button class="filter-btn active" onclick="setMetric('revenue',this)">매출액</button>
+        <button class="filter-btn" onclick="setMetric('op_income',this)">영업이익</button>
+        <button class="filter-btn" onclick="setMetric('op_margin',this)">영업이익률(%)</button>
+        <button class="filter-btn" onclick="setMetric('export_revenue',this)">수출매출</button>
+        <button class="filter-btn" onclick="setMetric('export_ratio',this)">수출비중(%)</button>
+      </div>
+      <div class="chart-grid">
+        <div class="chart-card" style="grid-column:1/-1"><h3 id="mainTitle">기업별 매출액 추이 (억원)</h3><canvas id="mainChart"></canvas></div>
+        <div class="chart-card"><h3>최근 분기 영업이익률 (%)</h3><canvas id="marginChart"></canvas></div>
+        <div class="chart-card"><h3>최근 분기 수출비중 (%)</h3><canvas id="exportChart"></canvas></div>
+      </div>
+    </div>
+    <div class="view" id="view-export">
+      <div class="section-title">수출·지역별 분석</div>
+      <div class="chart-grid">
+        <div class="chart-card" style="grid-column:1/-1"><h3>기업별 수출매출 추이 (억원)</h3><canvas id="exportTrendChart"></canvas></div>
+        <div class="chart-card"><h3>지역별 수출 구성 (최근분기, 억원)</h3><canvas id="regionChart"></canvas></div>
+        <div class="chart-card"><h3>삼양식품 수출비중 추이 (%)</h3><canvas id="samyangChart"></canvas></div>
+      </div>
+    </div>
+    <div class="view" id="view-company">
+      <div class="filter-bar" id="companyFilter"></div>
+      <div class="kpi-grid" id="companyKPI"></div>
+      <div class="chart-grid">
+        <div class="chart-card"><h3>매출액·영업이익 (억원)</h3><canvas id="companyBarChart"></canvas></div>
+        <div class="chart-card"><h3>수출 지역별 구성 추이 (억원)</h3><canvas id="companyRegionChart"></canvas></div>
+      </div>
+    </div>
+    <div class="view" id="view-table">
+      <div class="section-title">전체 데이터</div>
+      <div class="table-wrap"><table>
+        <thead><tr><th>분기</th><th>기업명</th><th>매출액(억)</th><th>영업이익(억)</th><th>영업이익률(%)</th><th>수출매출(억)</th><th>수출비중(%)</th><th>북미(억)</th><th>아시아(억)</th><th>유럽(억)</th></tr></thead>
+        <tbody id="dataTable"></tbody>
+      </table></div>
+    </div>
+  </div>
+</div>
+<script>
+const SAMPLE=[
+  {quarter:'2023Q1',company:'삼양식품',revenue:3120,op_income:520,op_margin:16.7,export_revenue:2180,export_ratio:69.9,north_america:620,asia:1180,europe:380},
+  {quarter:'2023Q2',company:'삼양식품',revenue:3380,op_income:590,op_margin:17.5,export_revenue:2450,export_ratio:72.5,north_america:720,asia:1280,europe:450},
+  {quarter:'2023Q3',company:'삼양식품',revenue:3650,op_income:680,op_margin:18.6,export_revenue:2720,export_ratio:74.5,north_america:820,asia:1380,europe:520},
+  {quarter:'2023Q4',company:'삼양식품',revenue:3920,op_income:780,op_margin:19.9,export_revenue:3020,export_ratio:77.0,north_america:950,asia:1480,europe:590},
+  {quarter:'2024Q1',company:'삼양식품',revenue:4280,op_income:920,op_margin:21.5,export_revenue:3420,export_ratio:79.9,north_america:1120,asia:1620,europe:680},
+  {quarter:'2024Q2',company:'삼양식품',revenue:4650,op_income:1080,op_margin:23.2,export_revenue:3820,export_ratio:82.2,north_america:1320,asia:1780,europe:720},
+  {quarter:'2024Q3',company:'삼양식품',revenue:5020,op_income:1250,op_margin:24.9,export_revenue:4250,export_ratio:84.7,north_america:1520,asia:1950,europe:780},
+  {quarter:'2024Q4',company:'삼양식품',revenue:5480,op_income:1450,op_margin:26.5,export_revenue:4750,export_ratio:86.7,north_america:1750,asia:2150,europe:850},
+
+  {quarter:'2023Q1',company:'오리온',revenue:7820,op_income:1050,op_margin:13.4,export_revenue:4580,export_ratio:58.6,north_america:420,asia:3850,europe:310},
+  {quarter:'2023Q2',company:'오리온',revenue:8100,op_income:1120,op_margin:13.8,export_revenue:4820,export_ratio:59.5,north_america:450,asia:4050,europe:320},
+  {quarter:'2023Q3',company:'오리온',revenue:8350,op_income:1180,op_margin:14.1,export_revenue:5050,export_ratio:60.5,north_america:480,asia:4250,europe:320},
+  {quarter:'2023Q4',company:'오리온',revenue:8620,op_income:1250,op_margin:14.5,export_revenue:5280,export_ratio:61.2,north_america:510,asia:4450,europe:320},
+  {quarter:'2024Q1',company:'오리온',revenue:8920,op_income:1320,op_margin:14.8,export_revenue:5550,export_ratio:62.2,north_america:540,asia:4680,europe:330},
+  {quarter:'2024Q2',company:'오리온',revenue:9250,op_income:1400,op_margin:15.1,export_revenue:5850,export_ratio:63.2,north_america:580,asia:4940,europe:330},
+  {quarter:'2024Q3',company:'오리온',revenue:9580,op_income:1480,op_margin:15.4,export_revenue:6150,export_ratio:64.2,north_america:620,asia:5200,europe:330},
+  {quarter:'2024Q4',company:'오리온',revenue:9920,op_income:1570,op_margin:15.8,export_revenue:6480,export_ratio:65.3,north_america:660,asia:5480,europe:340},
+
+  {quarter:'2023Q1',company:'농심',revenue:8520,op_income:580,op_margin:6.8,export_revenue:2850,export_ratio:33.4,north_america:1450,asia:980,europe:420},
+  {quarter:'2023Q2',company:'농심',revenue:8780,op_income:620,op_margin:7.1,export_revenue:3050,export_ratio:34.7,north_america:1580,asia:1020,europe:450},
+  {quarter:'2023Q3',company:'농심',revenue:9050,op_income:670,op_margin:7.4,export_revenue:3280,export_ratio:36.2,north_america:1720,asia:1080,europe:480},
+  {quarter:'2023Q4',company:'농심',revenue:9320,op_income:720,op_margin:7.7,export_revenue:3520,export_ratio:37.8,north_america:1880,asia:1140,europe:500},
+  {quarter:'2024Q1',company:'농심',revenue:9620,op_income:780,op_margin:8.1,export_revenue:3780,export_ratio:39.3,north_america:2050,asia:1200,europe:530},
+  {quarter:'2024Q2',company:'농심',revenue:9950,op_income:840,op_margin:8.4,export_revenue:4050,export_ratio:40.7,north_america:2220,asia:1280,europe:550},
+  {quarter:'2024Q3',company:'농심',revenue:10280,op_income:910,op_margin:8.9,export_revenue:4350,export_ratio:42.3,north_america:2400,asia:1360,europe:590},
+  {quarter:'2024Q4',company:'농심',revenue:10620,op_income:980,op_margin:9.2,export_revenue:4680,export_ratio:44.1,north_america:2600,asia:1450,europe:630},
+
+  {quarter:'2023Q1',company:'CJ제일제당',revenue:42500,op_income:1850,op_margin:4.4,export_revenue:8200,export_ratio:19.3,north_america:3800,asia:3200,europe:1200},
+  {quarter:'2023Q2',company:'CJ제일제당',revenue:43800,op_income:1950,op_margin:4.5,export_revenue:8600,export_ratio:19.6,north_america:4000,asia:3350,europe:1250},
+  {quarter:'2023Q3',company:'CJ제일제당',revenue:45200,op_income:2100,op_margin:4.6,export_revenue:9100,export_ratio:20.1,north_america:4300,asia:3500,europe:1300},
+  {quarter:'2023Q4',company:'CJ제일제당',revenue:46500,op_income:2250,op_margin:4.8,export_revenue:9650,export_ratio:20.8,north_america:4600,asia:3700,europe:1350},
+  {quarter:'2024Q1',company:'CJ제일제당',revenue:47800,op_income:2400,op_margin:5.0,export_revenue:10200,export_ratio:21.3,north_america:4900,asia:3900,europe:1400},
+  {quarter:'2024Q2',company:'CJ제일제당',revenue:49200,op_income:2580,op_margin:5.2,export_revenue:10850,export_ratio:22.1,north_america:5200,asia:4100,europe:1550},
+  {quarter:'2024Q3',company:'CJ제일제당',revenue:50800,op_income:2780,op_margin:5.5,export_revenue:11600,export_ratio:22.8,north_america:5600,asia:4350,europe:1650},
+  {quarter:'2024Q4',company:'CJ제일제당',revenue:52500,op_income:3000,op_margin:5.7,export_revenue:12400,export_ratio:23.6,north_america:6000,asia:4650,europe:1750},
+];
+
+let DATA=[],currentMetric='revenue',currentCompany=null,charts={},isSample=true;
+const COLORS=['#fb923c','#3fb950','#f59e0b','#38bdf8','#bc8cff','#f85149','#a78bfa','#39d353'];
+const ML={revenue:'매출액(억원)',op_income:'영업이익(억원)',op_margin:'영업이익률(%)',export_revenue:'수출매출(억원)',export_ratio:'수출비중(%)'};
+
+function getCompanies(){return[...new Set(DATA.map(d=>d.company))];}
+function getQuarters(){return[...new Set(DATA.map(d=>d.quarter))].sort();}
+function destroyChart(id){if(charts[id]){charts[id].destroy();delete charts[id];}}
+function switchView(v,e){document.querySelectorAll('.view').forEach(el=>el.classList.remove('active'));document.getElementById('view-'+v).classList.add('active');document.querySelectorAll('.sidebar-nav a').forEach(a=>a.classList.remove('active'));if(e&&e.target)e.target.closest('a').classList.add('active');renderAll();}
+function setMetric(m,btn){currentMetric=m;document.querySelectorAll('#metricFilter .filter-btn').forEach(b=>b.classList.remove('active'));btn.classList.add('active');renderSummary();}
+function renderAll(){const active=document.querySelector('.view.active');if(!active)return;if(active.id==='view-summary')renderSummary();else if(active.id==='view-export')renderExport();else if(active.id==='view-company')renderCompany();else if(active.id==='view-table')renderTable();}
+
+function renderSummary(){
+  const companies=getCompanies(),quarters=getQuarters();
+  destroyChart('main');destroyChart('margin');destroyChart('export');
+  document.getElementById('mainTitle').textContent='기업별 '+ML[currentMetric]+' 추이';
+  charts['main']=new Chart(document.getElementById('mainChart'),{type:'line',data:{labels:quarters,datasets:companies.map((c,i)=>({label:c,data:quarters.map(q=>{const r=DATA.find(d=>d.company===c&&d.quarter===q);return r?r[currentMetric]:null;}),borderColor:COLORS[i],backgroundColor:COLORS[i]+'33',tension:.3,fill:false,pointRadius:4}))},options:{responsive:true,plugins:{legend:{position:'bottom',labels:{color:'#8b949e',font:{size:11}}}},scales:{x:{ticks:{color:'#8b949e'},grid:{color:'#21262d'}},y:{ticks:{color:'#8b949e'},grid:{color:'#21262d'}}}}});
+  const lastQ=quarters[quarters.length-1];
+  charts['margin']=new Chart(document.getElementById('marginChart'),{type:'bar',data:{labels:companies,datasets:[{label:'영업이익률(%)',data:companies.map(c=>{const r=DATA.find(d=>d.company===c&&d.quarter===lastQ);return r?r.op_margin:0;}),backgroundColor:COLORS.map(c=>c+'cc')}]},options:{responsive:true,plugins:{legend:{display:false}},scales:{x:{ticks:{color:'#8b949e'},grid:{color:'#21262d'}},y:{ticks:{color:'#8b949e'},grid:{color:'#21262d'}}}}});
+  charts['export']=new Chart(document.getElementById('exportChart'),{type:'bar',data:{labels:companies,datasets:[{label:'수출비중(%)',data:companies.map(c=>{const r=DATA.find(d=>d.company===c&&d.quarter===lastQ);return r?r.export_ratio:0;}),backgroundColor:'#f9731688'}]},options:{responsive:true,plugins:{legend:{display:false}},scales:{x:{ticks:{color:'#8b949e'},grid:{color:'#21262d'}},y:{max:100,ticks:{color:'#8b949e'},grid:{color:'#21262d'}}}}});
+}
+
+function renderExport(){
+  const companies=getCompanies(),quarters=getQuarters();
+  destroyChart('exportTrend');destroyChart('region');destroyChart('samyang');
+  charts['exportTrend']=new Chart(document.getElementById('exportTrendChart'),{type:'bar',data:{labels:quarters,datasets:companies.map((c,i)=>({label:c,data:quarters.map(q=>{const r=DATA.find(d=>d.company===c&&d.quarter===q);return r?r.export_revenue:0;}),backgroundColor:COLORS[i]+'99',stack:'s'}))},options:{responsive:true,plugins:{legend:{position:'bottom',labels:{color:'#8b949e'}}},scales:{x:{stacked:true,ticks:{color:'#8b949e'},grid:{color:'#21262d'}},y:{stacked:true,ticks:{color:'#8b949e'},grid:{color:'#21262d'}}}}});
+  const lastQ=quarters[quarters.length-1];
+  const naT=DATA.filter(d=>d.quarter===lastQ).reduce((s,d)=>s+d.north_america,0);
+  const asT=DATA.filter(d=>d.quarter===lastQ).reduce((s,d)=>s+d.asia,0);
+  const euT=DATA.filter(d=>d.quarter===lastQ).reduce((s,d)=>s+d.europe,0);
+  charts['region']=new Chart(document.getElementById('regionChart'),{type:'doughnut',data:{labels:['북미','아시아','유럽'],datasets:[{data:[naT,asT,euT],backgroundColor:['#fb923c','#3fb950','#38bdf8']}]},options:{responsive:true,plugins:{legend:{position:'bottom',labels:{color:'#8b949e'}}}}});
+  const samData=DATA.filter(d=>d.company==='삼양식품').sort((a,b)=>a.quarter.localeCompare(b.quarter));
+  charts['samyang']=new Chart(document.getElementById('samyangChart'),{type:'line',data:{labels:samData.map(d=>d.quarter),datasets:[{label:'수출비중(%)',data:samData.map(d=>d.export_ratio),borderColor:'#fb923c',backgroundColor:'#fb923c33',tension:.3,fill:true}]},options:{responsive:true,plugins:{legend:{labels:{color:'#8b949e'}}},scales:{x:{ticks:{color:'#8b949e'},grid:{color:'#21262d'}},y:{ticks:{color:'#8b949e'},grid:{color:'#21262d'}}}}});
+}
+
+function renderCompany(){
+  const companies=getCompanies();if(!currentCompany)currentCompany=companies[0];
+  document.getElementById('companyFilter').innerHTML=companies.map(c=>`<button class="filter-btn ${c===currentCompany?'active':''}" onclick="selectCompany('${c}',this)">${c}</button>`).join('');
+  updateCompanyView();
+}
+function selectCompany(c,btn){currentCompany=c;document.querySelectorAll('#companyFilter .filter-btn').forEach(b=>b.classList.remove('active'));btn.classList.add('active');updateCompanyView();}
+function updateCompanyView(){
+  const cData=DATA.filter(d=>d.company===currentCompany).sort((a,b)=>a.quarter.localeCompare(b.quarter));if(!cData.length)return;
+  const last=cData[cData.length-1],prev=cData[cData.length-2];
+  function delta(k){if(!prev)return'';const d=last[k]-prev[k];return `<span class="delta ${d>=0?'up':'down'}">${d>=0?'▲':'▼'}${Math.abs(d).toLocaleString()}</span>`;}
+  document.getElementById('companyKPI').innerHTML=`
+    <div class="kpi-card"><div class="label">매출액</div><div class="value">${last.revenue.toLocaleString()}<span class="unit">억원</span></div>${delta('revenue')}</div>
+    <div class="kpi-card"><div class="label">영업이익</div><div class="value">${last.op_income.toLocaleString()}<span class="unit">억원</span></div>${delta('op_income')}</div>
+    <div class="kpi-card"><div class="label">영업이익률</div><div class="value">${last.op_margin}<span class="unit">%</span></div>${delta('op_margin')}</div>
+    <div class="kpi-card"><div class="label">수출매출</div><div class="value">${last.export_revenue.toLocaleString()}<span class="unit">억원</span></div>${delta('export_revenue')}</div>
+    <div class="kpi-card"><div class="label">수출비중</div><div class="value">${last.export_ratio}<span class="unit">%</span></div>${delta('export_ratio')}</div>
+  `;
+  const qs=cData.map(d=>d.quarter);
+  destroyChart('companyBar');destroyChart('companyRegion');
+  charts['companyBar']=new Chart(document.getElementById('companyBarChart'),{type:'bar',data:{labels:qs,datasets:[{label:'매출액',data:cData.map(d=>d.revenue),backgroundColor:'#f9731666'},{label:'영업이익',data:cData.map(d=>d.op_income),backgroundColor:'#3fb95066'}]},options:{responsive:true,plugins:{legend:{labels:{color:'#8b949e'}}},scales:{x:{ticks:{color:'#8b949e'},grid:{color:'#21262d'}},y:{ticks:{color:'#8b949e'},grid:{color:'#21262d'}}}}});
+  charts['companyRegion']=new Chart(document.getElementById('companyRegionChart'),{type:'bar',data:{labels:qs,datasets:[{label:'북미',data:cData.map(d=>d.north_america),backgroundColor:'#fb923c88',stack:'s'},{label:'아시아',data:cData.map(d=>d.asia),backgroundColor:'#3fb95088',stack:'s'},{label:'유럽',data:cData.map(d=>d.europe),backgroundColor:'#38bdf888',stack:'s'}]},options:{responsive:true,plugins:{legend:{labels:{color:'#8b949e'}}},scales:{x:{stacked:true,ticks:{color:'#8b949e'},grid:{color:'#21262d'}},y:{stacked:true,ticks:{color:'#8b949e'},grid:{color:'#21262d'}}}}});
+}
+function renderTable(){document.getElementById('dataTable').innerHTML=DATA.map(d=>`<tr><td>${d.quarter}</td><td>${d.company}</td><td>${d.revenue.toLocaleString()}</td><td>${d.op_income.toLocaleString()}</td><td>${d.op_margin}%</td><td>${d.export_revenue.toLocaleString()}</td><td>${d.export_ratio}%</td><td>${d.north_america.toLocaleString()}</td><td>${d.asia.toLocaleString()}</td><td>${d.europe.toLocaleString()}</td></tr>`).join('');}
+function exportCSV(){const h=['분기','기업명','매출액','영업이익','영업이익률','수출매출','수출비중','북미','아시아','유럽'];const rows=DATA.map(d=>[d.quarter,d.company,d.revenue,d.op_income,d.op_margin,d.export_revenue,d.export_ratio,d.north_america,d.asia,d.europe]);const csv=[h,...rows].map(r=>r.join(',')).join('\n');const blob=new Blob(['\uFEFF'+csv],{type:'text/csv;charset=utf-8'});const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download='kfood_data.csv';a.click();}
+function resetToSample(){DATA=[...SAMPLE];isSample=true;updateSourceBar();populateFilters();renderSummary();}
+function updateSourceBar(){document.getElementById('dsBadge').className='ds-badge '+(isSample?'sample':'live');document.getElementById('dsBadge').textContent=isSample?'SAMPLE':'LIVE';document.getElementById('dsInfo').textContent=isSample?'샘플 데이터 | collect_data.py 실행 후 data/kfood_data.js 필요':`DART 데이터 | ${DATA.length}건`;}
+function populateFilters(){const qs=getQuarters();document.getElementById('quarterFilter').innerHTML='<option value="all">전체 분기</option>'+qs.map(q=>`<option value="${q}">${q}</option>`).join('');}
+function loadExternalData(){if(window.INDUSTRY_DATA_KFOOD&&Array.isArray(window.INDUSTRY_DATA_KFOOD)){DATA=window.INDUSTRY_DATA_KFOOD;isSample=false;}else{DATA=[...SAMPLE];isSample=true;}}
+loadExternalData();updateSourceBar();populateFilters();renderSummary();
+</script>
+<script src="data/kfood_data.js" onerror="console.log('kfood_data.js 없음')"></script>
+</body></html>
