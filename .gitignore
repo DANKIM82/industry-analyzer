@@ -1,0 +1,17 @@
+# 비밀값 — 절대 커밋 금지
+.env
+
+# 파이썬 가상환경 / 캐시
+.venv/
+__pycache__/
+*.py[cod]
+
+# 자동 생성물 (collect_data.py 가 재생성)
+data/
+docs_cache/
+
+# OS / 에디터
+Thumbs.db
+.DS_Store
+.vscode/
+.idea/

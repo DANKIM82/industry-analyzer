@@ -1,6 +1,24 @@
 # DART API 설정
-DART_API_KEY = "2c82d90d3e4120849e2941e66fbfb9c1c4aa7f37"  # 여기에 발급받은 API 키 입력
-# 2a596bad2dff9d4ef99ab2d8fc9c94eef2ed9652
+# 보안: API 키는 소스코드에 두지 않고 환경변수(DART_API_KEY)에서 읽는다.
+#  - 로컬: 프로젝트 루트에 .env 파일을 만들고  DART_API_KEY=발급키  한 줄을 넣으면 자동 로드된다(.env.example 참고).
+#  - 스케줄러/CI: 환경변수로 주입.
+#  - 키 발급: https://opendart.fss.or.kr
+import os
+
+try:
+    from dotenv import load_dotenv  # python-dotenv (requirements.txt 포함)
+    load_dotenv()                   # 루트의 .env 로드 (파일 없으면 조용히 무시)
+except ImportError:
+    pass                            # dotenv 미설치 시엔 OS 환경변수만 사용
+
+DART_API_KEY = os.getenv("DART_API_KEY", "").strip()
+if not DART_API_KEY:
+    raise RuntimeError(
+        "DART_API_KEY 가 설정되지 않았습니다.\n"
+        "  1) 프로젝트 루트에 .env 파일을 만들고  DART_API_KEY=발급키  를 넣거나\n"
+        "  2) 환경변수 DART_API_KEY 를 설정하세요.  (키 발급: https://opendart.fss.or.kr)\n"
+        "  템플릿은 .env.example 참고."
+    )
 
 # 수집 대상 기업 (DART 고유번호 - find_corp_codes.py로 검증 완료 2026-06-25)
 COMPANIES = {
