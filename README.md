@@ -9,6 +9,29 @@ DART OpenAPI 기반으로 국내 주요 산업의 분기 실적을 자동 수집
 
 ---
 
+## 🚀 대시보드 바로가기 (Live)
+
+### ▶ **[메인 허브 열기 (index.html)](https://dankim82.github.io/industry-analyzer/)**
+
+| 산업 | 바로가기 |
+|---|---|
+| 🧠 **반도체** · 실적 + 🌐Global Semi Watch + 📦수출 트래커 + 🔮전문가 전망 | **[열기](https://dankim82.github.io/industry-analyzer/semiconductor.html)** |
+| 💰 금융 | [열기](https://dankim82.github.io/industry-analyzer/finance.html) |
+| 🚢 조선 | [열기](https://dankim82.github.io/industry-analyzer/shipbuilding.html) |
+| 🛡️ 방산 | [열기](https://dankim82.github.io/industry-analyzer/defense.html) |
+| 🎮 게임 | [열기](https://dankim82.github.io/industry-analyzer/gaming.html) |
+| 🍜 K-푸드 | [열기](https://dankim82.github.io/industry-analyzer/kfood.html) |
+| 💄 K-뷰티 | [열기](https://dankim82.github.io/industry-analyzer/kbeauty.html) |
+| 🌐 지정학 매크로 리포트 | [열기](https://dankim82.github.io/industry-analyzer/geopolitics.html) |
+
+> ⚠️ **위 링크가 404라면** GitHub Pages가 아직 켜지지 않은 상태입니다. 저장소 **Settings → Pages → Build and deployment → Source: `Deploy from a branch` → Branch: `main` / `/(root)` → Save** 한 번이면 모든 링크가 작동합니다(빌드 ~1분).
+>
+> **Pages 활성화 전 즉시 보기(htmlpreview)** — 설정 없이 바로 렌더링:
+> [🧠 반도체](https://htmlpreview.github.io/?https://github.com/DANKIM82/industry-analyzer/blob/main/semiconductor.html) ·
+> [▶ 허브](https://htmlpreview.github.io/?https://github.com/DANKIM82/industry-analyzer/blob/main/index.html)
+
+---
+
 ## 목차
 
 1. [빠른 시작](#빠른-시작)
