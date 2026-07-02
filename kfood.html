@@ -4,276 +4,788 @@
 <meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
 <title>K-푸드 실적 Dashboard</title>
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
-<style>:root{--theme:#f97316;}
-* { margin:0; padding:0; box-sizing:border-box; }
-body { font-family:'Pretendard','Noto Sans KR',sans-serif; background:#0d1117; color:#e6edf3; min-height:100vh; display:flex; }
+<style>
+:root{--theme:#f97316;--bg:#0d1117;--bg2:#161b22;--border:#30363d;--text:#e6edf3;--muted:#8b949e;--green:#3fb950;--red:#f85149;--blue:#38bdf8;--purple:#bc8cff;}
+*{margin:0;padding:0;box-sizing:border-box;}
+body{font-family:'Pretendard','Noto Sans KR',sans-serif;background:var(--bg);color:var(--text);min-height:100vh;display:flex;}
 
 /* 사이드바 */
-.sidebar { width:220px; min-height:100vh; background:#161b22; border-right:1px solid #30363d; display:flex; flex-direction:column; position:fixed; top:0; left:0; z-index:100; }
-.sidebar-logo { padding:20px 16px 12px; border-bottom:1px solid #30363d; }
-.sidebar-logo .sector-badge { display:inline-block; padding:3px 8px; border-radius:4px; font-size:11px; font-weight:700; letter-spacing:1px; margin-bottom:6px; }
-.sidebar-logo h2 { font-size:15px; font-weight:700; line-height:1.3; }
-.sidebar-logo p { font-size:11px; color:#8b949e; margin-top:2px; }
-.sidebar-nav { padding:12px 0; flex:1; overflow-y:auto; }
-.sidebar-nav .nav-section { padding:6px 16px 4px; font-size:10px; font-weight:700; color:#8b949e; letter-spacing:1px; text-transform:uppercase; }
-.sidebar-nav a { display:flex; align-items:center; gap:8px; padding:8px 16px; font-size:13px; color:#8b949e; text-decoration:none; transition:all .15s; cursor:pointer; border-left:2px solid transparent; }
-.sidebar-nav a:hover { color:#e6edf3; background:#21262d; }
-.sidebar-nav a.active { color:#e6edf3; background:#21262d; border-left-color:var(--theme); }
-.sidebar-nav a .icon { font-size:15px; }
-.sidebar-footer { padding:12px 16px; border-top:1px solid #30363d; font-size:11px; color:#8b949e; }
-.sidebar-footer a { color:#58a6ff; text-decoration:none; }
+.sidebar{width:220px;min-height:100vh;background:var(--bg2);border-right:1px solid var(--border);display:flex;flex-direction:column;position:fixed;top:0;left:0;z-index:100;}
+.sidebar-logo{padding:20px 16px 12px;border-bottom:1px solid var(--border);}
+.sector-badge{display:inline-block;padding:3px 8px;border-radius:4px;font-size:11px;font-weight:700;letter-spacing:1px;margin-bottom:6px;}
+.sidebar-logo h2{font-size:15px;font-weight:700;line-height:1.3;}
+.sidebar-logo p{font-size:11px;color:var(--muted);margin-top:2px;}
+.sidebar-nav{padding:12px 0;flex:1;overflow-y:auto;}
+.nav-section{padding:6px 16px 4px;font-size:10px;font-weight:700;color:var(--muted);letter-spacing:1px;text-transform:uppercase;}
+.sidebar-nav a{display:flex;align-items:center;gap:8px;padding:8px 16px;font-size:13px;color:var(--muted);text-decoration:none;transition:all .15s;cursor:pointer;border-left:2px solid transparent;}
+.sidebar-nav a:hover{color:var(--text);background:#21262d;}
+.sidebar-nav a.active{color:var(--text);background:#21262d;border-left-color:var(--theme);}
+.sidebar-nav a .icon{font-size:15px;}
+.sidebar-footer{padding:12px 16px;border-top:1px solid var(--border);font-size:11px;color:var(--muted);}
 
 /* 메인 */
-.main { margin-left:220px; flex:1; display:flex; flex-direction:column; min-height:100vh; }
-.topbar { padding:14px 24px; border-bottom:1px solid #30363d; display:flex; align-items:center; justify-content:space-between; background:#0d1117; position:sticky; top:0; z-index:50; }
-.topbar h1 { font-size:18px; font-weight:700; }
-.topbar .controls { display:flex; gap:10px; align-items:center; flex-wrap:wrap; }
-.topbar select { background:#21262d; border:1px solid #30363d; color:#e6edf3; padding:6px 10px; border-radius:6px; font-size:13px; }
-.btn { padding:6px 14px; border-radius:6px; font-size:13px; font-weight:600; border:none; cursor:pointer; transition:all .15s; }
-.btn-primary { background:var(--theme); color:#fff; }
-.btn-primary:hover { opacity:.85; }
-.btn-outline { background:transparent; border:1px solid #30363d; color:#8b949e; }
-.btn-outline:hover { border-color:#58a6ff; color:#58a6ff; }
-.btn-sm { padding:4px 10px; font-size:12px; }
+.main{margin-left:220px;flex:1;display:flex;flex-direction:column;min-height:100vh;}
+.topbar{padding:14px 24px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;background:var(--bg);position:sticky;top:0;z-index:50;}
+.topbar h1{font-size:18px;font-weight:700;}
+.topbar .controls{display:flex;gap:10px;align-items:center;flex-wrap:wrap;}
+.topbar select{background:#21262d;border:1px solid var(--border);color:var(--text);padding:6px 10px;border-radius:6px;font-size:13px;}
+.btn{padding:6px 14px;border-radius:6px;font-size:13px;font-weight:600;border:none;cursor:pointer;transition:all .15s;}
+.btn-primary{background:var(--theme);color:#fff;}
+.btn-primary:hover{opacity:.85;}
+.btn-outline{background:transparent;border:1px solid var(--border);color:var(--muted);}
+.btn-outline:hover{border-color:#58a6ff;color:#58a6ff;}
+.btn-sm{padding:4px 10px;font-size:12px;}
 
 /* 데이터 소스 바 */
-.data-source-bar { background:#161b22; border-bottom:1px solid #30363d; padding:8px 24px; display:flex; align-items:center; gap:12px; font-size:12px; }
-.ds-badge { padding:2px 8px; border-radius:10px; font-weight:700; font-size:11px; }
-.ds-badge.sample { background:#2d1b00; color:#f59e0b; border:1px solid #92400e; }
-.ds-badge.live { background:#0d2818; color:#3fb950; border:1px solid #1a4731; }
-.ds-info { color:#8b949e; }
-.ds-actions { margin-left:auto; display:flex; gap:8px; }
+.data-source-bar{background:var(--bg2);border-bottom:1px solid var(--border);padding:8px 24px;display:flex;align-items:center;gap:12px;font-size:12px;}
+.ds-badge{padding:2px 8px;border-radius:10px;font-weight:700;font-size:11px;}
+.ds-badge.sample{background:#2d1b00;color:#f59e0b;border:1px solid #92400e;}
+.ds-badge.live{background:#0d2818;color:var(--green);border:1px solid #1a4731;}
+.ds-info{color:var(--muted);}
+.ds-actions{margin-left:auto;display:flex;gap:8px;}
 
 /* 컨텐츠 */
-.content { padding:24px; flex:1; }
-.section-title { font-size:15px; font-weight:700; color:#e6edf3; margin-bottom:16px; display:flex; align-items:center; gap:8px; }
-.section-title::before { content:''; width:3px; height:16px; background:var(--theme); border-radius:2px; display:block; }
+.content{padding:24px;flex:1;}
+.section-title{font-size:15px;font-weight:700;color:var(--text);margin-bottom:16px;display:flex;align-items:center;gap:8px;}
+.section-title::before{content:'';width:3px;height:16px;background:var(--theme);border-radius:2px;display:block;}
+.sub-title{font-size:12px;color:var(--muted);margin-bottom:12px;padding-left:11px;}
 
 /* KPI 카드 */
-.kpi-grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(180px,1fr)); gap:12px; margin-bottom:24px; }
-.kpi-card { background:#161b22; border:1px solid #30363d; border-radius:10px; padding:16px; }
-.kpi-card .label { font-size:11px; color:#8b949e; margin-bottom:6px; }
-.kpi-card .value { font-size:22px; font-weight:700; color:#e6edf3; }
-.kpi-card .unit { font-size:12px; color:#8b949e; margin-left:2px; }
-.kpi-card .delta { font-size:12px; margin-top:4px; }
-.delta.up { color:#3fb950; }
-.delta.down { color:#f85149; }
+.kpi-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(160px,1fr));gap:10px;margin-bottom:20px;}
+.kpi-card{background:var(--bg2);border:1px solid var(--border);border-radius:10px;padding:14px 16px;position:relative;overflow:hidden;}
+.kpi-card .label{font-size:10px;color:var(--muted);margin-bottom:5px;text-transform:uppercase;letter-spacing:.5px;}
+.kpi-card .value{font-size:20px;font-weight:700;color:var(--text);}
+.kpi-card .unit{font-size:11px;color:var(--muted);margin-left:2px;}
+.kpi-card .delta{font-size:11px;margin-top:3px;}
+.kpi-card .signal{font-size:10px;font-weight:700;padding:2px 6px;border-radius:3px;position:absolute;top:10px;right:10px;}
+.signal.long{background:#0d2818;color:var(--green);border:1px solid #1a4731;}
+.signal.short{background:#2d0e0e;color:var(--red);border:1px solid #5a1e1e;}
+.signal.neutral{background:#1c1c2e;color:var(--blue);border:1px solid #2d3a5e;}
+.delta.up{color:var(--green);}
+.delta.dn{color:var(--red);}
 
 /* 차트 그리드 */
-.chart-grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(460px,1fr)); gap:16px; margin-bottom:24px; }
-.chart-card { background:#161b22; border:1px solid #30363d; border-radius:10px; padding:20px; }
-.chart-card h3 { font-size:13px; font-weight:600; color:#8b949e; margin-bottom:14px; }
-.chart-card canvas { max-height:240px; }
+.chart-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(460px,1fr));gap:16px;margin-bottom:20px;}
+.chart-card{background:var(--bg2);border:1px solid var(--border);border-radius:10px;padding:18px;}
+.chart-card h3{font-size:12px;font-weight:600;color:var(--muted);margin-bottom:12px;display:flex;align-items:center;gap:6px;}
+.chart-card h3 .badge-sm{font-size:9px;padding:1px 5px;border-radius:3px;background:#21262d;color:var(--muted);}
+.chart-card canvas{max-height:220px;}
 
 /* 테이블 */
-.table-wrap { background:#161b22; border:1px solid #30363d; border-radius:10px; overflow:hidden; margin-bottom:24px; }
-.table-wrap table { width:100%; border-collapse:collapse; font-size:13px; }
-.table-wrap th { padding:10px 14px; text-align:left; font-size:11px; font-weight:700; color:#8b949e; text-transform:uppercase; letter-spacing:.5px; border-bottom:1px solid #30363d; background:#0d1117; }
-.table-wrap td { padding:10px 14px; border-bottom:1px solid #21262d; color:#e6edf3; }
-.table-wrap tr:last-child td { border-bottom:none; }
-.table-wrap tr:hover td { background:#21262d; }
-.tag { display:inline-block; padding:2px 7px; border-radius:4px; font-size:11px; font-weight:600; }
+.table-wrap{background:var(--bg2);border:1px solid var(--border);border-radius:10px;overflow:auto;margin-bottom:20px;}
+.table-wrap table{width:100%;border-collapse:collapse;font-size:12px;min-width:900px;}
+.table-wrap th{padding:9px 12px;text-align:right;font-size:10px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.5px;border-bottom:1px solid var(--border);background:var(--bg);white-space:nowrap;}
+.table-wrap th:first-child,.table-wrap th:nth-child(2){text-align:left;}
+.table-wrap td{padding:9px 12px;border-bottom:1px solid #21262d;color:var(--text);text-align:right;white-space:nowrap;}
+.table-wrap td:first-child,.table-wrap td:nth-child(2){text-align:left;}
+.table-wrap tr:last-child td{border-bottom:none;}
+.table-wrap tr:hover td{background:#21262d;}
+.cell-up{color:var(--green);}
+.cell-dn{color:var(--red);}
 
 /* 필터 버튼 */
-.filter-bar { display:flex; gap:8px; flex-wrap:wrap; margin-bottom:16px; }
-.filter-btn { padding:5px 12px; border-radius:16px; font-size:12px; font-weight:600; border:1px solid #30363d; background:transparent; color:#8b949e; cursor:pointer; transition:all .15s; }
-.filter-btn.active, .filter-btn:hover { background:var(--theme); color:#fff; border-color:var(--theme); }
+.filter-bar{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:14px;}
+.filter-btn{padding:4px 11px;border-radius:14px;font-size:12px;font-weight:600;border:1px solid var(--border);background:transparent;color:var(--muted);cursor:pointer;transition:all .15s;}
+.filter-btn.active,.filter-btn:hover{background:var(--theme);color:#fff;border-color:var(--theme);}
+.filter-btn.short-btn.active,.filter-btn.short-btn:hover{background:var(--red);border-color:var(--red);}
+
+/* 인사이트 박스 */
+.insight-box{background:#0d1f1a;border:1px solid #1a4731;border-radius:8px;padding:14px 16px;margin-bottom:16px;font-size:12px;line-height:1.7;color:#b6e3c6;}
+.insight-box .insight-title{font-size:11px;font-weight:700;color:var(--green);text-transform:uppercase;letter-spacing:.5px;margin-bottom:6px;}
+.insight-box ul{padding-left:14px;}
+.insight-box li{margin-bottom:3px;}
+
+/* 비교 테이블 */
+.comp-table{width:100%;border-collapse:collapse;font-size:12px;}
+.comp-table th{padding:8px 12px;text-align:center;font-size:10px;font-weight:700;color:var(--muted);border-bottom:1px solid var(--border);background:var(--bg);}
+.comp-table td{padding:8px 12px;text-align:center;border-bottom:1px solid #21262d;}
+.comp-table tr:last-child td{border-bottom:none;}
+.comp-table tr:hover td{background:#21262d;}
+.rank-1{color:#ffd700;font-weight:700;}
+.rank-2{color:#c0c0c0;}
+.rank-3{color:#cd7f32;}
+
+/* 뷰 전환 */
+.view{display:none;}
+.view.active{display:block;}
 
 /* 반응형 */
 @media(max-width:768px){
-  .sidebar { transform:translateX(-220px); }
-  .main { margin-left:0; }
-  .chart-grid { grid-template-columns:1fr; }
-  .kpi-grid { grid-template-columns:repeat(2,1fr); }
+.sidebar{transform:translateX(-220px);}
+.main{margin-left:0;}
+.chart-grid{grid-template-columns:1fr;}
+.kpi-grid{grid-template-columns:repeat(2,1fr);}
 }
 
-/* 뷰 전환 */
-.view { display:none; }
-.view.active { display:block; }
-
-/* 스켈레톤/로딩 */
-.loading-msg { text-align:center; padding:60px; color:#8b949e; font-size:14px; }
+/* 스크롤바 */
+::-webkit-scrollbar{width:6px;height:6px;}
+::-webkit-scrollbar-track{background:var(--bg);}
+::-webkit-scrollbar-thumb{background:var(--border);border-radius:3px;}
 </style>
 </head>
 <body>
 <nav class="sidebar">
-  <div class="sidebar-logo">
-    <span class="sector-badge" style="background:#431407;color:#fb923c;">K-FOOD</span>
-    <h2>K-푸드 실적</h2><p>글로벌 K-Food Dashboard</p>
-  </div>
-  <div class="sidebar-nav">
-    <div class="nav-section">Views</div>
-    <a class="active" onclick="switchView('summary',event)"><span class="icon">📊</span>종합 현황</a>
-    <a onclick="switchView('export',event)"><span class="icon">🌍</span>수출·지역 분석</a>
-    <a onclick="switchView('company',event)"><span class="icon">🏢</span>기업별 분석</a>
-    <a onclick="switchView('table',event)"><span class="icon">📋</span>데이터 테이블</a>
-    <div class="nav-section" style="margin-top:12px;">Hub</div>
-    <a href="index.html"><span class="icon">🏠</span>메인 허브</a>
-  </div>
-  <div class="sidebar-footer">데이터: DART OpenAPI<br>자동업데이트: 분기별</div>
-</nav>
-<div class="main">
-  <div class="topbar">
-    <h1>🍜 K-푸드 실적 Dashboard</h1>
-    <div class="controls">
-      <select id="quarterFilter" onchange="renderAll()"><option value="all">전체 분기</option></select>
-      <button class="btn btn-outline btn-sm" onclick="exportCSV()">⬇ CSV 내보내기</button>
-    </div>
-  </div>
-  <div class="data-source-bar">
-    <span class="ds-badge sample" id="dsBadge">SAMPLE</span>
-    <span class="ds-info" id="dsInfo">샘플 데이터 | data/kfood_data.js 로드 필요</span>
-    <div class="ds-actions"><button class="btn btn-outline btn-sm" onclick="resetToSample()">🔄 샘플로 초기화</button></div>
-  </div>
-  <div class="content">
-    <div class="view active" id="view-summary">
-      <div class="filter-bar" id="metricFilter">
-        <button class="filter-btn active" onclick="setMetric('revenue',this)">매출액</button>
-        <button class="filter-btn" onclick="setMetric('op_income',this)">영업이익</button>
-        <button class="filter-btn" onclick="setMetric('op_margin',this)">영업이익률(%)</button>
-        <button class="filter-btn" onclick="setMetric('export_revenue',this)">수출매출</button>
-        <button class="filter-btn" onclick="setMetric('export_ratio',this)">수출비중(%)</button>
-        <button class="filter-btn" onclick="setMetric('net_income',this)">순이익</button>
-        <button class="filter-btn" onclick="setMetric('net_margin',this)">순이익률(%)</button>
-        <button class="filter-btn" onclick="setMetric('op_cashflow',this)">영업현금흐름</button>
-        <button class="filter-btn" onclick="setMetric('eps',this)">EPS(원)</button>
-        <button class="filter-btn" onclick="setMetric('roe',this)">ROE(%)</button>
-      </div>
-      <div class="chart-grid">
-        <div class="chart-card" style="grid-column:1/-1"><h3 id="mainTitle">기업별 매출액 추이 (십억원)</h3><canvas id="mainChart"></canvas></div>
-        <div class="chart-card"><h3>최근 분기 영업이익률 (%)</h3><canvas id="marginChart"></canvas></div>
-        <div class="chart-card"><h3>최근 분기 수출비중 (%)</h3><canvas id="exportChart"></canvas></div>
-      </div>
-    </div>
-    <div class="view" id="view-export">
-      <div class="section-title">수출·지역별 분석</div>
-      <div class="chart-grid">
-        <div class="chart-card" style="grid-column:1/-1"><h3>기업별 수출매출 추이 (십억원)</h3><canvas id="exportTrendChart"></canvas></div>
-        <div class="chart-card"><h3>지역별 수출 구성 (최근분기, 십억원)</h3><canvas id="regionChart"></canvas></div>
-        <div class="chart-card"><h3>삼양식품 수출비중 추이 (%)</h3><canvas id="samyangChart"></canvas></div>
-      </div>
-    </div>
-    <div class="view" id="view-company">
-      <div class="filter-bar" id="companyFilter"></div>
-      <div class="kpi-grid" id="companyKPI"></div>
-      <div class="chart-grid">
-        <div class="chart-card"><h3>매출액·영업이익 (십억원)</h3><canvas id="companyBarChart"></canvas></div>
-        <div class="chart-card"><h3>수출 지역별 구성 추이 (십억원)</h3><canvas id="companyRegionChart"></canvas></div>
-      </div>
-    </div>
-    <div class="view" id="view-table">
-      <div class="section-title">전체 데이터</div>
-      <div class="table-wrap"><table>
-        <thead><tr><th>분기</th><th>기업명</th><th>매출액(십억)</th><th>영업이익(십억)</th><th>영업이익률(%)</th><th>수출매출(십억)</th><th>수출비중(%)</th><th>북미(십억)</th><th>아시아(십억)</th><th>유럽(십억)</th></tr></thead>
-        <tbody id="dataTable"></tbody>
-      </table></div>
-    </div>
-  </div>
+<div class="sidebar-logo">
+<span class="sector-badge" style="background:#431407;color:#fb923c;">K-FOOD</span>
+<h2>K-푸드 실적</h2><p>글로벌 K-Food L/S Dashboard</p>
 </div>
+<div class="sidebar-nav">
+<div class="nav-section">Views</div>
+<a class="active" onclick="switchView('summary',event)"><span class="icon">📊</span>종합 현황 · KPI</a>
+<a onclick="switchView('margin',event)"><span class="icon">📈</span>수익성 · 마진 분석</a>
+<a onclick="switchView('export',event)"><span class="icon">🌍</span>수출 · 지역 분석</a>
+<a onclick="switchView('quality',event)"><span class="icon">💡</span>이익 질 · 현금흐름</a>
+<a onclick="switchView('relative',event)"><span class="icon">⚖️</span>상대 비교 · L/S 시그널</a>
+<a onclick="switchView('company',event)"><span class="icon">🏢</span>기업별 드릴다운</a>
+<a onclick="switchView('table',event)"><span class="icon">📋</span>Raw 데이터</a>
+<div class="nav-section" style="margin-top:12px;">Hub</div>
+<a href="index.html"><span class="icon">🏠</span>메인 허브</a>
+</div>
+<div class="sidebar-footer">데이터: DART OpenAPI<br>분기 자동수집 · 억원 기준</div>
+</nav>
+
+<div class="main">
+<div class="topbar">
+<h1>🍜 K-푸드 실적 Dashboard <span style="font-size:12px;color:var(--muted);font-weight:400;margin-left:8px;">Buy-Side L/S View</span></h1>
+<div class="controls">
+<select id="quarterFilter" onchange="renderAll()"><option value="all">전체 분기</option></select>
+<select id="periodFilter" onchange="renderAll()">
+<option value="8">최근 2년(8Q)</option>
+<option value="12">최근 3년(12Q)</option>
+<option value="20" selected>최근 5년(20Q)</option>
+</select>
+<button class="btn btn-outline btn-sm" onclick="exportCSV()">⬇ CSV</button>
+</div>
+</div>
+<div class="data-source-bar">
+<span class="ds-badge sample" id="dsBadge">SAMPLE</span>
+<span class="ds-info" id="dsInfo">샘플 데이터</span>
+<div class="ds-actions"><button class="btn btn-outline btn-sm" onclick="resetToSample()">🔄 샘플</button></div>
+</div>
+
+<div class="content">
+
+<!-- ① 종합 현황 · KPI -->
+<div class="view active" id="view-summary">
+<div class="kpi-grid" id="sectorKPI"></div>
+<div class="filter-bar" id="metricFilter">
+<button class="filter-btn active" onclick="setMetric('revenue',this)">매출액</button>
+<button class="filter-btn" onclick="setMetric('op_income',this)">영업이익</button>
+<button class="filter-btn" onclick="setMetric('op_margin',this)">영업이익률%</button>
+<button class="filter-btn" onclick="setMetric('export_revenue',this)">수출매출</button>
+<button class="filter-btn" onclick="setMetric('export_ratio',this)">수출비중%</button>
+<button class="filter-btn" onclick="setMetric('net_income',this)">순이익</button>
+<button class="filter-btn" onclick="setMetric('op_cashflow',this)">영업CFO</button>
+<button class="filter-btn" onclick="setMetric('eps',this)">EPS</button>
+<button class="filter-btn" onclick="setMetric('roe',this)">ROE%</button>
+</div>
+<div class="chart-grid">
+<div class="chart-card" style="grid-column:1/-1"><h3 id="mainTitle">기업별 매출액 추이 (십억원)</h3><canvas id="mainChart"></canvas></div>
+<div class="chart-card"><h3>최근 분기 영업이익률 (%) <span class="badge-sm">MARGIN RANK</span></h3><canvas id="marginBar"></canvas></div>
+<div class="chart-card"><h3>매출 YoY 성장률 (%) <span class="badge-sm">YoY</span></h3><canvas id="yoyChart"></canvas></div>
+</div>
+</div>
+
+<!-- ② 수익성 · 마진 분석 -->
+<div class="view" id="view-margin">
+<div class="section-title">수익성 · 마진 심층 분석</div>
+<div class="sub-title">영업이익률 추이 · 마진 확장/수축 속도 · 비용 레버리지</div>
+<div class="insight-box" id="marginInsight">
+<div class="insight-title">⚡ Manager's Note</div>
+<div id="marginInsightText">데이터 로딩 중...</div>
+</div>
+<div class="chart-grid">
+<div class="chart-card" style="grid-column:1/-1"><h3>기업별 영업이익률 추이 (%) — 마진 사이클</h3><canvas id="marginTrendChart"></canvas></div>
+<div class="chart-card"><h3>순이익률 추이 (%)</h3><canvas id="netMarginChart"></canvas></div>
+<div class="chart-card"><h3>영업이익률 변화 (QoQ Δ%p) — 모멘텀</h3><canvas id="marginMomChart"></canvas></div>
+</div>
+</div>
+
+<!-- ③ 수출 · 지역 분석 -->
+<div class="view" id="view-export">
+<div class="section-title">수출 · 지역별 분석</div>
+<div class="sub-title">글로벌 K-Food 침투율 · 지역별 성장 드라이버</div>
+<div class="chart-grid">
+<div class="chart-card" style="grid-column:1/-1"><h3>기업별 수출매출 추이 (십억원) — Stacked</h3><canvas id="exportTrendChart"></canvas></div>
+<div class="chart-card"><h3>최근 분기 수출비중 (%) — 글로벌 의존도</h3><canvas id="exportRatioBar"></canvas></div>
+<div class="chart-card"><h3>지역별 수출 구성 (최근분기)</h3><canvas id="regionDonut"></canvas></div>
+<div class="chart-card" style="grid-column:1/-1"><h3>수출비중 추이 (%) — 기업별 글로벌화 속도</h3><canvas id="exportRatioTrend"></canvas></div>
+</div>
+</div>
+
+<!-- ④ 이익 질 · 현금흐름 -->
+<div class="view" id="view-quality">
+<div class="section-title">이익 질(Earnings Quality) · 현금흐름</div>
+<div class="sub-title">CFO/Net Income 비율 · 어닝 서프라이즈 모멘텀 · 이익 지속성</div>
+<div class="insight-box" id="qualityInsight">
+<div class="insight-title">⚡ 이익 질 평가</div>
+<div id="qualityInsightText">데이터 로딩 중...</div>
+</div>
+<div class="chart-grid">
+<div class="chart-card"><h3>CFO / 영업이익 (현금전환율) — 이익 질 지표</h3><canvas id="cfoCoverChart"></canvas></div>
+<div class="chart-card"><h3>ROE 추이 (%) — 자본 효율성</h3><canvas id="roeChart"></canvas></div>
+<div class="chart-card" style="grid-column:1/-1"><h3>영업현금흐름 추이 (십억원)</h3><canvas id="cfoTrendChart"></canvas></div>
+</div>
+</div>
+
+<!-- ⑤ 상대 비교 · L/S 시그널 -->
+<div class="view" id="view-relative">
+<div class="section-title">상대 비교 · L/S 시그널</div>
+<div class="sub-title">섹터 내 롱숏 아이디어 · 모멘텀 스코어 · 핵심 체크리스트</div>
+<div class="insight-box" id="lsInsight">
+<div class="insight-title">⚡ L/S Trade Idea (Latest Quarter)</div>
+<div id="lsInsightText">데이터 로딩 중...</div>
+</div>
+<div class="chart-grid">
+<div class="chart-card"><h3>마진 vs 수출비중 (버블: 매출규모) — Scatter</h3><canvas id="scatterChart"></canvas></div>
+<div class="chart-card"><h3>종합 모멘텀 스코어 (멀티팩터)</h3><canvas id="scoreChart"></canvas></div>
+</div>
+<div class="section-title" style="margin-top:8px;">종목별 멀티팩터 스코어카드</div>
+<div class="table-wrap"><table class="comp-table" id="scorecardTable"></table></div>
+<div class="section-title" style="margin-top:8px;">핵심 리스크 체크리스트</div>
+<div id="riskChecklist" style="display:grid;grid-template-columns:1fr 1fr;gap:12px;"></div>
+</div>
+
+<!-- ⑥ 기업별 드릴다운 -->
+<div class="view" id="view-company">
+<div class="filter-bar" id="companyFilter"></div>
+<div class="kpi-grid" id="companyKPI"></div>
+<div class="chart-grid">
+<div class="chart-card"><h3>매출액 · 영업이익 (십억원)</h3><canvas id="companyBarChart"></canvas></div>
+<div class="chart-card"><h3>마진율 추이 (%)</h3><canvas id="companyMarginChart"></canvas></div>
+<div class="chart-card"><h3>수출비중 추이 (%)</h3><canvas id="companyExportChart"></canvas></div>
+<div class="chart-card"><h3>CFO vs 영업이익 (십억원)</h3><canvas id="companyCFOChart"></canvas></div>
+</div>
+</div>
+
+<!-- ⑦ Raw 데이터 -->
+<div class="view" id="view-table">
+<div class="section-title">전체 Raw 데이터</div>
+<div class="table-wrap">
+<table>
+<thead><tr>
+<th style="text-align:left">분기</th><th style="text-align:left">기업</th>
+<th>매출(십억)</th><th>영업익(십억)</th><th>OPM%</th>
+<th>순익(십억)</th><th>NPM%</th>
+<th>수출(십억)</th><th>수출비%</th>
+<th>북미(십억)</th><th>아시아(십억)</th><th>유럽(십억)</th>
+<th>CFO(십억)</th><th>EPS(원)</th><th>ROE%</th>
+<th>매출YoY%</th><th>OPM변화Δ</th>
+</tr></thead>
+<tbody id="dataTable"></tbody>
+</table>
+</div>
+</div>
+
+</div><!-- .content -->
+</div><!-- .main -->
+
 <script src="data/kfood_data.js" onerror="console.log('kfood_data.js 없음')"></script>
 <script>
-const SAMPLE=[
-  {quarter:'2023Q1',company:'삼양식품',revenue:3120,op_income:520,op_margin:16.7,export_revenue:2180,export_ratio:69.9,north_america:620,asia:1180,europe:380},
-  {quarter:'2023Q2',company:'삼양식품',revenue:3380,op_income:590,op_margin:17.5,export_revenue:2450,export_ratio:72.5,north_america:720,asia:1280,europe:450},
-  {quarter:'2023Q3',company:'삼양식품',revenue:3650,op_income:680,op_margin:18.6,export_revenue:2720,export_ratio:74.5,north_america:820,asia:1380,europe:520},
-  {quarter:'2023Q4',company:'삼양식품',revenue:3920,op_income:780,op_margin:19.9,export_revenue:3020,export_ratio:77.0,north_america:950,asia:1480,europe:590},
-  {quarter:'2024Q1',company:'삼양식품',revenue:4280,op_income:920,op_margin:21.5,export_revenue:3420,export_ratio:79.9,north_america:1120,asia:1620,europe:680},
-  {quarter:'2024Q2',company:'삼양식품',revenue:4650,op_income:1080,op_margin:23.2,export_revenue:3820,export_ratio:82.2,north_america:1320,asia:1780,europe:720},
-  {quarter:'2024Q3',company:'삼양식품',revenue:5020,op_income:1250,op_margin:24.9,export_revenue:4250,export_ratio:84.7,north_america:1520,asia:1950,europe:780},
-  {quarter:'2024Q4',company:'삼양식품',revenue:5480,op_income:1450,op_margin:26.5,export_revenue:4750,export_ratio:86.7,north_america:1750,asia:2150,europe:850},
-
-  {quarter:'2023Q1',company:'오리온',revenue:7820,op_income:1050,op_margin:13.4,export_revenue:4580,export_ratio:58.6,north_america:420,asia:3850,europe:310},
-  {quarter:'2023Q2',company:'오리온',revenue:8100,op_income:1120,op_margin:13.8,export_revenue:4820,export_ratio:59.5,north_america:450,asia:4050,europe:320},
-  {quarter:'2023Q3',company:'오리온',revenue:8350,op_income:1180,op_margin:14.1,export_revenue:5050,export_ratio:60.5,north_america:480,asia:4250,europe:320},
-  {quarter:'2023Q4',company:'오리온',revenue:8620,op_income:1250,op_margin:14.5,export_revenue:5280,export_ratio:61.2,north_america:510,asia:4450,europe:320},
-  {quarter:'2024Q1',company:'오리온',revenue:8920,op_income:1320,op_margin:14.8,export_revenue:5550,export_ratio:62.2,north_america:540,asia:4680,europe:330},
-  {quarter:'2024Q2',company:'오리온',revenue:9250,op_income:1400,op_margin:15.1,export_revenue:5850,export_ratio:63.2,north_america:580,asia:4940,europe:330},
-  {quarter:'2024Q3',company:'오리온',revenue:9580,op_income:1480,op_margin:15.4,export_revenue:6150,export_ratio:64.2,north_america:620,asia:5200,europe:330},
-  {quarter:'2024Q4',company:'오리온',revenue:9920,op_income:1570,op_margin:15.8,export_revenue:6480,export_ratio:65.3,north_america:660,asia:5480,europe:340},
-
-  {quarter:'2023Q1',company:'농심',revenue:8520,op_income:580,op_margin:6.8,export_revenue:2850,export_ratio:33.4,north_america:1450,asia:980,europe:420},
-  {quarter:'2023Q2',company:'농심',revenue:8780,op_income:620,op_margin:7.1,export_revenue:3050,export_ratio:34.7,north_america:1580,asia:1020,europe:450},
-  {quarter:'2023Q3',company:'농심',revenue:9050,op_income:670,op_margin:7.4,export_revenue:3280,export_ratio:36.2,north_america:1720,asia:1080,europe:480},
-  {quarter:'2023Q4',company:'농심',revenue:9320,op_income:720,op_margin:7.7,export_revenue:3520,export_ratio:37.8,north_america:1880,asia:1140,europe:500},
-  {quarter:'2024Q1',company:'농심',revenue:9620,op_income:780,op_margin:8.1,export_revenue:3780,export_ratio:39.3,north_america:2050,asia:1200,europe:530},
-  {quarter:'2024Q2',company:'농심',revenue:9950,op_income:840,op_margin:8.4,export_revenue:4050,export_ratio:40.7,north_america:2220,asia:1280,europe:550},
-  {quarter:'2024Q3',company:'농심',revenue:10280,op_income:910,op_margin:8.9,export_revenue:4350,export_ratio:42.3,north_america:2400,asia:1360,europe:590},
-  {quarter:'2024Q4',company:'농심',revenue:10620,op_income:980,op_margin:9.2,export_revenue:4680,export_ratio:44.1,north_america:2600,asia:1450,europe:630},
-
-  {quarter:'2023Q1',company:'CJ제일제당',revenue:42500,op_income:1850,op_margin:4.4,export_revenue:8200,export_ratio:19.3,north_america:3800,asia:3200,europe:1200},
-  {quarter:'2023Q2',company:'CJ제일제당',revenue:43800,op_income:1950,op_margin:4.5,export_revenue:8600,export_ratio:19.6,north_america:4000,asia:3350,europe:1250},
-  {quarter:'2023Q3',company:'CJ제일제당',revenue:45200,op_income:2100,op_margin:4.6,export_revenue:9100,export_ratio:20.1,north_america:4300,asia:3500,europe:1300},
-  {quarter:'2023Q4',company:'CJ제일제당',revenue:46500,op_income:2250,op_margin:4.8,export_revenue:9650,export_ratio:20.8,north_america:4600,asia:3700,europe:1350},
-  {quarter:'2024Q1',company:'CJ제일제당',revenue:47800,op_income:2400,op_margin:5.0,export_revenue:10200,export_ratio:21.3,north_america:4900,asia:3900,europe:1400},
-  {quarter:'2024Q2',company:'CJ제일제당',revenue:49200,op_income:2580,op_margin:5.2,export_revenue:10850,export_ratio:22.1,north_america:5200,asia:4100,europe:1550},
-  {quarter:'2024Q3',company:'CJ제일제당',revenue:50800,op_income:2780,op_margin:5.5,export_revenue:11600,export_ratio:22.8,north_america:5600,asia:4350,europe:1650},
-  {quarter:'2024Q4',company:'CJ제일제당',revenue:52500,op_income:3000,op_margin:5.7,export_revenue:12400,export_ratio:23.6,north_america:6000,asia:4650,europe:1750},
+// ── 샘플 데이터 (억원 단위, 화면 표시 시 /10 → 십억원) ──
+const SAMPLE = [
+// 삼양식품 (수출 비중 급격히 상승하는 성장 스토리)
+{quarter:'2021Q2',company:'삼양식품',revenue:1640,op_income:178,op_margin:10.9,export_revenue:980,export_ratio:59.8,north_america:220,asia:580,europe:130,net_income:136,net_margin:8.3,op_cashflow:190,eps:18200,roe:5.1},
+{quarter:'2021Q3',company:'삼양식품',revenue:1720,op_income:195,op_margin:11.3,export_revenue:1050,export_ratio:61.0,north_america:240,asia:620,europe:140,net_income:148,net_margin:8.6,op_cashflow:205,eps:19800,roe:5.4},
+{quarter:'2021Q4',company:'삼양식품',revenue:1850,op_income:218,op_margin:11.8,export_revenue:1150,export_ratio:62.2,north_america:270,asia:680,europe:155,net_income:162,net_margin:8.8,op_cashflow:225,eps:21700,roe:5.8},
+{quarter:'2022Q1',company:'삼양식품',revenue:1980,op_income:248,op_margin:12.5,export_revenue:1280,export_ratio:64.6,north_america:300,asia:760,europe:170,net_income:185,net_margin:9.3,op_cashflow:240,eps:24700,roe:6.4},
+{quarter:'2022Q2',company:'삼양식품',revenue:2150,op_income:285,op_margin:13.3,export_revenue:1430,export_ratio:66.5,north_america:340,asia:850,europe:190,net_income:212,net_margin:9.9,op_cashflow:268,eps:28300,roe:7.0},
+{quarter:'2022Q3',company:'삼양식품',revenue:2380,op_income:340,op_margin:14.3,export_revenue:1620,export_ratio:68.1,north_america:390,asia:960,europe:215,net_income:250,net_margin:10.5,op_cashflow:312,eps:33400,roe:7.9},
+{quarter:'2022Q4',company:'삼양식품',revenue:2620,op_income:398,op_margin:15.2,export_revenue:1840,export_ratio:70.2,north_america:450,asia:1090,europe:240,net_income:292,net_margin:11.1,op_cashflow:358,eps:39000,roe:8.8},
+{quarter:'2023Q1',company:'삼양식품',revenue:3120,op_income:520,op_margin:16.7,export_revenue:2180,export_ratio:69.9,north_america:620,asia:1180,europe:320,net_income:388,net_margin:12.4,op_cashflow:480,eps:51900,roe:10.6},
+{quarter:'2023Q2',company:'삼양식품',revenue:3380,op_income:590,op_margin:17.5,export_revenue:2450,export_ratio:72.5,north_america:720,asia:1320,europe:355,net_income:440,net_margin:13.0,op_cashflow:545,eps:58800,roe:11.5},
+{quarter:'2023Q3',company:'삼양식품',revenue:3650,op_income:680,op_margin:18.6,export_revenue:2720,export_ratio:74.5,north_america:820,asia:1480,europe:380,net_income:510,net_margin:14.0,op_cashflow:630,eps:68200,roe:12.7},
+{quarter:'2023Q4',company:'삼양식품',revenue:3920,op_income:780,op_margin:19.9,export_revenue:3020,export_ratio:77.0,north_america:950,asia:1650,europe:360,net_income:590,net_margin:15.1,op_cashflow:718,eps:78900,roe:13.9},
+{quarter:'2024Q1',company:'삼양식품',revenue:4280,op_income:920,op_margin:21.5,export_revenue:3420,export_ratio:79.9,north_america:1120,asia:1830,europe:410,net_income:695,net_margin:16.2,op_cashflow:850,eps:92900,roe:15.5},
+{quarter:'2024Q2',company:'삼양식품',revenue:4650,op_income:1080,op_margin:23.2,export_revenue:3820,export_ratio:82.2,north_america:1320,asia:1980,europe:460,net_income:810,net_margin:17.4,op_cashflow:995,eps:108300,roe:17.1},
+{quarter:'2024Q3',company:'삼양식품',revenue:5020,op_income:1250,op_margin:24.9,export_revenue:4250,export_ratio:84.7,north_america:1520,asia:2140,europe:530,net_income:948,net_margin:18.9,op_cashflow:1150,eps:126900,roe:18.8},
+{quarter:'2024Q4',company:'삼양식품',revenue:5480,op_income:1450,op_margin:26.5,export_revenue:4750,export_ratio:86.7,north_america:1750,asia:2320,europe:590,net_income:1095,net_margin:20.0,op_cashflow:1330,eps:146600,roe:20.3},
+{quarter:'2025Q1',company:'삼양식품',revenue:5920,op_income:1620,op_margin:27.4,export_revenue:5180,export_ratio:87.5,north_america:1950,asia:2480,europe:640,net_income:1220,net_margin:20.6,op_cashflow:1490,eps:163200,roe:21.6},
+{quarter:'2025Q2',company:'삼양식품',revenue:6280,op_income:1720,op_margin:27.4,export_revenue:5520,export_ratio:87.9,north_america:2100,asia:2620,europe:670,net_income:1290,net_margin:20.5,op_cashflow:1580,eps:172700,roe:21.8},
+{quarter:'2025Q3',company:'삼양식품',revenue:6580,op_income:1780,op_margin:27.1,export_revenue:5800,export_ratio:88.1,north_america:2200,asia:2740,europe:700,net_income:1340,net_margin:20.4,op_cashflow:1640,eps:179400,roe:21.5},
+{quarter:'2025Q4',company:'삼양식품',revenue:6850,op_income:1810,op_margin:26.4,export_revenue:6050,export_ratio:88.3,north_america:2310,asia:2840,europe:740,net_income:1365,net_margin:19.9,op_cashflow:1670,eps:182700,roe:20.9},
+{quarter:'2026Q1',company:'삼양식품',revenue:7100,op_income:1840,op_margin:25.9,export_revenue:6280,export_ratio:88.5,north_america:2400,asia:2960,europe:770,net_income:1380,net_margin:19.4,op_cashflow:1700,eps:184700,roe:20.3},
+// 오리온 (중국 노출 높은 아시아 플레이어)
+{quarter:'2021Q2',company:'오리온',revenue:6320,op_income:810,op_margin:12.8,export_revenue:3580,export_ratio:56.6,north_america:180,asia:3180,europe:220,net_income:620,net_margin:9.8,op_cashflow:750,eps:11200,roe:8.5},
+{quarter:'2021Q3',company:'오리온',revenue:6580,op_income:850,op_margin:12.9,export_revenue:3750,export_ratio:57.0,north_america:190,asia:3340,europe:220,net_income:650,net_margin:9.9,op_cashflow:780,eps:11750,roe:8.7},
+{quarter:'2021Q4',company:'오리온',revenue:6820,op_income:890,op_margin:13.1,export_revenue:3940,export_ratio:57.8,north_america:200,asia:3520,europe:220,net_income:680,net_margin:10.0,op_cashflow:820,eps:12290,roe:8.9},
+{quarter:'2022Q1',company:'오리온',revenue:7050,op_income:920,op_margin:13.0,export_revenue:4080,export_ratio:57.9,north_america:210,asia:3650,europe:220,net_income:700,net_margin:9.9,op_cashflow:840,eps:12650,roe:9.0},
+{quarter:'2022Q2',company:'오리온',revenue:7280,op_income:960,op_margin:13.2,export_revenue:4250,export_ratio:58.4,north_america:220,asia:3800,europe:230,net_income:730,net_margin:10.0,op_cashflow:875,eps:13200,roe:9.2},
+{quarter:'2022Q3',company:'오리온',revenue:7520,op_income:990,op_margin:13.2,export_revenue:4420,export_ratio:58.8,north_america:230,asia:3960,europe:230,net_income:755,net_margin:10.0,op_cashflow:905,eps:13650,roe:9.3},
+{quarter:'2022Q4',company:'오리온',revenue:7680,op_income:1010,op_margin:13.2,export_revenue:4560,export_ratio:59.4,north_america:235,asia:4090,europe:235,net_income:775,net_margin:10.1,op_cashflow:925,eps:14010,roe:9.4},
+{quarter:'2023Q1',company:'오리온',revenue:7820,op_income:1050,op_margin:13.4,export_revenue:4580,export_ratio:58.6,north_america:240,asia:4110,europe:230,net_income:800,net_margin:10.2,op_cashflow:950,eps:14460,roe:9.5},
+{quarter:'2023Q2',company:'오리온',revenue:8100,op_income:1120,op_margin:13.8,export_revenue:4820,export_ratio:59.5,north_america:250,asia:4340,europe:230,net_income:850,net_margin:10.5,op_cashflow:1010,eps:15370,roe:9.9},
+{quarter:'2023Q3',company:'오리온',revenue:8350,op_income:1180,op_margin:14.1,export_revenue:5050,export_ratio:60.5,north_america:260,asia:4560,europe:230,net_income:890,net_margin:10.7,op_cashflow:1060,eps:16100,roe:10.2},
+{quarter:'2023Q4',company:'오리온',revenue:8620,op_income:1250,op_margin:14.5,export_revenue:5280,export_ratio:61.2,north_america:270,asia:4780,europe:230,net_income:940,net_margin:10.9,op_cashflow:1120,eps:17000,roe:10.5},
+{quarter:'2024Q1',company:'오리온',revenue:8920,op_income:1320,op_margin:14.8,export_revenue:5550,export_ratio:62.2,north_america:280,asia:5040,europe:230,net_income:995,net_margin:11.2,op_cashflow:1190,eps:18000,roe:10.9},
+{quarter:'2024Q2',company:'오리온',revenue:9250,op_income:1400,op_margin:15.1,export_revenue:5850,export_ratio:63.2,north_america:295,asia:5320,europe:235,net_income:1050,net_margin:11.4,op_cashflow:1260,eps:19000,roe:11.2},
+{quarter:'2024Q3',company:'오리온',revenue:9580,op_income:1480,op_margin:15.4,export_revenue:6150,export_ratio:64.2,north_america:310,asia:5600,europe:240,net_income:1110,net_margin:11.6,op_cashflow:1330,eps:20100,roe:11.5},
+{quarter:'2024Q4',company:'오리온',revenue:9920,op_income:1570,op_margin:15.8,export_revenue:6480,export_ratio:65.3,north_america:325,asia:5910,europe:245,net_income:1175,net_margin:11.8,op_cashflow:1410,eps:21260,roe:11.9},
+{quarter:'2025Q1',company:'오리온',revenue:10150,op_income:1610,op_margin:15.9,export_revenue:6680,export_ratio:65.8,north_america:335,asia:6090,europe:255,net_income:1200,net_margin:11.8,op_cashflow:1450,eps:21720,roe:11.9},
+{quarter:'2025Q2',company:'오리온',revenue:10320,op_income:1640,op_margin:15.9,export_revenue:6820,export_ratio:66.1,north_america:345,asia:6200,europe:275,net_income:1220,net_margin:11.8,op_cashflow:1480,eps:22090,roe:11.9},
+{quarter:'2025Q3',company:'오리온',revenue:10480,op_income:1660,op_margin:15.8,export_revenue:6960,export_ratio:66.4,north_america:355,asia:6310,europe:295,net_income:1235,net_margin:11.8,op_cashflow:1500,eps:22350,roe:11.8},
+{quarter:'2025Q4',company:'오리온',revenue:10620,op_income:1680,op_margin:15.8,export_revenue:7080,export_ratio:66.7,north_america:365,asia:6410,europe:305,net_income:1250,net_margin:11.8,op_cashflow:1520,eps:22620,roe:11.8},
+{quarter:'2026Q1',company:'오리온',revenue:10780,op_income:1700,op_margin:15.8,export_revenue:7200,export_ratio:66.8,north_america:375,asia:6520,europe:305,net_income:1265,net_margin:11.7,op_cashflow:1540,eps:22890,roe:11.7},
+// 농심 (미국 현지화 진행 중)
+{quarter:'2021Q2',company:'농심',revenue:7020,op_income:380,op_margin:5.4,export_revenue:2150,export_ratio:30.6,north_america:980,asia:780,europe:330,net_income:290,net_margin:4.1,op_cashflow:340,eps:12400,roe:4.5},
+{quarter:'2021Q3',company:'농심',revenue:7180,op_income:400,op_margin:5.6,export_revenue:2250,export_ratio:31.3,north_america:1030,asia:800,europe:340,net_income:305,net_margin:4.2,op_cashflow:360,eps:13000,roe:4.7},
+{quarter:'2021Q4',company:'농심',revenue:7380,op_income:420,op_margin:5.7,export_revenue:2350,export_ratio:31.8,north_america:1080,asia:830,europe:345,net_income:318,net_margin:4.3,op_cashflow:375,eps:13600,roe:4.8},
+{quarter:'2022Q1',company:'농심',revenue:7620,op_income:440,op_margin:5.8,export_revenue:2480,export_ratio:32.5,north_america:1150,asia:880,europe:350,net_income:335,net_margin:4.4,op_cashflow:395,eps:14300,roe:5.0},
+{quarter:'2022Q2',company:'농심',revenue:7880,op_income:460,op_margin:5.8,export_revenue:2580,export_ratio:32.7,north_america:1210,asia:910,europe:360,net_income:348,net_margin:4.4,op_cashflow:412,eps:14900,roe:5.1},
+{quarter:'2022Q3',company:'농심',revenue:8120,op_income:495,op_margin:6.1,export_revenue:2700,export_ratio:33.3,north_america:1270,asia:950,europe:380,net_income:368,net_margin:4.5,op_cashflow:440,eps:15700,roe:5.4},
+{quarter:'2022Q4',company:'농심',revenue:8320,op_income:520,op_margin:6.3,export_revenue:2780,export_ratio:33.4,north_america:1320,asia:970,europe:390,net_income:385,net_margin:4.6,op_cashflow:460,eps:16400,roe:5.5},
+{quarter:'2023Q1',company:'농심',revenue:8520,op_income:580,op_margin:6.8,export_revenue:2850,export_ratio:33.4,north_america:1350,asia:1000,europe:400,net_income:430,net_margin:5.1,op_cashflow:510,eps:18300,roe:6.0},
+{quarter:'2023Q2',company:'농심',revenue:8780,op_income:620,op_margin:7.1,export_revenue:3050,export_ratio:34.7,north_america:1460,asia:1030,europe:420,net_income:458,net_margin:5.2,op_cashflow:545,eps:19500,roe:6.3},
+{quarter:'2023Q3',company:'농심',revenue:9050,op_income:670,op_margin:7.4,export_revenue:3280,export_ratio:36.2,north_america:1590,asia:1080,europe:450,net_income:498,net_margin:5.5,op_cashflow:595,eps:21200,roe:6.7},
+{quarter:'2023Q4',company:'농심',revenue:9320,op_income:720,op_margin:7.7,export_revenue:3520,export_ratio:37.8,north_america:1720,asia:1130,europe:470,net_income:535,net_margin:5.7,op_cashflow:645,eps:22800,roe:7.0},
+{quarter:'2024Q1',company:'농심',revenue:9620,op_income:780,op_margin:8.1,export_revenue:3780,export_ratio:39.3,north_america:1870,asia:1190,europe:490,net_income:580,net_margin:6.0,op_cashflow:700,eps:24700,roe:7.4},
+{quarter:'2024Q2',company:'농심',revenue:9950,op_income:840,op_margin:8.4,export_revenue:4050,export_ratio:40.7,north_america:2020,asia:1250,europe:510,net_income:625,net_margin:6.3,op_cashflow:755,eps:26600,roe:7.8},
+{quarter:'2024Q3',company:'농심',revenue:10280,op_income:910,op_margin:8.9,export_revenue:4350,export_ratio:42.3,north_america:2180,asia:1330,europe:540,net_income:680,net_margin:6.6,op_cashflow:820,eps:29000,roe:8.2},
+{quarter:'2024Q4',company:'농심',revenue:10620,op_income:980,op_margin:9.2,export_revenue:4680,export_ratio:44.1,north_america:2360,asia:1420,europe:560,net_income:732,net_margin:6.9,op_cashflow:885,eps:31200,roe:8.6},
+{quarter:'2025Q1',company:'농심',revenue:10950,op_income:1050,op_margin:9.6,export_revenue:5000,export_ratio:45.7,north_america:2540,asia:1490,europe:580,net_income:780,net_margin:7.1,op_cashflow:945,eps:33200,roe:8.9},
+{quarter:'2025Q2',company:'농심',revenue:11250,op_income:1110,op_margin:9.9,export_revenue:5300,export_ratio:47.1,north_america:2710,asia:1540,europe:600,net_income:820,net_margin:7.3,op_cashflow:995,eps:34900,roe:9.1},
+{quarter:'2025Q3',company:'농심',revenue:11520,op_income:1160,op_margin:10.1,export_revenue:5580,export_ratio:48.4,north_america:2860,asia:1590,europe:620,net_income:850,net_margin:7.4,op_cashflow:1030,eps:36200,roe:9.3},
+{quarter:'2025Q4',company:'농심',revenue:11780,op_income:1210,op_margin:10.3,export_revenue:5850,export_ratio:49.7,north_america:3000,asia:1630,europe:640,net_income:880,net_margin:7.5,op_cashflow:1065,eps:37500,roe:9.4},
+{quarter:'2026Q1',company:'농심',revenue:12050,op_income:1265,op_margin:10.5,export_revenue:6140,export_ratio:51.0,north_america:3160,asia:1670,europe:660,net_income:912,net_margin:7.6,op_cashflow:1100,eps:38800,roe:9.6},
+// CJ제일제당 (글로벌 식품 컨글로머리트, 마진 낮지만 규모)
+{quarter:'2021Q2',company:'CJ제일제당',revenue:38200,op_income:1420,op_margin:3.7,export_revenue:6800,export_ratio:17.8,north_america:2900,asia:2800,europe:1100,net_income:880,net_margin:2.3,op_cashflow:1650,eps:12400,roe:6.2},
+{quarter:'2021Q3',company:'CJ제일제당',revenue:39500,op_income:1480,op_margin:3.7,export_revenue:7050,export_ratio:17.8,north_america:3050,asia:2850,europe:1150,net_income:910,net_margin:2.3,op_cashflow:1700,eps:12800,roe:6.3},
+{quarter:'2021Q4',company:'CJ제일제당',revenue:40800,op_income:1550,op_margin:3.8,export_revenue:7300,export_ratio:17.9,north_america:3200,asia:2950,europe:1150,net_income:940,net_margin:2.3,op_cashflow:1760,eps:13200,roe:6.4},
+{quarter:'2022Q1',company:'CJ제일제당',revenue:41500,op_income:1620,op_margin:3.9,export_revenue:7600,export_ratio:18.3,north_america:3350,asia:3050,europe:1200,net_income:970,net_margin:2.3,op_cashflow:1810,eps:13600,roe:6.5},
+{quarter:'2022Q2',company:'CJ제일제당',revenue:42200,op_income:1680,op_margin:4.0,export_revenue:7850,export_ratio:18.6,north_america:3500,asia:3100,europe:1250,net_income:990,net_margin:2.3,op_cashflow:1850,eps:13900,roe:6.6},
+{quarter:'2022Q3',company:'CJ제일제당',revenue:43100,op_income:1730,op_margin:4.0,export_revenue:8000,export_ratio:18.6,north_america:3600,asia:3150,europe:1250,net_income:1010,net_margin:2.3,op_cashflow:1900,eps:14200,roe:6.6},
+{quarter:'2022Q4',company:'CJ제일제당',revenue:43800,op_income:1790,op_margin:4.1,export_revenue:8100,export_ratio:18.5,north_america:3700,asia:3150,europe:1250,net_income:1030,net_margin:2.4,op_cashflow:1940,eps:14500,roe:6.7},
+{quarter:'2023Q1',company:'CJ제일제당',revenue:42500,op_income:1850,op_margin:4.4,export_revenue:8200,export_ratio:19.3,north_america:3800,asia:3200,europe:1200,net_income:1050,net_margin:2.5,op_cashflow:1980,eps:14800,roe:6.7},
+{quarter:'2023Q2',company:'CJ제일제당',revenue:43800,op_income:1950,op_margin:4.5,export_revenue:8600,export_ratio:19.6,north_america:4000,asia:3350,europe:1250,net_income:1080,net_margin:2.5,op_cashflow:2050,eps:15200,roe:6.8},
+{quarter:'2023Q3',company:'CJ제일제당',revenue:45200,op_income:2100,op_margin:4.6,export_revenue:9100,export_ratio:20.1,north_america:4300,asia:3500,europe:1300,net_income:1150,net_margin:2.5,op_cashflow:2200,eps:16200,roe:7.0},
+{quarter:'2023Q4',company:'CJ제일제당',revenue:46500,op_income:2250,op_margin:4.8,export_revenue:9650,export_ratio:20.8,north_america:4600,asia:3700,europe:1350,net_income:1220,net_margin:2.6,op_cashflow:2380,eps:17200,roe:7.2},
+{quarter:'2024Q1',company:'CJ제일제당',revenue:47800,op_income:2400,op_margin:5.0,export_revenue:10200,export_ratio:21.3,north_america:4900,asia:3900,europe:1400,net_income:1290,net_margin:2.7,op_cashflow:2520,eps:18200,roe:7.4},
+{quarter:'2024Q2',company:'CJ제일제당',revenue:49200,op_income:2580,op_margin:5.2,export_revenue:10850,export_ratio:22.1,north_america:5200,asia:4100,europe:1550,net_income:1380,net_margin:2.8,op_cashflow:2700,eps:19500,roe:7.7},
+{quarter:'2024Q3',company:'CJ제일제당',revenue:50800,op_income:2780,op_margin:5.5,export_revenue:11600,export_ratio:22.8,north_america:5600,asia:4350,europe:1650,net_income:1480,net_margin:2.9,op_cashflow:2900,eps:20900,roe:7.9},
+{quarter:'2024Q4',company:'CJ제일제당',revenue:52500,op_income:3000,op_margin:5.7,export_revenue:12400,export_ratio:23.6,north_america:6000,asia:4650,europe:1750,net_income:1580,net_margin:3.0,op_cashflow:3100,eps:22300,roe:8.2},
+{quarter:'2025Q1',company:'CJ제일제당',revenue:53800,op_income:3150,op_margin:5.9,export_revenue:13100,export_ratio:24.4,north_america:6350,asia:4900,europe:1850,net_income:1660,net_margin:3.1,op_cashflow:3250,eps:23400,roe:8.4},
+{quarter:'2025Q2',company:'CJ제일제당',revenue:55200,op_income:3350,op_margin:6.1,export_revenue:13900,export_ratio:25.2,north_america:6750,asia:5150,europe:2000,net_income:1750,net_margin:3.2,op_cashflow:3450,eps:24700,roe:8.6},
+{quarter:'2025Q3',company:'CJ제일제당',revenue:56500,op_income:3500,op_margin:6.2,export_revenue:14600,export_ratio:25.8,north_america:7100,asia:5350,europe:2150,net_income:1820,net_margin:3.2,op_cashflow:3600,eps:25700,roe:8.7},
+{quarter:'2025Q4',company:'CJ제일제당',revenue:57800,op_income:3680,op_margin:6.4,export_revenue:15400,export_ratio:26.6,north_america:7500,asia:5650,europe:2250,net_income:1910,net_margin:3.3,op_cashflow:3780,eps:27000,roe:8.9},
+{quarter:'2026Q1',company:'CJ제일제당',revenue:59100,op_income:3850,op_margin:6.5,export_revenue:16100,export_ratio:27.2,north_america:7850,asia:5900,europe:2350,net_income:1980,net_margin:3.4,op_cashflow:3960,eps:27900,roe:9.0},
 ];
 
-let DATA=[],currentMetric='revenue',currentCompany=null,charts={},isSample=true;
+// ── 글로벌 변수 ──
+let DATA=[], currentMetric='revenue', currentCompany=null, charts={}, isSample=true;
 const COLORS=['#fb923c','#3fb950','#f59e0b','#38bdf8','#bc8cff','#f85149','#a78bfa','#39d353'];
-const ML={revenue:'매출액(십억원)',op_income:'영업이익(십억원)',op_margin:'영업이익률(%)',export_revenue:'수출매출(십억원)',export_ratio:'수출비중(%)',net_income:'순이익(십억원)',net_margin:'순이익률(%)',op_cashflow:'영업현금흐름(십억원)',eps:'EPS(원)',roe:'ROE(%)'};
-const MUNIT={revenue:'십억원',op_income:'십억원',op_margin:'%',export_revenue:'십억원',export_ratio:'%',net_income:'십억원',net_margin:'%',op_cashflow:'십억원',eps:'원',roe:'%'};
+const MONEY_FIELDS=['revenue','op_income','export_revenue','net_income','op_cashflow','north_america','asia','europe'];
 
+const COMPANIES_META = {
+  '삼양식품':  {color:'#fb923c', category:'라면/스낵', desc:'불닭브랜드 수출 하이퍼그로스'},
+  'CJ제일제당':{color:'#3fb950', category:'종합식품',  desc:'Bibigo 글로벌·대규모 포트폴리오'},
+  '오리온':    {color:'#f59e0b', category:'제과',       desc:'중국·베트남 현지법인 아시아 플레이'},
+  '농심':      {color:'#38bdf8', category:'라면',       desc:'미국 LA공장·현지화 점유율 확장'},
+  '대상':      {color:'#bc8cff', category:'종합식품',   desc:'청정원·소재 B2B 수출'},
+  '오뚜기':    {color:'#f85149', category:'종합식품',   desc:'국내 내수 중심, 수출 초기 단계'},
+  '롯데웰푸드':{color:'#a78bfa', category:'제과/육가공',desc:'빠삐코·초코파이 동남아 수출'},
+  '하이트진로':{color:'#39d353', category:'주류',        desc:'소주 수출 글로벌 한류 수혜'},
+};
+
+// ── 유틸 함수 ──
 function getCompanies(){return[...new Set(DATA.map(d=>d.company))];}
-function getQuarters(){return[...new Set(DATA.map(d=>d.quarter))].sort();}
+function getQuarters(n){
+  const all=[...new Set(DATA.map(d=>d.quarter))].sort();
+  if(!n||n===0)return all;
+  const period=parseInt(document.getElementById('periodFilter')?.value||20);
+  return all.slice(-period);
+}
+function getLastQ(){return getQuarters()[getQuarters().length-1];}
 function destroyChart(id){if(charts[id]){charts[id].destroy();delete charts[id];}}
-function switchView(v,e){document.querySelectorAll('.view').forEach(el=>el.classList.remove('active'));document.getElementById('view-'+v).classList.add('active');document.querySelectorAll('.sidebar-nav a').forEach(a=>a.classList.remove('active'));if(e&&e.target)e.target.closest('a').classList.add('active');renderAll();}
-function setMetric(m,btn){currentMetric=m;document.querySelectorAll('#metricFilter .filter-btn').forEach(b=>b.classList.remove('active'));btn.classList.add('active');renderSummary();}
-function renderAll(){const active=document.querySelector('.view.active');if(!active)return;if(active.id==='view-summary')renderSummary();else if(active.id==='view-export')renderExport();else if(active.id==='view-company')renderCompany();else if(active.id==='view-table')renderTable();}
+function getColor(c,alpha){const m=COMPANIES_META[c];return m?(m.color+(alpha?Math.round(alpha*255).toString(16).padStart(2,'0'):'')):'#8b949e';}
+function fmt(v,dec=1){if(v==null||isNaN(v))return'-';return Number(v).toLocaleString('ko-KR',{minimumFractionDigits:dec,maximumFractionDigits:dec});}
+function fmtPct(v){return v!=null&&!isNaN(v)?fmt(v)+'%':'-';}
 
-function renderSummary(){
-  const companies=getCompanies(),quarters=getQuarters();
-  destroyChart('main');destroyChart('margin');destroyChart('export');
-  document.getElementById('mainTitle').textContent='기업별 '+ML[currentMetric]+' 추이';
-  charts['main']=new Chart(document.getElementById('mainChart'),{type:'line',data:{labels:quarters,datasets:companies.map((c,i)=>({label:c,data:quarters.map(q=>{const r=DATA.find(d=>d.company===c&&d.quarter===q);return r&&r[currentMetric]!=null?r[currentMetric]:null;}),borderColor:COLORS[i],backgroundColor:COLORS[i]+'33',tension:.3,fill:false,pointRadius:4}))},options:{responsive:true,plugins:{legend:{position:'bottom',labels:{color:'#8b949e',font:{size:11}}}},scales:{x:{ticks:{color:'#8b949e'},grid:{color:'#21262d'}},y:{title:{display:true,text:MUNIT[currentMetric],color:'#8b949e'},ticks:{color:'#8b949e'},grid:{color:'#21262d'}}}}});
-  const lastQ=quarters[quarters.length-1];
-  charts['margin']=new Chart(document.getElementById('marginChart'),{type:'bar',data:{labels:companies,datasets:[{label:'영업이익률(%)',data:companies.map(c=>{const r=DATA.find(d=>d.company===c&&d.quarter===lastQ);return r?r.op_margin:0;}),backgroundColor:COLORS.map(c=>c+'cc')}]},options:{responsive:true,plugins:{legend:{display:false}},scales:{x:{ticks:{color:'#8b949e'},grid:{color:'#21262d'}},y:{ticks:{color:'#8b949e'},grid:{color:'#21262d'}}}}});
-  charts['export']=new Chart(document.getElementById('exportChart'),{type:'bar',data:{labels:companies,datasets:[{label:'수출비중(%)',data:companies.map(c=>{const r=DATA.find(d=>d.company===c&&d.quarter===lastQ);return r?r.export_ratio:0;}),backgroundColor:'#f9731688'}]},options:{responsive:true,plugins:{legend:{display:false}},scales:{x:{ticks:{color:'#8b949e'},grid:{color:'#21262d'}},y:{max:100,ticks:{color:'#8b949e'},grid:{color:'#21262d'}}}}});
+// YoY 계산
+function calcYoY(company,quarter,field){
+  const [yr,q]=quarter.split('Q');
+  const prevQ=`${parseInt(yr)-1}Q${q}`;
+  const cur=DATA.find(d=>d.company===company&&d.quarter===quarter);
+  const prv=DATA.find(d=>d.company===company&&d.quarter===prevQ);
+  if(!cur||!prv||!prv[field])return null;
+  return round1((cur[field]-prv[field])/Math.abs(prv[field])*100);
+}
+// QoQ 계산
+function calcQoQ(company,quarter,field){
+  const qs=getQuarters().filter(q=>DATA.some(d=>d.company===company&&d.quarter===q)).sort();
+  const idx=qs.indexOf(quarter);
+  if(idx<=0)return null;
+  const cur=DATA.find(d=>d.company===company&&d.quarter===quarter);
+  const prv=DATA.find(d=>d.company===company&&d.quarter===qs[idx-1]);
+  if(!cur||!prv||!prv[field])return null;
+  return round1((cur[field]-prv[field])/Math.abs(prv[field])*100);
+}
+// 마진 QoQ 변화 (절대값 %p)
+function marginDelta(company,quarter,field){
+  const qs=getQuarters().filter(q=>DATA.some(d=>d.company===company&&d.quarter===q)).sort();
+  const idx=qs.indexOf(quarter);
+  if(idx<=0)return null;
+  const cur=DATA.find(d=>d.company===company&&d.quarter===quarter);
+  const prv=DATA.find(d=>d.company===company&&d.quarter===qs[idx-1]);
+  if(!cur||!prv)return null;
+  return round1((cur[field]||0)-(prv[field]||0));
+}
+function round1(v){return Math.round(v*10)/10;}
+
+// ── 멀티팩터 스코어 계산 ──
+function calcScore(company){
+  const qs=getQuarters();
+  const last=DATA.find(d=>d.company===company&&d.quarter===qs[qs.length-1]);
+  if(!last)return null;
+  const lastQ=qs[qs.length-1];
+  const revYoY=calcYoY(company,lastQ,'revenue')||0;
+  const opYoY=calcYoY(company,lastQ,'op_income')||0;
+  const marginDlt=marginDelta(company,lastQ,'op_margin')||0;
+  const exportRatio=last.export_ratio||0;
+  const exportYoY=calcYoY(company,lastQ,'export_revenue')||0;
+  const opm=last.op_margin||0;
+  const cfoCover=last.op_cashflow&&last.op_income?(last.op_cashflow/last.op_income):0;
+  // 스코어 (각 10점 만점, 총 70점 → 100점 환산)
+  const s1=Math.min(10,Math.max(0,revYoY/5));       // 매출 YoY
+  const s2=Math.min(10,Math.max(0,opYoY/5));         // 영업익 YoY
+  const s3=Math.min(10,Math.max(0,marginDlt*2+5));   // 마진 확장
+  const s4=Math.min(10,Math.max(0,exportRatio/10));  // 수출비중
+  const s5=Math.min(10,Math.max(0,exportYoY/5));     // 수출 YoY
+  const s6=Math.min(10,Math.max(0,opm/3));            // 절대 마진
+  const s7=Math.min(10,Math.max(0,cfoCover*4));      // 현금전환율
+  const total=round1((s1+s2+s3+s4+s5+s6+s7)/7*10);
+  return {total,s1:round1(s1),s2:round1(s2),s3:round1(s3),s4:round1(s4),s5:round1(s5),s6:round1(s6),s7:round1(s7),
+    revYoY:round1(revYoY),opYoY:round1(opYoY),marginDlt,exportRatio,exportYoY:round1(exportYoY),opm,cfoCover:round1(cfoCover*100)};
 }
 
+// ── 뷰 전환 ──
+function switchView(v,e){
+  document.querySelectorAll('.view').forEach(el=>el.classList.remove('active'));
+  document.getElementById('view-'+v).classList.add('active');
+  document.querySelectorAll('.sidebar-nav a').forEach(a=>a.classList.remove('active'));
+  if(e&&e.target)e.target.closest('a').classList.add('active');
+  renderAll();
+}
+function setMetric(m,btn){
+  currentMetric=m;
+  document.querySelectorAll('#metricFilter .filter-btn').forEach(b=>b.classList.remove('active'));
+  btn.classList.add('active');
+  renderSummary();
+}
+function renderAll(){
+  const active=document.querySelector('.view.active');
+  if(!active)return;
+  const id=active.id.replace('view-','');
+  ({summary:renderSummary,margin:renderMargin,export:renderExport,
+    quality:renderQuality,relative:renderRelative,
+    company:renderCompany,table:renderTable})[id]?.();
+}
+
+// ── 섹터 KPI 카드 ──
+function renderSectorKPI(){
+  const qs=getQuarters();
+  const lastQ=qs[qs.length-1];
+  const companies=getCompanies();
+  const totalRev=DATA.filter(d=>d.quarter===lastQ).reduce((s,d)=>s+(d.revenue||0),0);
+  const totalOp=DATA.filter(d=>d.quarter===lastQ).reduce((s,d)=>s+(d.op_income||0),0);
+  const totalExp=DATA.filter(d=>d.quarter===lastQ).reduce((s,d)=>s+(d.export_revenue||0),0);
+  const avgOpm=totalRev?round1(totalOp/totalRev*100):0;
+  const expRatio=totalRev?round1(totalExp/totalRev*100):0;
+  // 삼양 마진 (스타 플레이어)
+  const samData=DATA.find(d=>d.company==='삼양식품'&&d.quarter===lastQ);
+  const samOpm=samData?.op_margin||0;
+  // 섹터 매출 YoY
+  const prevYQ=qs.length>4?qs[qs.length-5]:null;
+  let secYoY=null;
+  if(prevYQ){
+    const prevRev=DATA.filter(d=>d.quarter===prevYQ).reduce((s,d)=>s+(d.revenue||0),0);
+    if(prevRev)secYoY=round1((totalRev-prevRev)/prevRev*100);
+  }
+  // 최고마진 기업
+  const topMarginCo=companies.map(c=>{const r=DATA.find(d=>d.company===c&&d.quarter===lastQ);return{c,m:r?.op_margin||0};}).sort((a,b)=>b.m-a.m)[0];
+
+  document.getElementById('sectorKPI').innerHTML=`
+<div class="kpi-card">
+  <div class="label">섹터 합산 매출</div>
+  <div class="value">${fmt(totalRev/10,0)}<span class="unit">십억원</span></div>
+  ${secYoY!=null?'<div class="delta '+(secYoY>=0?'up':'dn')+'">'+(secYoY>=0?'▲':'▼')+Math.abs(secYoY)+'% YoY</div>':''}
+  <span class="signal ${(secYoY||0)>=10?'long':(secYoY||0)>=0?'neutral':'short'}">${(secYoY||0)>=10?'LONG':(secYoY||0)>=0?'HOLD':'WATCH'}</span>
+</div>
+<div class="kpi-card">
+  <div class="label">섹터 평균 영업이익률</div>
+  <div class="value">${fmtPct(avgOpm)}</div>
+  <div class="label" style="margin-top:4px;font-size:10px;">최고: ${topMarginCo?.c||'-'} (${fmtPct(topMarginCo?.m)})</div>
+</div>
+<div class="kpi-card">
+  <div class="label">섹터 수출 비중</div>
+  <div class="value">${fmtPct(expRatio)}</div>
+  <div class="delta up">수출규모 ${fmt(totalExp/10,0)}십억원</div>
+</div>
+<div class="kpi-card">
+  <div class="label">삼양식품 OPM</div>
+  <div class="value">${fmtPct(samOpm)}</div>
+  <div class="label" style="margin-top:4px;font-size:10px;">글로벌 FMCG 프리미엄 수준</div>
+  <span class="signal long">LONG CORE</span>
+</div>
+  `;
+}
+
+// ── ① 종합 현황 ──
+function renderSummary(){
+  renderSectorKPI();
+  const ML={revenue:'매출액(십억원)',op_income:'영업이익(십억원)',op_margin:'영업이익률(%)',export_revenue:'수출매출(십억원)',export_ratio:'수출비중(%)',net_income:'순이익(십억원)',op_cashflow:'영업CFO(십억원)',eps:'EPS(원)',roe:'ROE(%)'};
+  const MUNIT={revenue:'십억원',op_income:'십억원',op_margin:'%',export_revenue:'십억원',export_ratio:'%',net_income:'십억원',op_cashflow:'십억원',eps:'원',roe:'%'};
+  const companies=getCompanies(), quarters=getQuarters();
+  destroyChart('main');destroyChart('marginBar');destroyChart('yoyChart');
+  document.getElementById('mainTitle').textContent='기업별 '+ML[currentMetric]+' 추이';
+  const isMoneyField=MONEY_FIELDS.includes(currentMetric)&&currentMetric!=='eps';
+  charts['main']=new Chart(document.getElementById('mainChart'),{type:'line',data:{labels:quarters,datasets:companies.map((c)=>({label:c,data:quarters.map(q=>{const r=DATA.find(d=>d.company===c&&d.quarter===q);const v=r&&r[currentMetric]!=null?r[currentMetric]:null;return isMoneyField&&v!=null?round1(v/10):v;}),borderColor:getColor(c),backgroundColor:getColor(c,0.15),tension:.3,fill:false,pointRadius:3,borderWidth:2}))},options:{responsive:true,plugins:{legend:{position:'bottom',labels:{color:'#8b949e',font:{size:11}}}},scales:{x:{ticks:{color:'#8b949e',maxRotation:45},grid:{color:'#21262d'}},y:{title:{display:true,text:MUNIT[currentMetric],color:'#8b949e'},ticks:{color:'#8b949e'},grid:{color:'#21262d'}}}}});
+  const lastQ=quarters[quarters.length-1];
+  // 마진 랭킹 바 차트
+  const marginData=companies.map(c=>{const r=DATA.find(d=>d.company===c&&d.quarter===lastQ);return{c,v:r?.op_margin||0};}).sort((a,b)=>b.v-a.v);
+  charts['marginBar']=new Chart(document.getElementById('marginBar'),{type:'bar',data:{labels:marginData.map(d=>d.c),datasets:[{label:'OPM%',data:marginData.map(d=>d.v),backgroundColor:marginData.map(d=>getColor(d.c,0.85))}]},options:{indexAxis:'y',responsive:true,plugins:{legend:{display:false}},scales:{x:{ticks:{color:'#8b949e'},grid:{color:'#21262d'}},y:{ticks:{color:'#8b949e'},grid:{color:'#21262d'}}}}});
+  // YoY 성장률
+  const yoyData=companies.map(c=>({c,v:calcYoY(c,lastQ,'revenue')||0})).sort((a,b)=>b.v-a.v);
+  charts['yoyChart']=new Chart(document.getElementById('yoyChart'),{type:'bar',data:{labels:yoyData.map(d=>d.c),datasets:[{label:'매출YoY%',data:yoyData.map(d=>d.v),backgroundColor:yoyData.map(d=>d.v>=0?getColor(d.c,0.85):'#f8514988')}]},options:{indexAxis:'y',responsive:true,plugins:{legend:{display:false}},scales:{x:{ticks:{color:'#8b949e'},grid:{color:'#21262d'}},y:{ticks:{color:'#8b949e'},grid:{color:'#21262d'}}}}});
+}
+
+// ── ② 수익성 · 마진 ──
+function renderMargin(){
+  const companies=getCompanies(),quarters=getQuarters();
+  destroyChart('marginTrendChart');destroyChart('netMarginChart');destroyChart('marginMomChart');
+  // Manager's Note
+  const lastQ=quarters[quarters.length-1];
+  const topCo=companies.map(c=>{const r=DATA.find(d=>d.company===c&&d.quarter===lastQ);return{c,m:r?.op_margin||0,d:marginDelta(c,lastQ,'op_margin')||0};}).sort((a,b)=>b.m-a.m);
+  const expanding=topCo.filter(x=>x.d>0).map(x=>x.c+'(+'+x.d+'%p)');
+  const contracting=topCo.filter(x=>x.d<0).map(x=>x.c+'('+x.d+'%p)');
+  document.getElementById('marginInsightText').innerHTML=`
+    <ul>
+      <li><b>마진 랭킹 (최근분기):</b> ${topCo.map((x,i)=>['🥇','🥈','🥉'][i]||'  '+(i+1)+'.').join('').replace(/undefined/g,'')}
+        ${topCo.map((x,i)=>(['🥇','🥈','🥉'][i]||'')+x.c+' '+x.m.toFixed(1)+'%').join(' > ')}</li>
+      <li><b>마진 확장 기업:</b> ${expanding.length?expanding.join(', '):'없음'}</li>
+      <li><b>마진 수축 기업:</b> ${contracting.length?contracting.join(', '):'없음'}</li>
+      <li><b>롱숏 시사점:</b> 삼양식품 마진 ${topCo.find(x=>x.c==='삼양식품')?.m.toFixed(1)||'-'}% — FMCG 글로벌 상위권. 오리온 아시아 믹스 개선 지속. CJ는 저마진 구조 개선 여부가 핵심 모니터링 포인트.</li>
+    </ul>`;
+  charts['marginTrendChart']=new Chart(document.getElementById('marginTrendChart'),{type:'line',data:{labels:quarters,datasets:companies.map(c=>({label:c,data:quarters.map(q=>{const r=DATA.find(d=>d.company===c&&d.quarter===q);return r?.op_margin??null;}),borderColor:getColor(c),backgroundColor:getColor(c,0.1),tension:.3,fill:false,pointRadius:3,borderWidth:2}))},options:{responsive:true,plugins:{legend:{position:'bottom',labels:{color:'#8b949e',font:{size:11}}}},scales:{x:{ticks:{color:'#8b949e',maxRotation:45},grid:{color:'#21262d'}},y:{title:{display:true,text:'%',color:'#8b949e'},ticks:{color:'#8b949e'},grid:{color:'#21262d'}}}}});
+  charts['netMarginChart']=new Chart(document.getElementById('netMarginChart'),{type:'line',data:{labels:quarters,datasets:companies.map(c=>({label:c,data:quarters.map(q=>{const r=DATA.find(d=>d.company===c&&d.quarter===q);return r?.net_margin??null;}),borderColor:getColor(c),tension:.3,fill:false,pointRadius:3,borderWidth:2}))},options:{responsive:true,plugins:{legend:{position:'bottom',labels:{color:'#8b949e',font:{size:11}}}},scales:{x:{ticks:{color:'#8b949e',maxRotation:45},grid:{color:'#21262d'}},y:{title:{display:true,text:'%',color:'#8b949e'},ticks:{color:'#8b949e'},grid:{color:'#21262d'}}}}});
+  // 마진 모멘텀 (QoQ delta) — 최근 8분기
+  const recentQs=quarters.slice(-8);
+  charts['marginMomChart']=new Chart(document.getElementById('marginMomChart'),{type:'bar',data:{labels:recentQs,datasets:companies.map(c=>({label:c,data:recentQs.map(q=>marginDelta(c,q,'op_margin')),borderColor:getColor(c),backgroundColor:getColor(c,0.7),borderWidth:1}))},options:{responsive:true,plugins:{legend:{position:'bottom',labels:{color:'#8b949e',font:{size:11}}}},scales:{x:{ticks:{color:'#8b949e',maxRotation:45},grid:{color:'#21262d'}},y:{title:{display:true,text:'Δ%p QoQ',color:'#8b949e'},ticks:{color:'#8b949e'},grid:{color:'#21262d'}}}}});
+}
+
+// ── ③ 수출 · 지역 ──
 function renderExport(){
   const companies=getCompanies(),quarters=getQuarters();
-  destroyChart('exportTrend');destroyChart('region');destroyChart('samyang');
-  charts['exportTrend']=new Chart(document.getElementById('exportTrendChart'),{type:'bar',data:{labels:quarters,datasets:companies.map((c,i)=>({label:c,data:quarters.map(q=>{const r=DATA.find(d=>d.company===c&&d.quarter===q);return r?r.export_revenue:0;}),backgroundColor:COLORS[i]+'99',stack:'s'}))},options:{responsive:true,plugins:{legend:{position:'bottom',labels:{color:'#8b949e'}}},scales:{x:{stacked:true,ticks:{color:'#8b949e'},grid:{color:'#21262d'}},y:{stacked:true,ticks:{color:'#8b949e'},grid:{color:'#21262d'}}}}});
+  destroyChart('exportTrendChart');destroyChart('exportRatioBar');destroyChart('regionDonut');destroyChart('exportRatioTrend');
   const lastQ=quarters[quarters.length-1];
-  const naT=DATA.filter(d=>d.quarter===lastQ).reduce((s,d)=>s+d.north_america,0);
-  const asT=DATA.filter(d=>d.quarter===lastQ).reduce((s,d)=>s+d.asia,0);
-  const euT=DATA.filter(d=>d.quarter===lastQ).reduce((s,d)=>s+d.europe,0);
-  charts['region']=new Chart(document.getElementById('regionChart'),{type:'doughnut',data:{labels:['북미','아시아','유럽'],datasets:[{data:[naT,asT,euT],backgroundColor:['#fb923c','#3fb950','#38bdf8']}]},options:{responsive:true,plugins:{legend:{position:'bottom',labels:{color:'#8b949e'}}}}});
-  const samData=DATA.filter(d=>d.company==='삼양식품').sort((a,b)=>a.quarter.localeCompare(b.quarter));
-  charts['samyang']=new Chart(document.getElementById('samyangChart'),{type:'line',data:{labels:samData.map(d=>d.quarter),datasets:[{label:'수출비중(%)',data:samData.map(d=>d.export_ratio),borderColor:'#fb923c',backgroundColor:'#fb923c33',tension:.3,fill:true}]},options:{responsive:true,plugins:{legend:{labels:{color:'#8b949e'}}},scales:{x:{ticks:{color:'#8b949e'},grid:{color:'#21262d'}},y:{ticks:{color:'#8b949e'},grid:{color:'#21262d'}}}}});
+  charts['exportTrendChart']=new Chart(document.getElementById('exportTrendChart'),{type:'bar',data:{labels:quarters,datasets:companies.map(c=>({label:c,data:quarters.map(q=>{const r=DATA.find(d=>d.company===c&&d.quarter===q);return r&&r.export_revenue?round1(r.export_revenue/10):0;}),backgroundColor:getColor(c,0.75),stack:'s'}))},options:{responsive:true,plugins:{legend:{position:'bottom',labels:{color:'#8b949e',font:{size:11}}}},scales:{x:{stacked:true,ticks:{color:'#8b949e',maxRotation:45},grid:{color:'#21262d'}},y:{stacked:true,ticks:{color:'#8b949e'},grid:{color:'#21262d'}}}}});
+  const expRatioData=companies.map(c=>{const r=DATA.find(d=>d.company===c&&d.quarter===lastQ);return{c,v:r?.export_ratio||0};}).sort((a,b)=>b.v-a.v);
+  charts['exportRatioBar']=new Chart(document.getElementById('exportRatioBar'),{type:'bar',data:{labels:expRatioData.map(d=>d.c),datasets:[{label:'수출비중%',data:expRatioData.map(d=>d.v),backgroundColor:expRatioData.map(d=>getColor(d.c,0.85))}]},options:{indexAxis:'y',responsive:true,plugins:{legend:{display:false}},scales:{x:{max:100,ticks:{color:'#8b949e'},grid:{color:'#21262d'}},y:{ticks:{color:'#8b949e'},grid:{color:'#21262d'}}}}});
+  const naT=DATA.filter(d=>d.quarter===lastQ).reduce((s,d)=>s+(d.north_america||0),0);
+  const asT=DATA.filter(d=>d.quarter===lastQ).reduce((s,d)=>s+(d.asia||0),0);
+  const euT=DATA.filter(d=>d.quarter===lastQ).reduce((s,d)=>s+(d.europe||0),0);
+  charts['regionDonut']=new Chart(document.getElementById('regionDonut'),{type:'doughnut',data:{labels:['북미','아시아','유럽'],datasets:[{data:[naT,asT,euT],backgroundColor:['#fb923c','#3fb950','#38bdf8'],borderWidth:2,borderColor:'#161b22'}]},options:{responsive:true,plugins:{legend:{position:'bottom',labels:{color:'#8b949e'}}}}});
+  charts['exportRatioTrend']=new Chart(document.getElementById('exportRatioTrend'),{type:'line',data:{labels:quarters,datasets:companies.map(c=>({label:c,data:quarters.map(q=>{const r=DATA.find(d=>d.company===c&&d.quarter===q);return r?.export_ratio??null;}),borderColor:getColor(c),tension:.3,fill:false,pointRadius:3,borderWidth:2}))},options:{responsive:true,plugins:{legend:{position:'bottom',labels:{color:'#8b949e',font:{size:11}}}},scales:{x:{ticks:{color:'#8b949e',maxRotation:45},grid:{color:'#21262d'}},y:{title:{display:true,text:'%',color:'#8b949e'},max:100,ticks:{color:'#8b949e'},grid:{color:'#21262d'}}}}});
 }
 
+// ── ④ 이익 질 · 현금흐름 ──
+function renderQuality(){
+  const companies=getCompanies(),quarters=getQuarters();
+  destroyChart('cfoCoverChart');destroyChart('roeChart');destroyChart('cfoTrendChart');
+  const lastQ=quarters[quarters.length-1];
+  // CFO/OI 커버리지
+  const cfoData=companies.map(c=>{const r=DATA.find(d=>d.company===c&&d.quarter===lastQ);return{c,v:r&&r.op_income?round1(r.op_cashflow/r.op_income):0};}).sort((a,b)=>b.v-a.v);
+  // 인사이트
+  const highQual=cfoData.filter(x=>x.v>=1.0).map(x=>x.c);
+  const lowQual=cfoData.filter(x=>x.v<0.7).map(x=>x.c);
+  document.getElementById('qualityInsightText').innerHTML=`<ul>
+    <li><b>CFO/OI ≥ 1.0 (이익 질 우수):</b> ${highQual.length?highQual.join(', '):'해당 없음'} — 현금이 이익을 뒷받침</li>
+    <li><b>CFO/OI < 0.7 (이익 질 주의):</b> ${lowQual.length?lowQual.join(', '):'해당 없음'} — 비현금 수익 성분 점검 필요</li>
+    <li><b>체크포인트:</b> 수출 급성장 기업은 AR 증가로 CFO가 일시 저하될 수 있음. 지속성 여부 확인.</li>
+  </ul>`;
+  charts['cfoCoverChart']=new Chart(document.getElementById('cfoCoverChart'),{type:'bar',data:{labels:cfoData.map(d=>d.c),datasets:[{label:'CFO/OI',data:cfoData.map(d=>d.v),backgroundColor:cfoData.map(d=>d.v>=1?'#3fb95088':d.v>=0.7?'#f59e0b88':'#f8514988')}]},options:{indexAxis:'y',responsive:true,plugins:{legend:{display:false},annotation:{annotations:{line1:{type:'line',xMin:1,xMax:1,borderColor:'#3fb950',borderWidth:1.5,label:{content:'1.0x',display:true,color:'#3fb950',font:{size:10}}}}}},scales:{x:{ticks:{color:'#8b949e'},grid:{color:'#21262d'}},y:{ticks:{color:'#8b949e'},grid:{color:'#21262d'}}}}});
+  charts['roeChart']=new Chart(document.getElementById('roeChart'),{type:'line',data:{labels:quarters,datasets:companies.map(c=>({label:c,data:quarters.map(q=>{const r=DATA.find(d=>d.company===c&&d.quarter===q);return r?.roe??null;}),borderColor:getColor(c),tension:.3,fill:false,pointRadius:3,borderWidth:2}))},options:{responsive:true,plugins:{legend:{position:'bottom',labels:{color:'#8b949e',font:{size:11}}}},scales:{x:{ticks:{color:'#8b949e',maxRotation:45},grid:{color:'#21262d'}},y:{title:{display:true,text:'%',color:'#8b949e'},ticks:{color:'#8b949e'},grid:{color:'#21262d'}}}}});
+  const recentQs=quarters.slice(-8);
+  charts['cfoTrendChart']=new Chart(document.getElementById('cfoTrendChart'),{type:'bar',data:{labels:recentQs,datasets:companies.map(c=>({label:c,data:recentQs.map(q=>{const r=DATA.find(d=>d.company===c&&d.quarter===q);return r&&r.op_cashflow?round1(r.op_cashflow/10):0;}),backgroundColor:getColor(c,0.75),stack:'s'}))},options:{responsive:true,plugins:{legend:{position:'bottom',labels:{color:'#8b949e',font:{size:11}}}},scales:{x:{stacked:true,ticks:{color:'#8b949e',maxRotation:45},grid:{color:'#21262d'}},y:{stacked:true,title:{display:true,text:'십억원',color:'#8b949e'},ticks:{color:'#8b949e'},grid:{color:'#21262d'}}}}});
+}
+
+// ── ⑤ 상대 비교 · L/S 시그널 ──
+function renderRelative(){
+  const companies=getCompanies(),quarters=getQuarters();
+  destroyChart('scatterChart');destroyChart('scoreChart');
+  const lastQ=quarters[quarters.length-1];
+
+  // 스코어카드 데이터
+  const scores=companies.map(c=>({c,s:calcScore(c)})).filter(x=>x.s).sort((a,b)=>b.s.total-a.s.total);
+
+  // L/S 인사이트
+  const top3=scores.slice(0,3),bot3=scores.slice(-3).reverse();
+  document.getElementById('lsInsightText').innerHTML=`<ul>
+    <li><b>LONG 후보 (High Score):</b> ${top3.map(x=>x.c+'('+x.s.total+'pts)').join(' > ')} — 매출모멘텀·마진확장·수출성장 복합 상위</li>
+    <li><b>SHORT/AVOID 후보 (Low Score):</b> ${bot3.map(x=>x.c+'('+x.s.total+'pts)').join(' > ')} — 구조적 마진 개선 부재 또는 성장 둔화</li>
+    <li><b>핵심 테마:</b> 삼양식품은 수출비중·마진·성장 3관왕. 오리온은 안정적 아시아 플레이. 농심 미국 현지화 속도가 리레이팅 트리거.</li>
+    <li><b>리스크:</b> 원/달러 환율, 밀·팜유 원가, 미국 관세(25%), 중국 소비 둔화 모니터링 필수.</li>
+  </ul>`;
+
+  // 스캐터 차트: 마진 vs 수출비중
+  const scatterDs=companies.map(c=>{
+    const r=DATA.find(d=>d.company===c&&d.quarter===lastQ);
+    if(!r)return null;
+    return{label:c,data:[{x:r.export_ratio||0,y:r.op_margin||0,r:Math.sqrt((r.revenue||0)/10/100)*3+5}],backgroundColor:getColor(c,0.7),borderColor:getColor(c)};
+  }).filter(Boolean);
+  charts['scatterChart']=new Chart(document.getElementById('scatterChart'),{type:'bubble',data:{datasets:scatterDs},options:{responsive:true,plugins:{legend:{position:'bottom',labels:{color:'#8b949e',font:{size:10}}},tooltip:{callbacks:{label:(ctx)=>{const c=ctx.dataset.label;const r=DATA.find(d=>d.company===c&&d.quarter===lastQ);return[`${c}`,`수출비중: ${ctx.raw.x}%`,`영업이익률: ${ctx.raw.y}%`];}}}},scales:{x:{title:{display:true,text:'수출비중(%)',color:'#8b949e'},ticks:{color:'#8b949e'},grid:{color:'#21262d'}},y:{title:{display:true,text:'영업이익률(%)',color:'#8b949e'},ticks:{color:'#8b949e'},grid:{color:'#21262d'}}}}});
+
+  // 스코어 바 차트
+  charts['scoreChart']=new Chart(document.getElementById('scoreChart'),{type:'bar',data:{labels:scores.map(x=>x.c),datasets:[
+    {label:'매출YoY',data:scores.map(x=>x.s.s1),backgroundColor:'#fb923c88',stack:'s'},
+    {label:'영업익YoY',data:scores.map(x=>x.s.s2),backgroundColor:'#3fb95088',stack:'s'},
+    {label:'마진확장',data:scores.map(x=>x.s.s3),backgroundColor:'#f59e0b88',stack:'s'},
+    {label:'수출비중',data:scores.map(x=>x.s.s4),backgroundColor:'#38bdf888',stack:'s'},
+    {label:'수출YoY',data:scores.map(x=>x.s.s5),backgroundColor:'#bc8cff88',stack:'s'},
+    {label:'절대OPM',data:scores.map(x=>x.s.s6),backgroundColor:'#f8514988',stack:'s'},
+    {label:'CFO질',data:scores.map(x=>x.s.s7),backgroundColor:'#a78bfa88',stack:'s'},
+  ]},options:{responsive:true,plugins:{legend:{position:'bottom',labels:{color:'#8b949e',font:{size:10}}}},scales:{x:{stacked:true,ticks:{color:'#8b949e'},grid:{color:'#21262d'}},y:{stacked:true,title:{display:true,text:'Score (max 70)',color:'#8b949e'},ticks:{color:'#8b949e'},grid:{color:'#21262d'}}}}});
+
+  // 스코어카드 테이블
+  const thead=`<thead><tr>
+    <th>기업</th><th>종합점수</th><th>매출YoY%</th><th>OPM%</th><th>마진Δ%p</th>
+    <th>수출비중%</th><th>수출YoY%</th><th>CFO/OI</th><th>L/S시그널</th>
+  </tr></thead>`;
+  const tbody=scores.map((x,i)=>{
+    const s=x.s;
+    const signal=s.total>=65?'<span class="signal long">LONG</span>':s.total>=50?'<span class="signal neutral">HOLD</span>':'<span class="signal short">AVOID</span>';
+    const rankCls=i===0?'rank-1':i===1?'rank-2':i===2?'rank-3':'';
+    return`<tr>
+      <td class="${rankCls}" style="text-align:left">${i===0?'🥇':i===1?'🥈':i===2?'🥉':''} ${x.c}</td>
+      <td class="${rankCls}">${s.total}</td>
+      <td class="${s.revYoY>=10?'cell-up':s.revYoY>=0?'':'cell-dn'}">${s.revYoY>=0?'+':''}${s.revYoY}%</td>
+      <td>${s.opm.toFixed(1)}%</td>
+      <td class="${s.marginDlt>0?'cell-up':s.marginDlt<0?'cell-dn':''}">${s.marginDlt>0?'+':''}${s.marginDlt}%p</td>
+      <td>${s.exportRatio.toFixed(1)}%</td>
+      <td class="${s.exportYoY>=10?'cell-up':s.exportYoY>=0?'':'cell-dn'}">${s.exportYoY>=0?'+':''}${s.exportYoY}%</td>
+      <td class="${s.cfoCover>=100?'cell-up':s.cfoCover>=70?'':'cell-dn'}">${s.cfoCover}%</td>
+      <td>${signal}</td>
+    </tr>`;
+  }).join('');
+  document.getElementById('scorecardTable').innerHTML=thead+'<tbody>'+tbody+'</tbody>';
+
+  // 리스크 체크리스트
+  document.getElementById('riskChecklist').innerHTML=`
+  <div class="insight-box" style="background:#1a0d0d;border-color:#5a1e1e;">
+    <div class="insight-title" style="color:#f85149;">⚠️ 거시 리스크 체크리스트</div>
+    <ul>
+      <li>원/달러 환율 (수출기업 우호 구간: 1350~1450)</li>
+      <li>국제 밀·팜유 가격 추이 (원가 압력)</li>
+      <li>미국 관세 정책 변화 (K-food 품목 영향)</li>
+      <li>중국 소비 경기 회복 강도 (오리온 핵심 변수)</li>
+    </ul>
+  </div>
+  <div class="insight-box" style="background:#0d1a0d;border-color:#1a4731;">
+    <div class="insight-title" style="color:#3fb950;">✅ 섹터 구조적 강점</div>
+    <ul>
+      <li>K-한류 콘텐츠 연동 브랜드 파워 지속</li>
+      <li>삼양 불닭 소셜미디어 바이럴 → 수요 내재화</li>
+      <li>농심 미국 현지 생산 → 관세 회피 + 신선도</li>
+      <li>CJ Bibigo 글로벌 유통 인프라 구축 완료</li>
+    </ul>
+  </div>`;
+}
+
+// ── ⑥ 기업별 드릴다운 ──
 function renderCompany(){
-  const companies=getCompanies();if(!currentCompany)currentCompany=companies[0];
+  const companies=getCompanies();
+  if(!currentCompany)currentCompany=companies[0];
   document.getElementById('companyFilter').innerHTML=companies.map(c=>`<button class="filter-btn ${c===currentCompany?'active':''}" onclick="selectCompany('${c}',this)">${c}</button>`).join('');
   updateCompanyView();
 }
 function selectCompany(c,btn){currentCompany=c;document.querySelectorAll('#companyFilter .filter-btn').forEach(b=>b.classList.remove('active'));btn.classList.add('active');updateCompanyView();}
 function updateCompanyView(){
-  const cData=DATA.filter(d=>d.company===currentCompany).sort((a,b)=>a.quarter.localeCompare(b.quarter));if(!cData.length)return;
+  const cData=DATA.filter(d=>d.company===currentCompany).sort((a,b)=>a.quarter.localeCompare(b.quarter));
+  if(!cData.length)return;
   const last=cData[cData.length-1],prev=cData[cData.length-2];
-  function delta(k){if(!prev)return'';const d=last[k]-prev[k];return `<span class="delta ${d>=0?'up':'down'}">${d>=0?'▲':'▼'}${Math.abs(d).toLocaleString()}</span>`;}
+  const meta=COMPANIES_META[currentCompany]||{};
+  const score=calcScore(currentCompany);
+  function delta(k,pct,unit){
+    if(!prev)return'';
+    const d=last[k]-prev[k];
+    const disp=pct?fmt(Math.abs(d))+'%p':fmt(Math.abs(d)/10)+(unit||'십억원');
+    return `<span class="delta ${d>=0?'up':'dn'}">${d>=0?'▲':'▼'}${disp}</span>`;
+  }
+  const yoy=calcYoY(currentCompany,last.quarter,'revenue');
   document.getElementById('companyKPI').innerHTML=`
-    <div class="kpi-card"><div class="label">매출액</div><div class="value">${last.revenue.toLocaleString()}<span class="unit">십억원</span></div>${delta('revenue')}</div>
-    <div class="kpi-card"><div class="label">영업이익</div><div class="value">${last.op_income.toLocaleString()}<span class="unit">십억원</span></div>${delta('op_income')}</div>
-    <div class="kpi-card"><div class="label">영업이익률</div><div class="value">${last.op_margin}<span class="unit">%</span></div>${delta('op_margin')}</div>
-    <div class="kpi-card"><div class="label">수출매출</div><div class="value">${last.export_revenue.toLocaleString()}<span class="unit">십억원</span></div>${delta('export_revenue')}</div>
-    <div class="kpi-card"><div class="label">수출비중</div><div class="value">${last.export_ratio}<span class="unit">%</span></div>${delta('export_ratio')}</div>
+<div class="kpi-card"><div class="label">매출액</div><div class="value">${fmt(last.revenue/10,0)}<span class="unit">십억</span></div>${delta('revenue')}${yoy!=null?'<div class="delta '+(yoy>=0?'up':'dn')+'">YoY '+(yoy>=0?'+':'')+yoy+'%</div>':''}</div>
+<div class="kpi-card"><div class="label">영업이익</div><div class="value">${fmt(last.op_income/10,0)}<span class="unit">십억</span></div>${delta('op_income')}</div>
+<div class="kpi-card"><div class="label">OPM</div><div class="value">${fmtPct(last.op_margin)}</div>${delta('op_margin',true)}</div>
+<div class="kpi-card"><div class="label">수출비중</div><div class="value">${fmtPct(last.export_ratio)}</div>${delta('export_ratio',true)}</div>
+<div class="kpi-card"><div class="label">CFO/OI</div><div class="value">${last.op_income?round1(last.op_cashflow/last.op_income*100):'-'}<span class="unit">%</span></div></div>
+<div class="kpi-card"><div class="label">종합 스코어</div><div class="value">${score?.total||'-'}<span class="unit">/100</span></div><span class="signal ${(score?.total||0)>=65?'long':(score?.total||0)>=50?'neutral':'short'}">${(score?.total||0)>=65?'LONG':(score?.total||0)>=50?'HOLD':'AVOID'}</span></div>
   `;
   const qs=cData.map(d=>d.quarter);
-  destroyChart('companyBar');destroyChart('companyRegion');
-  charts['companyBar']=new Chart(document.getElementById('companyBarChart'),{type:'bar',data:{labels:qs,datasets:[{label:'매출액',data:cData.map(d=>d.revenue),backgroundColor:'#f9731666'},{label:'영업이익',data:cData.map(d=>d.op_income),backgroundColor:'#3fb95066'}]},options:{responsive:true,plugins:{legend:{labels:{color:'#8b949e'}}},scales:{x:{ticks:{color:'#8b949e'},grid:{color:'#21262d'}},y:{ticks:{color:'#8b949e'},grid:{color:'#21262d'}}}}});
-  charts['companyRegion']=new Chart(document.getElementById('companyRegionChart'),{type:'bar',data:{labels:qs,datasets:[{label:'북미',data:cData.map(d=>d.north_america),backgroundColor:'#fb923c88',stack:'s'},{label:'아시아',data:cData.map(d=>d.asia),backgroundColor:'#3fb95088',stack:'s'},{label:'유럽',data:cData.map(d=>d.europe),backgroundColor:'#38bdf888',stack:'s'}]},options:{responsive:true,plugins:{legend:{labels:{color:'#8b949e'}}},scales:{x:{stacked:true,ticks:{color:'#8b949e'},grid:{color:'#21262d'}},y:{stacked:true,ticks:{color:'#8b949e'},grid:{color:'#21262d'}}}}});
+  destroyChart('companyBarChart');destroyChart('companyMarginChart');destroyChart('companyExportChart');destroyChart('companyCFOChart');
+  charts['companyBarChart']=new Chart(document.getElementById('companyBarChart'),{type:'bar',data:{labels:qs,datasets:[{label:'매출액',data:cData.map(d=>round1(d.revenue/10)),backgroundColor:getColor(currentCompany,0.4)},{label:'영업이익',data:cData.map(d=>round1(d.op_income/10)),backgroundColor:getColor(currentCompany,0.85)}]},options:{responsive:true,plugins:{legend:{labels:{color:'#8b949e'}}},scales:{x:{ticks:{color:'#8b949e',maxRotation:45},grid:{color:'#21262d'}},y:{ticks:{color:'#8b949e'},grid:{color:'#21262d'}}}}});
+  charts['companyMarginChart']=new Chart(document.getElementById('companyMarginChart'),{type:'line',data:{labels:qs,datasets:[{label:'OPM%',data:cData.map(d=>d.op_margin),borderColor:getColor(currentCompany),backgroundColor:getColor(currentCompany,0.15),fill:true,tension:.3,pointRadius:3},{label:'NPM%',data:cData.map(d=>d.net_margin),borderColor:'#8b949e',tension:.3,pointRadius:3,borderDash:[4,4]}]},options:{responsive:true,plugins:{legend:{labels:{color:'#8b949e'}}},scales:{x:{ticks:{color:'#8b949e',maxRotation:45},grid:{color:'#21262d'}},y:{ticks:{color:'#8b949e'},grid:{color:'#21262d'}}}}});
+  charts['companyExportChart']=new Chart(document.getElementById('companyExportChart'),{type:'line',data:{labels:qs,datasets:[{label:'수출비중%',data:cData.map(d=>d.export_ratio),borderColor:'#f59e0b',backgroundColor:'#f59e0b22',fill:true,tension:.3,pointRadius:3}]},options:{responsive:true,plugins:{legend:{labels:{color:'#8b949e'}}},scales:{x:{ticks:{color:'#8b949e',maxRotation:45},grid:{color:'#21262d'}},y:{max:100,ticks:{color:'#8b949e'},grid:{color:'#21262d'}}}}});
+  charts['companyCFOChart']=new Chart(document.getElementById('companyCFOChart'),{type:'bar',data:{labels:qs,datasets:[{label:'CFO',data:cData.map(d=>round1(d.op_cashflow/10)),backgroundColor:'#38bdf888'},{label:'영업이익',data:cData.map(d=>round1(d.op_income/10)),backgroundColor:'#3fb95055'}]},options:{responsive:true,plugins:{legend:{labels:{color:'#8b949e'}}},scales:{x:{ticks:{color:'#8b949e',maxRotation:45},grid:{color:'#21262d'}},y:{ticks:{color:'#8b949e'},grid:{color:'#21262d'}}}}});
 }
-function renderTable(){document.getElementById('dataTable').innerHTML=DATA.map(d=>`<tr><td>${d.quarter}</td><td>${d.company}</td><td>${d.revenue.toLocaleString()}</td><td>${d.op_income.toLocaleString()}</td><td>${d.op_margin}%</td><td>${d.export_revenue.toLocaleString()}</td><td>${d.export_ratio}%</td><td>${d.north_america.toLocaleString()}</td><td>${d.asia.toLocaleString()}</td><td>${d.europe.toLocaleString()}</td></tr>`).join('');}
-function exportCSV(){const h=['분기','기업명','매출액','영업이익','영업이익률','수출매출','수출비중','북미','아시아','유럽'];const rows=DATA.map(d=>[d.quarter,d.company,d.revenue,d.op_income,d.op_margin,d.export_revenue,d.export_ratio,d.north_america,d.asia,d.europe]);const csv=[h,...rows].map(r=>r.join(',')).join('\n');const blob=new Blob(['\uFEFF'+csv],{type:'text/csv;charset=utf-8'});const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download='kfood_data.csv';a.click();}
-function resetToSample(){DATA=SAMPLE.map(r=>({...r}));MONEY_FIELDS.forEach(f=>DATA.forEach(r=>{if(typeof r[f]==='number')r[f]=Math.round(r[f]/10);}));isSample=true;updateSourceBar();populateFilters();renderSummary();}
-function updateSourceBar(){document.getElementById('dsBadge').className='ds-badge '+(isSample?'sample':'live');document.getElementById('dsBadge').textContent=isSample?'SAMPLE':'LIVE';document.getElementById('dsInfo').textContent=isSample?'샘플 데이터 | collect_data.py 실행 후 data/kfood_data.js 필요':`DART 데이터 | ${DATA.length}건`;}
-function populateFilters(){const qs=getQuarters();document.getElementById('quarterFilter').innerHTML='<option value="all">전체 분기</option>'+qs.map(q=>`<option value="${q}">${q}</option>`).join('');}
-const MONEY_FIELDS=['revenue','op_income','export_revenue','net_income','op_cashflow','north_america','asia','europe'];
-function loadExternalData(){if(window.INDUSTRY_DATA_KFOOD&&Array.isArray(window.INDUSTRY_DATA_KFOOD)){DATA=window.INDUSTRY_DATA_KFOOD;isSample=false;}else{DATA=SAMPLE.map(r=>({...r}));isSample=true;}DATA.forEach(r=>MONEY_FIELDS.forEach(f=>{if(typeof r[f]==='number')r[f]=Math.round(r[f]/10);}));}
-loadExternalData();updateSourceBar();populateFilters();renderSummary();
+
+// ── ⑦ Raw 데이터 테이블 ──
+function renderTable(){
+  const quarters=getQuarters();
+  const rows=DATA.filter(d=>quarters.includes(d.quarter)).sort((a,b)=>b.quarter.localeCompare(a.quarter)||a.company.localeCompare(b.company));
+  const yoyPrev=rows.map(d=>{const y=calcYoY(d.company,d.quarter,'revenue');return y;});
+  const opmDlt=rows.map(d=>marginDelta(d.company,d.quarter,'op_margin'));
+  document.getElementById('dataTable').innerHTML=rows.map((d,i)=>{
+    const rev=round1(d.revenue/10),oi=round1(d.op_income/10),ni=round1(d.net_income/10),cfo=round1(d.op_cashflow/10);
+    const exp=round1(d.export_revenue/10),na=round1(d.north_america/10),as=round1(d.asia/10),eu=round1(d.europe/10);
+    const yoy=yoyPrev[i];const odlt=opmDlt[i];
+    return `<tr>
+      <td>${d.quarter}</td><td>${d.company}</td>
+      <td>${fmt(rev,0)}</td><td>${fmt(oi,0)}</td><td>${fmtPct(d.op_margin)}</td>
+      <td>${fmt(ni,0)}</td><td>${fmtPct(d.net_margin)}</td>
+      <td>${fmt(exp,0)}</td><td>${fmtPct(d.export_ratio)}</td>
+      <td>${fmt(na,0)}</td><td>${fmt(as,0)}</td><td>${fmt(eu,0)}</td>
+      <td>${fmt(cfo,0)}</td><td>${fmt(d.eps,0)}</td><td>${fmtPct(d.roe)}</td>
+      <td class="${yoy>=10?'cell-up':yoy!=null&&yoy<0?'cell-dn':''}">${yoy!=null?(yoy>=0?'+':'')+yoy+'%':'-'}</td>
+      <td class="${odlt>0?'cell-up':odlt<0?'cell-dn':''}">${odlt!=null?(odlt>0?'+':'')+odlt+'%p':'-'}</td>
+    </tr>`;
+  }).join('');
+}
+
+// ── 필터/초기화 ──
+function updateSourceBar(){
+  document.getElementById('dsBadge').className='ds-badge '+(isSample?'sample':'live');
+  document.getElementById('dsBadge').textContent=isSample?'SAMPLE':'LIVE';
+  document.getElementById('dsInfo').textContent=isSample?'샘플 데이터 | collect_data.py 실행 후 data/kfood_data.js 필요':`DART 데이터 | ${DATA.length}건`;
+}
+function populateFilters(){
+  const qs=getQuarters();
+  document.getElementById('quarterFilter').innerHTML='<option value="all">전체 분기</option>'+qs.map(q=>`<option value="${q}">${q}</option>`).join('');
+}
+function resetToSample(){DATA=SAMPLE.map(r=>({...r}));isSample=true;updateSourceBar();populateFilters();renderAll();}
+function exportCSV(){
+  const h=['분기','기업','매출(십억)','영업익(십억)','OPM%','순익(십억)','NPM%','수출(십억)','수출비%','북미','아시아','유럽','CFO(십억)','EPS','ROE%'];
+  const rows=DATA.map(d=>[d.quarter,d.company,round1(d.revenue/10),round1(d.op_income/10),d.op_margin,round1(d.net_income/10),d.net_margin,round1(d.export_revenue/10),d.export_ratio,round1(d.north_america/10),round1(d.asia/10),round1(d.europe/10),round1(d.op_cashflow/10),d.eps,d.roe]);
+  const csv=[h,...rows].map(r=>r.join(',')).join('\n');
+  const blob=new Blob(['\uFEFF'+csv],{type:'text/csv;charset=utf-8'});
+  const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download='kfood_ls_data.csv';a.click();
+}
+
+// ── 외부 데이터 로드 ──
+function loadExternalData(){
+  if(window.INDUSTRY_DATA_KFOOD&&Array.isArray(window.INDUSTRY_DATA_KFOOD)){
+    DATA=window.INDUSTRY_DATA_KFOOD;
+    // 억원 → 십억원은 렌더 시점에서 처리 (원본 유지)
+    isSample=false;
+  } else {
+    DATA=SAMPLE.map(r=>({...r}));
+    isSample=true;
+  }
+}
+
+// ── 초기 실행 ──
+loadExternalData();
+updateSourceBar();
+populateFilters();
+renderSummary();
 </script>
-</body></html>
+</body>
+</html>
