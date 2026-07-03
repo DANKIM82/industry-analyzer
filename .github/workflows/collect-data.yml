@@ -4,6 +4,11 @@ on:
   schedule:
     - cron: '0 22 * * *'
   workflow_dispatch:
+    inputs:
+      sector:
+        description: '수집할 섹터 (all 또는 finance/shipbuilding/defense/semiconductor/power_equipment/gaming/kfood/kbeauty)'
+        required: false
+        default: 'all'
 
 jobs:
   collect:
@@ -26,7 +31,7 @@ jobs:
       - name: Collect data from DART
         env:
           DART_API_KEY: ${{ secrets.DART_API_KEY }}
-        run: python collect_data.py --sector all
+        run: python collect_data.py --sector ${{ github.event.inputs.sector || 'all' }}
 
       - name: Commit and push updated data
         run: |
