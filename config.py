@@ -34,17 +34,17 @@ COMPANIES = {
     ],
     "shipbuilding": [
         {"name": "HD한국조선해양", "corp_code": "00164830", "category": "조선"},
-        {"name": "삼성중공업",    "corp_code": "00126478", "category": "조선"},
-        {"name": "한화오션",      "corp_code": "00111704", "category": "조선"},
-        {"name": "HD현대중공업",  "corp_code": "01390344", "category": "조선"},
-        {"name": "HD현대미포",    "corp_code": "00164609", "category": "조선"},  # FIXED 2026-06-25 (캐시 corp_code DB, stock 010620)
+        {"name": "삼성중공업",     "corp_code": "00126478", "category": "조선"},
+        {"name": "한화오션",       "corp_code": "00111704", "category": "조선"},
+        {"name": "HD현대중공업",   "corp_code": "01390344", "category": "조선"},
+        {"name": "HD현대미포",     "corp_code": "00164609", "category": "조선"},
     ],
     "defense": [
         {"name": "한화에어로스페이스", "corp_code": "00126566", "category": "방산"},
-        {"name": "LIG넥스원",        "corp_code": "00503668", "category": "방산"},  # FIXED 2026-06-25 (stock 079550)
-        {"name": "현대로템",          "corp_code": "00302926", "category": "방산"},
-        {"name": "한국항공우주",      "corp_code": "00309503", "category": "방산"},
-        {"name": "풍산",              "corp_code": "00684714", "category": "방산"},  # FIXED 2026-06-25 (구 01876659는 동명 비상장사, 정상 상장 풍산 stock 103140)
+        {"name": "LIG넥스원",          "corp_code": "00503668", "category": "방산"},
+        {"name": "현대로템",           "corp_code": "00302926", "category": "방산"},
+        {"name": "한국항공우주",       "corp_code": "00309503", "category": "방산"},
+        {"name": "풍산",               "corp_code": "00684714", "category": "방산"},
     ],
     "semiconductor": [
         {"name": "삼성전자",   "corp_code": "00126380", "category": "종합반도체"},
@@ -54,12 +54,12 @@ COMPANIES = {
         {"name": "한미반도체", "corp_code": "00161383", "category": "장비"},
     ],
     "gaming": [
-        {"name": "크래프톤",   "corp_code": "00760971", "category": "PC/모바일"},
-        {"name": "넷마블",     "corp_code": "00904672", "category": "모바일"},
-        {"name": "넥슨코리아", "corp_code": "00547033", "category": "PC/모바일"},  # 비상장 - 분기보고서 미제출로 DART 수집 불가
-        {"name": "엔씨소프트", "corp_code": "00261443", "category": "PC/모바일"},  # FIXED 2026-06-25 (stock 036570)
+        {"name": "크래프톤",    "corp_code": "00760971", "category": "PC/모바일"},
+        {"name": "넷마블",      "corp_code": "00904672", "category": "모바일"},
+        {"name": "넥슨코리아",  "corp_code": "00547033", "category": "PC/모바일"},  # 비상장 - 분기보고서 미제출로 DART 수집 불가
+        {"name": "엔씨소프트",  "corp_code": "00261443", "category": "PC/모바일"},
         {"name": "카카오게임즈","corp_code": "01137383", "category": "모바일"},
-        {"name": "펄어비스",   "corp_code": "01152470", "category": "PC/모바일"},
+        {"name": "펄어비스",    "corp_code": "01152470", "category": "PC/모바일"},
     ],
     "kfood": [
         {"name": "삼양식품",   "corp_code": "00126955", "category": "라면/스낵"},
@@ -80,6 +80,11 @@ COMPANIES = {
         {"name": "실리콘투",     "corp_code": "00982023", "category": "유통"},
         {"name": "토니모리",     "corp_code": "00816544", "category": "브랜드"},
         {"name": "잉글우드랩",   "corp_code": "01165739", "category": "ODM"},
+    ],
+    "power_equipment": [
+        {"name": "효성중공업", "corp_code": "01308763", "category": "변압기/전력기기"},
+        {"name": "HD현대일렉트릭", "corp_code": "01546594", "category": "변압기/전력기기"},
+        {"name": "LS일렉트릭", "corp_code": "00631887", "category": "전력기기/자동화"},
     ],
 }
 
